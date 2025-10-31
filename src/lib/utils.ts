@@ -149,3 +149,36 @@ export function compressImage(file: File): Promise<string> {
     reader.readAsDataURL(file);
   });
 }
+
+export function getWeekNumber(date: Date): { year: number; week: number } {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+  return { year: d.getUTCFullYear(), week: weekNo };
+}
+
+export function getWeeksInRange(
+  startDate: Date,
+  endDate: Date
+): Array<{ year: number; week: number; date: Date }> {
+  const weeks: Array<{ year: number; week: number; date: Date }> = [];
+  const current = new Date(startDate);
+
+  const dayOfWeek = current.getDay();
+  const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+  current.setDate(current.getDate() - daysToMonday);
+
+  while (current <= endDate) {
+    const { year, week } = getWeekNumber(current);
+    weeks.push({
+      year,
+      week,
+      date: new Date(current),
+    });
+    current.setDate(current.getDate() + 7);
+  }
+
+  return weeks;
+}

@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Header } from './components/Header';
 import { FilterPanel } from './components/FilterPanel';
-import { TaskList } from './components/TaskList';
+import { GanttChart } from './components/GanttChart';
 import { TaskDrawer } from './components/TaskDrawer';
 import { AddTaskModal } from './components/AddTaskModal';
+import { WeekDetailsModal } from './components/WeekDetailsModal';
 import { Task, Role, TaskStatus } from './types';
 import { getTasks, initializeData } from './lib/api';
 
@@ -17,6 +18,8 @@ function App() {
   const [drawerMode, setDrawerMode] = useState<'view' | 'update'>('view');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isWeekModalOpen, setIsWeekModalOpen] = useState(false);
+  const [selectedWeek, setSelectedWeek] = useState<{ year: number; week: number } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const [selectedStatuses, setSelectedStatuses] = useState<TaskStatus[]>([]);
@@ -127,6 +130,19 @@ function App() {
     }
   };
 
+  const handleWeekClick = (task: Task, year: number, week: number) => {
+    setSelectedTask(task);
+    setSelectedWeek({ year, week });
+    setIsWeekModalOpen(true);
+  };
+
+  const handleWeekModalClose = () => {
+    setIsWeekModalOpen(false);
+    setTimeout(() => {
+      setSelectedWeek(null);
+    }, 300);
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
       <Header
@@ -135,38 +151,34 @@ function App() {
         onAddTask={() => setIsAddModalOpen(true)}
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          <aside className="lg:col-span-1">
-            <FilterPanel
-              selectedStatuses={selectedStatuses}
-              selectedRoles={selectedRoles}
-              selectedMonths={selectedMonths}
-              availableMonths={availableMonths}
-              onStatusToggle={handleStatusToggle}
-              onRoleToggle={handleRoleToggle}
-              onMonthToggle={handleMonthToggle}
-              onClearFilters={handleClearFilters}
-            />
-          </aside>
-
-          <main className="lg:col-span-3">
-            {isLoading ? (
-              <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-                <p className="text-slate-500">Loading tasks...</p>
-              </div>
-            ) : (
-              <TaskList
-                tasks={filteredTasks}
-                currentRole={currentRole}
-                projectStart={PROJECT_START}
-                projectEnd={PROJECT_END}
-                onTaskView={handleTaskView}
-                onTaskUpdate={handleTaskUpdate}
-              />
-            )}
-          </main>
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="mb-6">
+          <FilterPanel
+            selectedStatuses={selectedStatuses}
+            selectedRoles={selectedRoles}
+            selectedMonths={selectedMonths}
+            availableMonths={availableMonths}
+            onStatusToggle={handleStatusToggle}
+            onRoleToggle={handleRoleToggle}
+            onMonthToggle={handleMonthToggle}
+            onClearFilters={handleClearFilters}
+          />
         </div>
+
+        <main>
+          {isLoading ? (
+            <div className="bg-white rounded-lg shadow-sm p-8 text-center">
+              <p className="text-slate-500">Loading tasks...</p>
+            </div>
+          ) : (
+            <GanttChart
+              tasks={filteredTasks}
+              projectStart={PROJECT_START}
+              projectEnd={PROJECT_END}
+              onWeekClick={handleWeekClick}
+            />
+          )}
+        </main>
       </div>
 
       <TaskDrawer
@@ -182,6 +194,15 @@ function App() {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onTaskAdded={loadTasks}
+      />
+
+      <WeekDetailsModal
+        isOpen={isWeekModalOpen}
+        onClose={handleWeekModalClose}
+        task={selectedTask}
+        year={selectedWeek?.year || 0}
+        week={selectedWeek?.week || 0}
+        currentRole={currentRole}
       />
     </div>
   );

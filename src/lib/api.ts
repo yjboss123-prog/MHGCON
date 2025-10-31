@@ -125,3 +125,49 @@ export async function createProgressUpdate(
 
   return data;
 }
+
+export async function getWeekWork(
+  taskId: string,
+  year: number,
+  week: number
+): Promise<{ work_description: string; photos: string[] } | null> {
+  const { data, error } = await supabase
+    .from('task_weeks')
+    .select('work_description, photos')
+    .eq('task_id', taskId)
+    .eq('year', year)
+    .eq('week_number', week)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function saveWeekWork(
+  taskId: string,
+  year: number,
+  week: number,
+  workDescription: string,
+  photos: string[]
+) {
+  const { data, error } = await supabase
+    .from('task_weeks')
+    .upsert(
+      {
+        task_id: taskId,
+        year,
+        week_number: week,
+        work_description: workDescription,
+        photos,
+        updated_at: new Date().toISOString(),
+      },
+      {
+        onConflict: 'task_id,year,week_number',
+      }
+    )
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
