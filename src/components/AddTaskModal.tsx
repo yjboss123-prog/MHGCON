@@ -1,15 +1,16 @@
 import { useState } from 'react';
 import { X, AlertCircle } from 'lucide-react';
 import { Role, ROLES } from '../types';
-import { createTask } from '../lib/api';
+import { createTask } from '../services/db';
 
 interface AddTaskModalProps {
   isOpen: boolean;
   onClose: () => void;
+  projectId: string | null;
   onTaskAdded: () => void;
 }
 
-export function AddTaskModal({ isOpen, onClose, onTaskAdded }: AddTaskModalProps) {
+export function AddTaskModal({ isOpen, onClose, onTaskAdded, projectId }: AddTaskModalProps) {
   const [name, setName] = useState('');
   const [ownerRole, setOwnerRole] = useState<Role>('Project Manager');
   const [startDate, setStartDate] = useState('');
@@ -36,16 +37,20 @@ export function AddTaskModal({ isOpen, onClose, onTaskAdded }: AddTaskModalProps
       return;
     }
 
+    if (!projectId) {
+      setError('No project available for new tasks.');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       await createTask({
+        projectId,
         name: name.trim(),
-        owner_role: ownerRole,
-        start_date: startDate,
-        end_date: endDate,
-        percent_done: 0,
-        status: 'On Track',
+        ownerRole,
+        startDate,
+        endDate,
       });
 
       setName('');
@@ -55,7 +60,8 @@ export function AddTaskModal({ isOpen, onClose, onTaskAdded }: AddTaskModalProps
       onTaskAdded();
       onClose();
     } catch (err) {
-      setError('Failed to create task');
+      const message = err instanceof Error ? err.message : 'Failed to create task';
+      setError(message);
       console.error(err);
     } finally {
       setIsSubmitting(false);

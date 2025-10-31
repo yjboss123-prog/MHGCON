@@ -8,7 +8,8 @@ import {
   getRoleBadgeColor,
   compressImage,
 } from '../lib/utils';
-import { getComments, getProgressUpdates, createComment, createProgressUpdate } from '../lib/api';
+import { getComments, getUpdates, addComment, saveProgressUpdate } from '../services/db';
+import { uploadUpdatePhoto } from '../services/storage';
 
 interface TaskDrawerProps {
   task: Task | null;
@@ -53,7 +54,7 @@ export function TaskDrawer({
     try {
       const [commentsData, updatesData] = await Promise.all([
         getComments(task.id),
-        getProgressUpdates(task.id),
+        getUpdates(task.id),
       ]);
       setComments(commentsData);
       setUpdates(updatesData);
@@ -94,15 +95,20 @@ export function TaskDrawer({
     setError(null);
 
     try {
-      await createProgressUpdate(
-        task.id,
-        currentRole,
-        percentDone,
+      let uploadedPhotoPath: string | undefined;
+      if (photoFile) {
+        uploadedPhotoPath = await uploadUpdatePhoto(photoFile);
+      }
+
+      await saveProgressUpdate({
+        taskId: task.id,
+        authorRole: currentRole,
+        percent: percentDone,
         status,
-        needsDelayReason ? delayReason : undefined,
-        note || undefined,
-        photoPreview || undefined
-      );
+        delayReason: needsDelayReason ? delayReason : undefined,
+        note: note || undefined,
+        photoPath: uploadedPhotoPath,
+      });
 
       setNote('');
       setDelayReason('');
@@ -110,8 +116,10 @@ export function TaskDrawer({
       setPhotoPreview(null);
       await loadTaskData();
       onTaskUpdated();
+      alert('Update saved.');
     } catch (err) {
-      setError('Failed to save update');
+      const message = err instanceof Error ? err.message : 'Failed to save update';
+      setError(message);
       console.error(err);
     } finally {
       setIsSubmitting(false);
@@ -123,7 +131,7 @@ export function TaskDrawer({
 
     setIsSubmitting(true);
     try {
-      await createComment(task.id, currentRole, commentText);
+      await addComment(task.id, currentRole, commentText);
       setCommentText('');
       await loadTaskData();
     } catch (err) {
@@ -311,9 +319,9 @@ export function TaskDrawer({
                   {update.note && (
                     <p className="mt-1 text-sm text-slate-600">{update.note}</p>
                   )}
-                  {update.photo_base64 && (
+                  {update.photo_url && (
                     <img
-                      src={update.photo_base64}
+                      src={update.photo_url}
                       alt="Update"
                       className="mt-2 w-full h-48 object-cover rounded-lg"
                     />
