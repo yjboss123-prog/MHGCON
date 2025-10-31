@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase';
+import { getSupabaseClient } from '../lib/supabase';
 import { Comment, ProgressUpdate, Project, Role, Task, TaskStatus } from '../types';
 import { getPublicUrl } from './storage';
 
@@ -23,6 +23,7 @@ export type UpdateRow = {
 export type CommentRow = Comment;
 
 export async function getFirstProject(): Promise<ProjectRow | null> {
+  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from('projects')
     .select('*')
@@ -38,6 +39,7 @@ export async function getFirstProject(): Promise<ProjectRow | null> {
 }
 
 export async function getTasks(projectId: string): Promise<TaskRow[]> {
+  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from('tasks')
     .select('*')
@@ -66,6 +68,7 @@ export async function createTask({
   startDate,
   endDate,
 }: CreateTaskInput): Promise<TaskRow> {
+  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from('tasks')
     .insert([
@@ -123,6 +126,7 @@ export async function saveProgressUpdate({
   note,
   photoPath,
 }: SaveProgressUpdateInput): Promise<ProgressUpdate> {
+  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from('updates')
     .insert([
@@ -163,6 +167,7 @@ export async function saveProgressUpdate({
 }
 
 export async function getUpdates(taskId: string): Promise<ProgressUpdate[]> {
+  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from('updates')
     .select('*')
@@ -178,6 +183,7 @@ export async function getUpdates(taskId: string): Promise<ProgressUpdate[]> {
 }
 
 export async function getComments(taskId: string): Promise<CommentRow[]> {
+  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from('comments')
     .select('*')
@@ -192,6 +198,7 @@ export async function getComments(taskId: string): Promise<CommentRow[]> {
 }
 
 export async function addComment(taskId: string, authorRole: Role, message: string) {
+  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from('comments')
     .insert([
