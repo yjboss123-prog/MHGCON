@@ -8,7 +8,8 @@ import {
   getRoleBadgeColor,
   compressImage,
 } from '../lib/utils';
-import { getComments, getProgressUpdates, createComment, createProgressUpdate } from '../lib/api';
+import { getComments, getUpdates, addComment, saveProgressUpdate } from '../services/db';
+import { uploadUpdatePhoto } from '../services/storage';
 
 interface TaskDrawerProps {
   task: Task | null;
@@ -39,12 +40,21 @@ export function TaskDrawer({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const canSubmitUpdates =
+    currentRole === 'Developer' ||
+    currentRole === 'Project Manager' ||
+    currentRole === 'Construction Contractor';
+
   useEffect(() => {
     if (task && isOpen) {
       loadTaskData();
       setPercentDone(task.percent_done);
       setStatus(task.status);
       setDelayReason(task.delay_reason || '');
+      setNote('');
+      setPhotoFile(null);
+      setPhotoPreview(null);
+      setError(null);
     }
   }, [task, isOpen]);
 
@@ -53,7 +63,7 @@ export function TaskDrawer({
     try {
       const [commentsData, updatesData] = await Promise.all([
         getComments(task.id),
-        getProgressUpdates(task.id),
+        getUpdates(task.id),
       ]);
       setComments(commentsData);
       setUpdates(updatesData);
@@ -82,7 +92,12 @@ export function TaskDrawer({
   };
 
   const handleSubmitUpdate = async () => {
-    if (!task) return;
+    if (!task || !canSubmitUpdates) {
+      if (!canSubmitUpdates) {
+        setError('You do not have permission to record updates for this task.');
+      }
+      return;
+    }
 
     const needsDelayReason = (status === 'Delayed' || status === 'Blocked') && percentDone < 100;
     if (needsDelayReason && !delayReason.trim()) {
@@ -94,15 +109,20 @@ export function TaskDrawer({
     setError(null);
 
     try {
-      await createProgressUpdate(
-        task.id,
-        currentRole,
-        percentDone,
+      let uploadedPhotoPath: string | undefined;
+      if (photoFile) {
+        uploadedPhotoPath = await uploadUpdatePhoto(photoFile);
+      }
+
+      await saveProgressUpdate({
+        taskId: task.id,
+        authorRole: currentRole,
+        percent: percentDone,
         status,
-        needsDelayReason ? delayReason : undefined,
-        note || undefined,
-        photoPreview || undefined
-      );
+        delayReason: needsDelayReason ? delayReason : undefined,
+        note: note || undefined,
+        photoPath: uploadedPhotoPath,
+      });
 
       setNote('');
       setDelayReason('');
@@ -110,8 +130,10 @@ export function TaskDrawer({
       setPhotoPreview(null);
       await loadTaskData();
       onTaskUpdated();
+      alert('Update saved.');
     } catch (err) {
-      setError('Failed to save update');
+      const message = err instanceof Error ? err.message : 'Failed to save update';
+      setError(message);
       console.error(err);
     } finally {
       setIsSubmitting(false);
@@ -123,7 +145,7 @@ export function TaskDrawer({
 
     setIsSubmitting(true);
     try {
-      await createComment(task.id, currentRole, commentText);
+      await addComment(task.id, currentRole, commentText);
       setCommentText('');
       await loadTaskData();
     } catch (err) {
@@ -134,8 +156,6 @@ export function TaskDrawer({
   };
 
   if (!task || !isOpen) return null;
-
-  const canUpdate = task.owner_role === currentRole;
   const needsDelayReason = (status === 'Delayed' || status === 'Blocked') && percentDone < 100;
 
   return (
@@ -174,7 +194,7 @@ export function TaskDrawer({
             </div>
           </div>
 
-          {mode === 'update' && canUpdate && (
+          {mode === 'update' && canSubmitUpdates && (
             <div className="bg-slate-50 rounded-lg p-4 space-y-4">
               <h4 className="font-medium text-slate-900">Record Progress Update</h4>
 
@@ -282,6 +302,11 @@ export function TaskDrawer({
               </button>
             </div>
           )}
+          {mode === 'update' && !canSubmitUpdates && (
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+              Only Developer, Project Manager, or Construction Contractor roles can record progress updates.
+            </div>
+          )}
 
           <div>
             <h4 className="font-medium text-slate-900 mb-3">Activity</h4>
@@ -311,9 +336,9 @@ export function TaskDrawer({
                   {update.note && (
                     <p className="mt-1 text-sm text-slate-600">{update.note}</p>
                   )}
-                  {update.photo_base64 && (
+                  {update.photo_url && (
                     <img
-                      src={update.photo_base64}
+                      src={update.photo_url}
                       alt="Update"
                       className="mt-2 w-full h-48 object-cover rounded-lg"
                     />

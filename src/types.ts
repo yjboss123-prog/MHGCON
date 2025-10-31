@@ -8,17 +8,29 @@ export type Role =
 
 export type TaskStatus = 'On Track' | 'Delayed' | 'Blocked' | 'Done';
 
+export type Project = {
+  id: string;
+  name: string;
+  description?: string | null;
+  start_date?: string | null;
+  end_date?: string | null;
+  created_at: string;
+  updated_at?: string | null;
+};
+
 export type Task = {
   id: string;
+  project_id?: string | null;
   name: string;
   owner_role: Role;
   start_date: string;
   end_date: string;
   percent_done: number;
   status: TaskStatus;
-  delay_reason?: string;
+  delay_reason?: string | null;
+  description?: string | null;
   created_at: string;
-  updated_at: string;
+  updated_at?: string | null;
 };
 
 export type Comment = {
@@ -35,9 +47,10 @@ export type ProgressUpdate = {
   author_role: Role;
   percent_done: number;
   status: TaskStatus;
-  delay_reason?: string;
-  note?: string;
-  photo_base64?: string;
+  delay_reason?: string | null;
+  note?: string | null;
+  photo_path?: string | null;
+  photo_url?: string | null;
   created_at: string;
 };
 
