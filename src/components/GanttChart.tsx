@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Task } from '../types';
 import { getWeekNumber, getWeeksInRange } from '../lib/utils';
 import { Language, useTranslation } from '../lib/i18n';
+import { ArrowRight } from 'lucide-react';
 
 interface GanttChartProps {
   tasks: Task[];
@@ -148,7 +149,17 @@ export function GanttChart({ tasks, projectStart, projectEnd, onWeekClick, langu
             return (
               <div key={task.id} className="flex border-b border-slate-200 hover:bg-slate-50">
                 <div className="w-64 flex-shrink-0 border-r border-slate-300 px-4 py-3">
-                  <div className="text-sm font-medium text-slate-900">{task.name}</div>
+                  <div className="flex items-center gap-2">
+                    <div className="text-sm font-medium text-slate-900">{task.name}</div>
+                    {task.was_shifted && (
+                      <span
+                        className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200"
+                        title={language === 'fr' ? 'Planning décalé' : 'Schedule shifted'}
+                      >
+                        <ArrowRight className="w-3 h-3" />
+                      </span>
+                    )}
+                  </div>
                   <div className="text-xs text-slate-500 mt-1">{task.owner_role}</div>
                 </div>
                 <div className="flex flex-1">

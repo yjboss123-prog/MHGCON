@@ -17,6 +17,8 @@ export type Task = {
   percent_done: number;
   status: TaskStatus;
   delay_reason?: string;
+  was_shifted?: boolean;
+  last_shift_date?: string;
   created_at: string;
   updated_at: string;
 };

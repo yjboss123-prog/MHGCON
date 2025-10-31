@@ -214,6 +214,8 @@ export async function shiftSchedule(
       .update({
         start_date: newStartDate.toISOString().slice(0, 10),
         end_date: newEndDate.toISOString().slice(0, 10),
+        was_shifted: true,
+        last_shift_date: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
       .eq('id', t.id);

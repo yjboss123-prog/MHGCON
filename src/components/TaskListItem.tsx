@@ -1,5 +1,5 @@
 import { Task, Role } from '../types';
-import { Calendar, Trash2 } from 'lucide-react';
+import { Calendar, Trash2, ArrowRight } from 'lucide-react';
 import {
   formatDate,
   getDaysRemaining,
@@ -58,6 +58,15 @@ export function TaskListItem({
                 <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getStatusBadgeColor(task.status)}`}>
                   {translateStatus(task.status, language)}
                 </span>
+                {task.was_shifted && (
+                  <span
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200"
+                    title={language === 'fr' ? 'Planning décalé' : 'Schedule shifted'}
+                  >
+                    <ArrowRight className="w-3 h-3" />
+                    <span>{language === 'fr' ? 'Décalé' : 'Shifted'}</span>
+                  </span>
+                )}
               </div>
             </div>
           </div>
