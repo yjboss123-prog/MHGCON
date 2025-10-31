@@ -2,17 +2,24 @@ import { useState, useEffect, useMemo } from 'react';
 import { Header } from './components/Header';
 import { FilterPanel } from './components/FilterPanel';
 import { GanttChart } from './components/GanttChart';
+import { TaskList } from './components/TaskList';
 import { TaskDrawer } from './components/TaskDrawer';
 import { AddTaskModal } from './components/AddTaskModal';
 import { WeekDetailsModal } from './components/WeekDetailsModal';
 import { Task, Role, TaskStatus } from './types';
 import { getTasks, initializeData } from './lib/api';
+import { Language, useTranslation } from './lib/i18n';
 
 const PROJECT_START = '2024-11-01';
 const PROJECT_END = '2025-09-30';
 
+type ViewMode = 'gantt' | 'list';
+
 function App() {
   const [currentRole, setCurrentRole] = useState<Role>('Project Manager');
+  const [language, setLanguage] = useState<Language>('en');
+  const [viewMode, setViewMode] = useState<ViewMode>('gantt');
+  const t = useTranslation(language);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [drawerMode, setDrawerMode] = useState<'view' | 'update'>('view');
@@ -149,10 +156,12 @@ function App() {
         currentRole={currentRole}
         onRoleChange={setCurrentRole}
         onAddTask={() => setIsAddModalOpen(true)}
+        language={language}
+        onLanguageChange={setLanguage}
       />
 
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="mb-6">
+        <div className="mb-6 flex items-center justify-between gap-4">
           <FilterPanel
             selectedStatuses={selectedStatuses}
             selectedRoles={selectedRoles}
@@ -163,19 +172,52 @@ function App() {
             onMonthToggle={handleMonthToggle}
             onClearFilters={handleClearFilters}
           />
+
+          <div className="flex bg-white rounded-lg shadow-sm p-1">
+            <button
+              onClick={() => setViewMode('gantt')}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                viewMode === 'gantt'
+                  ? 'bg-slate-900 text-white'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              {t.ganttChart}
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                viewMode === 'list'
+                  ? 'bg-slate-900 text-white'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              {t.listView}
+            </button>
+          </div>
         </div>
 
         <main>
           {isLoading ? (
             <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-              <p className="text-slate-500">Loading tasks...</p>
+              <p className="text-slate-500">{t.loadingTasks}</p>
             </div>
-          ) : (
+          ) : viewMode === 'gantt' ? (
             <GanttChart
               tasks={filteredTasks}
               projectStart={PROJECT_START}
               projectEnd={PROJECT_END}
               onWeekClick={handleWeekClick}
+              language={language}
+            />
+          ) : (
+            <TaskList
+              tasks={filteredTasks}
+              currentRole={currentRole}
+              projectStart={PROJECT_START}
+              projectEnd={PROJECT_END}
+              onTaskView={handleTaskView}
+              onTaskUpdate={handleTaskUpdate}
             />
           )}
         </main>
@@ -203,6 +245,7 @@ function App() {
         year={selectedWeek?.year || 0}
         week={selectedWeek?.week || 0}
         currentRole={currentRole}
+        language={language}
       />
     </div>
   );

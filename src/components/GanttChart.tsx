@@ -1,12 +1,14 @@
 import { useState, useMemo } from 'react';
 import { Task } from '../types';
 import { getWeekNumber, getWeeksInRange } from '../lib/utils';
+import { Language, useTranslation } from '../lib/i18n';
 
 interface GanttChartProps {
   tasks: Task[];
   projectStart: string;
   projectEnd: string;
   onWeekClick: (task: Task, year: number, week: number) => void;
+  language: Language;
 }
 
 interface WeekCell {
@@ -17,48 +19,46 @@ interface WeekCell {
   monthLabel?: string;
 }
 
-export function GanttChart({ tasks, projectStart, projectEnd, onWeekClick }: GanttChartProps) {
+export function GanttChart({ tasks, projectStart, projectEnd, onWeekClick, language }: GanttChartProps) {
   const [hoveredCell, setHoveredCell] = useState<string | null>(null);
+  const t = useTranslation(language);
 
   const { months, weeks, totalWeeks } = useMemo(() => {
     const start = new Date(projectStart);
     const end = new Date(projectEnd);
     const weeksData = getWeeksInRange(start, end);
 
-    const monthsMap = new Map<string, { label: string; span: number; weekNumbers: number[] }>();
+    const monthsMap = new Map<string, { label: string; span: number }>();
+    const weeksWithMonthNumbers: any[] = [];
 
-    weeksData.forEach((week, index) => {
+    let currentMonthKey = '';
+    let weekInMonth = 0;
+
+    weeksData.forEach((week) => {
       const monthKey = `${week.year}-${week.date.getMonth()}`;
-      const monthLabel = week.date.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+      const monthLabel = week.date.toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { month: 'short' }).toUpperCase();
 
-      if (!monthsMap.has(monthKey)) {
-        monthsMap.set(monthKey, { label: monthLabel, span: 0, weekNumbers: [] });
+      if (monthKey !== currentMonthKey) {
+        currentMonthKey = monthKey;
+        weekInMonth = 1;
+
+        if (!monthsMap.has(monthKey)) {
+          monthsMap.set(monthKey, { label: monthLabel, span: 0 });
+        }
+      } else {
+        weekInMonth++;
+        if (weekInMonth > 4) {
+          weekInMonth = 4;
+        }
       }
+
       const monthData = monthsMap.get(monthKey)!;
       monthData.span += 1;
-      monthData.weekNumbers.push(monthData.weekNumbers.length + 1);
-    });
 
-    const weeksWithMonthNumbers = weeksData.map((week) => {
-      const monthKey = `${week.year}-${week.date.getMonth()}`;
-      const monthData = monthsMap.get(monthKey)!;
-      const weekInMonth = monthData.weekNumbers[monthData.weekNumbers.findIndex((_, idx) => {
-        let count = 0;
-        for (const [key, data] of monthsMap.entries()) {
-          if (key === monthKey) {
-            return weeksData.indexOf(week) - count === idx;
-          }
-          count += data.span;
-        }
-        return false;
-      })];
-
-      return {
+      weeksWithMonthNumbers.push({
         ...week,
-        weekInMonth: ((weeksData.indexOf(week) - Array.from(monthsMap.entries())
-          .slice(0, Array.from(monthsMap.keys()).indexOf(monthKey))
-          .reduce((sum, [, data]) => sum + data.span, 0)) % monthData.span) + 1
-      };
+        weekInMonth
+      });
     });
 
     return {
@@ -110,7 +110,7 @@ export function GanttChart({ tasks, projectStart, projectEnd, onWeekClick }: Gan
           {/* Month Headers */}
           <div className="flex border-b-2 border-slate-300">
             <div className="w-64 flex-shrink-0 bg-slate-50 border-r border-slate-300 px-4 py-3">
-              <span className="text-sm font-semibold text-slate-700">TASKS</span>
+              <span className="text-sm font-semibold text-slate-700">{t.tasks}</span>
             </div>
             <div className="flex flex-1">
               {months.map((month, idx) => (
@@ -188,22 +188,22 @@ export function GanttChart({ tasks, projectStart, projectEnd, onWeekClick }: Gan
 
       {/* Legend */}
       <div className="border-t border-slate-200 px-4 py-3 bg-slate-50 flex items-center gap-6 text-xs">
-        <span className="font-semibold text-slate-700">STATUS:</span>
+        <span className="font-semibold text-slate-700">{t.status.toUpperCase()}:</span>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 rounded bg-slate-400"></div>
-          <span className="text-slate-600">On Track</span>
+          <span className="text-slate-600">{t.onTrack}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 rounded bg-amber-500"></div>
-          <span className="text-slate-600">Delayed</span>
+          <span className="text-slate-600">{t.delayed}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 rounded bg-red-500"></div>
-          <span className="text-slate-600">Blocked</span>
+          <span className="text-slate-600">{t.blocked}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 rounded bg-emerald-500"></div>
-          <span className="text-slate-600">Done</span>
+          <span className="text-slate-600">{t.done}</span>
         </div>
       </div>
     </div>

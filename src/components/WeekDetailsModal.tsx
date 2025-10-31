@@ -3,6 +3,7 @@ import { X, Upload, Trash2 } from 'lucide-react';
 import { Task, Role } from '../types';
 import { getWeekWork, saveWeekWork } from '../lib/api';
 import { compressImage } from '../lib/utils';
+import { Language, useTranslation } from '../lib/i18n';
 
 interface WeekDetailsModalProps {
   isOpen: boolean;
@@ -11,6 +12,7 @@ interface WeekDetailsModalProps {
   year: number;
   week: number;
   currentRole: Role;
+  language: Language;
 }
 
 interface WeekWork {
@@ -25,7 +27,9 @@ export function WeekDetailsModal({
   year,
   week,
   currentRole,
+  language,
 }: WeekDetailsModalProps) {
+  const t = useTranslation(language);
   const [workDescription, setWorkDescription] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -111,8 +115,8 @@ export function WeekDetailsModal({
             <div>
               <h2 className="text-xl font-semibold text-slate-900">{task.name}</h2>
               <p className="text-sm text-slate-600 mt-1">
-                Week {week}, {year} ({weekStartDate.toLocaleDateString()} -{' '}
-                {weekEndDate.toLocaleDateString()})
+                {t.weekDetails} {week}, {year} ({weekStartDate.toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')} -{' '}
+                {weekEndDate.toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')})
               </p>
             </div>
             <button
@@ -130,7 +134,7 @@ export function WeekDetailsModal({
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Work Description
+                    {t.workDescription}
                   </label>
                   {isEditing ? (
                     <textarea
@@ -143,14 +147,14 @@ export function WeekDetailsModal({
                   ) : (
                     <div className="bg-slate-50 rounded-lg px-4 py-3 min-h-[100px]">
                       {workDescription || (
-                        <span className="text-slate-400 italic">No work description added yet</span>
+                        <span className="text-slate-400 italic">{t.noWorkDescription}</span>
                       )}
                     </div>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Photos</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">{t.photos}</label>
                   <div className="grid grid-cols-2 gap-3">
                     {photos.map((photo, index) => (
                       <div key={index} className="relative group">
@@ -174,7 +178,7 @@ export function WeekDetailsModal({
                       <label className="border-2 border-dashed border-slate-300 rounded-lg h-32 flex items-center justify-center cursor-pointer hover:border-slate-400 transition-colors">
                         <div className="text-center">
                           <Upload className="w-6 h-6 text-slate-400 mx-auto mb-1" />
-                          <span className="text-sm text-slate-500">Upload Photo</span>
+                          <span className="text-sm text-slate-500">{t.uploadPhoto}</span>
                         </div>
                         <input
                           type="file"
@@ -187,7 +191,7 @@ export function WeekDetailsModal({
                     )}
                   </div>
                   {!isEditing && photos.length === 0 && (
-                    <div className="text-slate-400 italic text-sm">No photos added yet</div>
+                    <div className="text-slate-400 italic text-sm">{t.noPhotos}</div>
                   )}
                 </div>
               </div>
@@ -196,9 +200,7 @@ export function WeekDetailsModal({
 
           <div className="border-t border-slate-200 px-6 py-4 flex items-center justify-between">
             <div className="text-sm text-slate-500">
-              {canEdit
-                ? 'You can edit this week'
-                : 'Only the task owner or project manager can edit'}
+              {canEdit ? t.canEdit : t.cannotEdit}
             </div>
             <div className="flex items-center gap-3">
               {isEditing ? (
@@ -211,14 +213,14 @@ export function WeekDetailsModal({
                     className="px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-900"
                     disabled={isSaving}
                   >
-                    Cancel
+                    {t.cancel}
                   </button>
                   <button
                     onClick={handleSave}
                     className="px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={isSaving}
                   >
-                    {isSaving ? 'Saving...' : 'Save Changes'}
+                    {isSaving ? t.saving : t.saveChanges}
                   </button>
                 </>
               ) : (
@@ -227,14 +229,14 @@ export function WeekDetailsModal({
                     onClick={onClose}
                     className="px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-900"
                   >
-                    Close
+                    {t.close}
                   </button>
                   {canEdit && (
                     <button
                       onClick={() => setIsEditing(true)}
                       className="px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800"
                     >
-                      Edit
+                      {t.edit}
                     </button>
                   )}
                 </>

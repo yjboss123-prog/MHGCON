@@ -1,13 +1,17 @@
 import { Role, ROLES } from '../types';
 import { Settings } from 'lucide-react';
+import { Language, useTranslation } from '../lib/i18n';
 
 interface HeaderProps {
   currentRole: Role;
   onRoleChange: (role: Role) => void;
   onAddTask: () => void;
+  language: Language;
+  onLanguageChange: (language: Language) => void;
 }
 
-export function Header({ currentRole, onRoleChange, onAddTask }: HeaderProps) {
+export function Header({ currentRole, onRoleChange, onAddTask, language, onLanguageChange }: HeaderProps) {
+  const t = useTranslation(language);
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -24,6 +28,15 @@ export function Header({ currentRole, onRoleChange, onAddTask }: HeaderProps) {
 
           <div className="flex items-center gap-3">
             <select
+              value={language}
+              onChange={(e) => onLanguageChange(e.target.value as Language)}
+              className="px-3 py-2 border border-slate-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-slate-400 bg-white"
+            >
+              <option value="en">EN</option>
+              <option value="fr">FR</option>
+            </select>
+
+            <select
               value={currentRole}
               onChange={(e) => onRoleChange(e.target.value as Role)}
               className="px-3 py-2 border border-slate-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-slate-400 bg-white"
@@ -39,7 +52,7 @@ export function Header({ currentRole, onRoleChange, onAddTask }: HeaderProps) {
               onClick={onAddTask}
               className="px-4 py-2 bg-slate-700 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors"
             >
-              + Add Task
+              + {t.addTask}
             </button>
           </div>
         </div>
