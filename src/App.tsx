@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Header } from './components/Header';
 import { FilterPanel } from './components/FilterPanel';
-import { TaskList } from './components/TaskList';
+import { GanttChart, GanttWeek, filterTasksByWeek } from './components/GanttChart';
 import { TaskDrawer } from './components/TaskDrawer';
 import { AddTaskModal } from './components/AddTaskModal';
+import { WeekDrawer } from './components/WeekDrawer';
 import { Task, Role, TaskStatus } from './types';
 import { getFirstProject, getTasks as fetchTasks, TaskRow, ProjectRow } from './services/db';
 
@@ -18,6 +19,9 @@ function App() {
   const [drawerMode, setDrawerMode] = useState<'view' | 'update'>('view');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedWeek, setSelectedWeek] = useState<GanttWeek | null>(null);
+  const [weekTasks, setWeekTasks] = useState<TaskRow[]>([]);
+  const [isWeekDrawerOpen, setIsWeekDrawerOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -104,6 +108,12 @@ function App() {
     });
   }, [tasks, selectedStatuses, selectedRoles, selectedMonths]);
 
+  useEffect(() => {
+    if (selectedWeek && isWeekDrawerOpen) {
+      setWeekTasks(filterTasksByWeek(filteredTasks, selectedWeek));
+    }
+  }, [filteredTasks, selectedWeek, isWeekDrawerOpen]);
+
   const handleStatusToggle = (status: TaskStatus) => {
     setSelectedStatuses((prev) =>
       prev.includes(status) ? prev.filter((s) => s !== status) : [...prev, status]
@@ -128,16 +138,34 @@ function App() {
     setSelectedMonths([]);
   };
 
-  const handleTaskView = (task: Task) => {
+  const canManageTasks = currentRole === 'Developer' || currentRole === 'Project Manager';
+  const canRecordProgress = canManageTasks || currentRole === 'Construction Contractor';
+
+  const openTaskDrawer = (task: Task, mode: 'view' | 'update') => {
+    if (isWeekDrawerOpen) {
+      setIsWeekDrawerOpen(false);
+    }
     setSelectedTask(task);
-    setDrawerMode('view');
+    setDrawerMode(mode);
     setIsDrawerOpen(true);
   };
 
+  const handleTaskView = (task: Task) => {
+    openTaskDrawer(task, 'view');
+  };
+
   const handleTaskUpdate = (task: Task) => {
-    setSelectedTask(task);
-    setDrawerMode('update');
-    setIsDrawerOpen(true);
+    if (!canRecordProgress) {
+      alert('Only Developer, Project Manager, or Contractors can record updates.');
+      return;
+    }
+    openTaskDrawer(task, 'update');
+  };
+
+  const handleWeekSelect = (week: GanttWeek) => {
+    setSelectedWeek(week);
+    setWeekTasks(filterTasksByWeek(filteredTasks, week));
+    setIsWeekDrawerOpen(true);
   };
 
   const handleDrawerClose = () => {
@@ -171,7 +199,14 @@ function App() {
       <Header
         currentRole={currentRole}
         onRoleChange={setCurrentRole}
-        onAddTask={() => setIsAddModalOpen(true)}
+        onAddTask={() => {
+          if (!canManageTasks) {
+            alert('Only Developer or Project Manager can add tasks.');
+            return;
+          }
+          setIsAddModalOpen(true);
+        }}
+        canManageTasks={canManageTasks}
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -202,13 +237,14 @@ function App() {
                   </div>
                 )}
                 {(!errorMsg || tasks.length > 0) && (
-                  <TaskList
+                  <GanttChart
                     tasks={filteredTasks}
-                    currentRole={currentRole}
                     projectStart={projectStartDate}
                     projectEnd={projectEndDate}
+                    canRecordProgress={canRecordProgress}
                     onTaskView={handleTaskView}
                     onTaskUpdate={handleTaskUpdate}
+                    onWeekSelect={handleWeekSelect}
                   />
                 )}
               </>
@@ -224,6 +260,16 @@ function App() {
         mode={drawerMode}
         onClose={handleDrawerClose}
         onTaskUpdated={handleTaskUpdated}
+      />
+
+      <WeekDrawer
+        week={selectedWeek}
+        tasks={weekTasks}
+        isOpen={isWeekDrawerOpen}
+        onClose={() => setIsWeekDrawerOpen(false)}
+        onTaskView={handleTaskView}
+        onTaskUpdate={handleTaskUpdate}
+        canRecordProgress={canRecordProgress}
       />
 
       <AddTaskModal

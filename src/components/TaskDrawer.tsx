@@ -40,12 +40,21 @@ export function TaskDrawer({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const canSubmitUpdates =
+    currentRole === 'Developer' ||
+    currentRole === 'Project Manager' ||
+    currentRole === 'Construction Contractor';
+
   useEffect(() => {
     if (task && isOpen) {
       loadTaskData();
       setPercentDone(task.percent_done);
       setStatus(task.status);
       setDelayReason(task.delay_reason || '');
+      setNote('');
+      setPhotoFile(null);
+      setPhotoPreview(null);
+      setError(null);
     }
   }, [task, isOpen]);
 
@@ -83,7 +92,12 @@ export function TaskDrawer({
   };
 
   const handleSubmitUpdate = async () => {
-    if (!task) return;
+    if (!task || !canSubmitUpdates) {
+      if (!canSubmitUpdates) {
+        setError('You do not have permission to record updates for this task.');
+      }
+      return;
+    }
 
     const needsDelayReason = (status === 'Delayed' || status === 'Blocked') && percentDone < 100;
     if (needsDelayReason && !delayReason.trim()) {
@@ -142,8 +156,6 @@ export function TaskDrawer({
   };
 
   if (!task || !isOpen) return null;
-
-  const canUpdate = task.owner_role === currentRole;
   const needsDelayReason = (status === 'Delayed' || status === 'Blocked') && percentDone < 100;
 
   return (
@@ -182,7 +194,7 @@ export function TaskDrawer({
             </div>
           </div>
 
-          {mode === 'update' && canUpdate && (
+          {mode === 'update' && canSubmitUpdates && (
             <div className="bg-slate-50 rounded-lg p-4 space-y-4">
               <h4 className="font-medium text-slate-900">Record Progress Update</h4>
 
@@ -288,6 +300,11 @@ export function TaskDrawer({
               >
                 {isSubmitting ? 'Saving...' : 'Save Update'}
               </button>
+            </div>
+          )}
+          {mode === 'update' && !canSubmitUpdates && (
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+              Only Developer, Project Manager, or Construction Contractor roles can record progress updates.
             </div>
           )}
 

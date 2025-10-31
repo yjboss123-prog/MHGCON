@@ -5,9 +5,10 @@ interface HeaderProps {
   currentRole: Role;
   onRoleChange: (role: Role) => void;
   onAddTask: () => void;
+  canManageTasks: boolean;
 }
 
-export function Header({ currentRole, onRoleChange, onAddTask }: HeaderProps) {
+export function Header({ currentRole, onRoleChange, onAddTask, canManageTasks }: HeaderProps) {
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -35,12 +36,14 @@ export function Header({ currentRole, onRoleChange, onAddTask }: HeaderProps) {
               ))}
             </select>
 
-            <button
-              onClick={onAddTask}
-              className="px-4 py-2 bg-slate-700 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors"
-            >
-              + Add Task
-            </button>
+            {canManageTasks && (
+              <button
+                onClick={onAddTask}
+                className="px-4 py-2 bg-slate-700 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors"
+              >
+                + Add Task
+              </button>
+            )}
           </div>
         </div>
       </div>
