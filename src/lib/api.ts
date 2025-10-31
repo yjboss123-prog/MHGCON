@@ -171,3 +171,66 @@ export async function saveWeekWork(
   if (error) throw error;
   return data;
 }
+
+export async function shiftSchedule(
+  anchorTask: Task,
+  amount: number,
+  unit: 'Days' | 'Weeks',
+  skipDone: boolean
+): Promise<{ shiftedCount: number }> {
+  const shiftDays = amount * (unit === 'Weeks' ? 7 : 1);
+
+  const { data: allTasks, error: fetchError } = await supabase
+    .from('tasks')
+    .select('*')
+    .order('start_date', { ascending: true });
+
+  if (fetchError) throw fetchError;
+
+  const anchorEndDate = new Date(anchorTask.end_date);
+
+  let toShift = allTasks.filter((t) => {
+    if (t.id === anchorTask.id) return false;
+    const taskStartDate = new Date(t.start_date);
+    return taskStartDate >= anchorEndDate;
+  });
+
+  if (skipDone) {
+    toShift = toShift.filter((t) => t.status !== 'Done');
+  }
+
+  if (toShift.length === 0) {
+    return { shiftedCount: 0 };
+  }
+
+  const updates = toShift.map((t) => {
+    const newStartDate = new Date(t.start_date);
+    newStartDate.setDate(newStartDate.getDate() + shiftDays);
+    const newEndDate = new Date(t.end_date);
+    newEndDate.setDate(newEndDate.getDate() + shiftDays);
+
+    return {
+      id: t.id,
+      start_date: newStartDate.toISOString().slice(0, 10),
+      end_date: newEndDate.toISOString().slice(0, 10),
+      updated_at: new Date().toISOString(),
+    };
+  });
+
+  const { error: updateError } = await supabase.from('tasks').upsert(updates, { onConflict: 'id' });
+
+  if (updateError) throw updateError;
+
+  const currentDate = new Date().toISOString().slice(0, 10);
+  const comments = toShift.map((t) => ({
+    task_id: t.id,
+    author_role: 'Project Manager',
+    message: `Auto-shifted by ${amount} ${unit} due to delay of "${anchorTask.name}" on ${currentDate}.`,
+  }));
+
+  const { error: commentError } = await supabase.from('comments').insert(comments);
+
+  if (commentError) throw commentError;
+
+  return { shiftedCount: toShift.length };
+}

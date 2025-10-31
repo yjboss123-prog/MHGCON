@@ -6,8 +6,9 @@ import { TaskList } from './components/TaskList';
 import { TaskDrawer } from './components/TaskDrawer';
 import { AddTaskModal } from './components/AddTaskModal';
 import { WeekDetailsModal } from './components/WeekDetailsModal';
+import { ShiftModal } from './components/ShiftModal';
 import { Task, Role, TaskStatus } from './types';
-import { getTasks, initializeData } from './lib/api';
+import { getTasks, initializeData, shiftSchedule, deleteTask } from './lib/api';
 import { Language, useTranslation } from './lib/i18n';
 
 const PROJECT_START = '2024-11-01';
@@ -26,8 +27,10 @@ function App() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isWeekModalOpen, setIsWeekModalOpen] = useState(false);
+  const [isShiftModalOpen, setIsShiftModalOpen] = useState(false);
   const [selectedWeek, setSelectedWeek] = useState<{ year: number; week: number } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [toast, setToast] = useState<string | null>(null);
 
   const [selectedStatuses, setSelectedStatuses] = useState<TaskStatus[]>([]);
   const [selectedRoles, setSelectedRoles] = useState<Role[]>([]);
@@ -150,6 +153,62 @@ function App() {
     }, 300);
   };
 
+  const handleShiftTask = (task: Task) => {
+    setSelectedTask(task);
+    setIsShiftModalOpen(true);
+  };
+
+  const handleShiftConfirm = async (amount: number, unit: 'Days' | 'Weeks', skipDone: boolean) => {
+    if (!selectedTask) return;
+
+    try {
+      const result = await shiftSchedule(selectedTask, amount, unit, skipDone);
+      await loadTasks();
+      setIsShiftModalOpen(false);
+
+      const message = language === 'fr'
+        ? `Décalage appliqué à ${result.shiftedCount} tâche${result.shiftedCount !== 1 ? 's' : ''}.`
+        : `Shift applied to ${result.shiftedCount} task${result.shiftedCount !== 1 ? 's' : ''}.`;
+
+      setToast(message);
+      setTimeout(() => setToast(null), 3000);
+    } catch (error) {
+      console.error('Error shifting schedule:', error);
+      const errorMsg = language === 'fr'
+        ? 'Erreur lors du décalage du planning.'
+        : 'Error shifting schedule.';
+      setToast(errorMsg);
+      setTimeout(() => setToast(null), 3000);
+    }
+  };
+
+  const handleDeleteTask = async (task: Task) => {
+    const confirmMsg = language === 'fr'
+      ? `Êtes-vous sûr de vouloir supprimer "${task.name}" ?`
+      : `Are you sure you want to delete "${task.name}"?`;
+
+    if (!window.confirm(confirmMsg)) return;
+
+    try {
+      await deleteTask(task.id);
+      await loadTasks();
+
+      const successMsg = language === 'fr'
+        ? 'Tâche supprimée avec succès.'
+        : 'Task deleted successfully.';
+
+      setToast(successMsg);
+      setTimeout(() => setToast(null), 3000);
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      const errorMsg = language === 'fr'
+        ? 'Erreur lors de la suppression de la tâche.'
+        : 'Error deleting task.';
+      setToast(errorMsg);
+      setTimeout(() => setToast(null), 3000);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
       <Header
@@ -218,10 +277,18 @@ function App() {
               projectEnd={PROJECT_END}
               onTaskView={handleTaskView}
               onTaskUpdate={handleTaskUpdate}
+              onTaskShift={handleShiftTask}
+              onTaskDelete={handleDeleteTask}
             />
           )}
         </main>
       </div>
+
+      {toast && (
+        <div className="fixed bottom-4 right-4 bg-slate-900 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in">
+          {toast}
+        </div>
+      )}
 
       <TaskDrawer
         task={selectedTask}
@@ -245,6 +312,14 @@ function App() {
         year={selectedWeek?.year || 0}
         week={selectedWeek?.week || 0}
         currentRole={currentRole}
+        language={language}
+      />
+
+      <ShiftModal
+        isOpen={isShiftModalOpen}
+        onClose={() => setIsShiftModalOpen(false)}
+        task={selectedTask}
+        onConfirm={handleShiftConfirm}
         language={language}
       />
     </div>

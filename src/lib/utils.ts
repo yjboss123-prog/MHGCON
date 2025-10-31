@@ -182,3 +182,9 @@ export function getWeeksInRange(
 
   return weeks;
 }
+
+export function addDays(dateISO: string, n: number): string {
+  const d = new Date(dateISO);
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0, 10);
+}

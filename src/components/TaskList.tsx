@@ -8,6 +8,8 @@ interface TaskListProps {
   projectEnd: string;
   onTaskView: (task: Task) => void;
   onTaskUpdate: (task: Task) => void;
+  onTaskShift?: (task: Task) => void;
+  onTaskDelete?: (task: Task) => void;
 }
 
 export function TaskList({
@@ -17,6 +19,8 @@ export function TaskList({
   projectEnd,
   onTaskView,
   onTaskUpdate,
+  onTaskShift,
+  onTaskDelete,
 }: TaskListProps) {
   if (tasks.length === 0) {
     return (
@@ -37,6 +41,8 @@ export function TaskList({
           projectEnd={projectEnd}
           onView={onTaskView}
           onUpdate={onTaskUpdate}
+          onShift={onTaskShift}
+          onDelete={onTaskDelete}
         />
       ))}
     </div>

@@ -1,4 +1,5 @@
 import { Task, Role } from '../types';
+import { Calendar, Trash2 } from 'lucide-react';
 import {
   formatDate,
   getDaysRemaining,
@@ -15,6 +16,8 @@ interface TaskListItemProps {
   projectEnd: string;
   onView: (task: Task) => void;
   onUpdate: (task: Task) => void;
+  onShift?: (task: Task) => void;
+  onDelete?: (task: Task) => void;
 }
 
 export function TaskListItem({
@@ -24,9 +27,12 @@ export function TaskListItem({
   projectEnd,
   onView,
   onUpdate,
+  onShift,
+  onDelete,
 }: TaskListItemProps) {
   const daysRemaining = getDaysRemaining(task.end_date);
   const canUpdate = task.owner_role === currentRole;
+  const canManage = currentRole === 'Project Manager' || currentRole === 'Developer';
   const position = calculateGanttPosition(
     task.start_date,
     task.end_date,
@@ -106,6 +112,26 @@ export function TaskListItem({
               className="flex-1 lg:flex-none px-4 py-2 bg-slate-700 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors"
             >
               Update
+            </button>
+          )}
+          {canManage && onShift && (
+            <button
+              onClick={() => onShift(task)}
+              className="flex-1 lg:flex-none px-4 py-2 border border-blue-300 text-blue-700 text-sm font-medium rounded-lg hover:bg-blue-50 transition-colors flex items-center justify-center gap-1"
+              title="Delay / Shift Schedule"
+            >
+              <Calendar className="w-4 h-4" />
+              <span className="hidden lg:inline">Shift</span>
+            </button>
+          )}
+          {canManage && onDelete && (
+            <button
+              onClick={() => onDelete(task)}
+              className="flex-1 lg:flex-none px-4 py-2 border border-red-300 text-red-700 text-sm font-medium rounded-lg hover:bg-red-50 transition-colors flex items-center justify-center gap-1"
+              title="Delete Task"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span className="hidden lg:inline">Delete</span>
             </button>
           )}
         </div>
