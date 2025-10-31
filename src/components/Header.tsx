@@ -1,17 +1,19 @@
 import { Role, ROLES } from '../types';
-import { Settings } from 'lucide-react';
+import { Settings, RefreshCw } from 'lucide-react';
 import { Language, useTranslation } from '../lib/i18n';
 
 interface HeaderProps {
   currentRole: Role;
   onRoleChange: (role: Role) => void;
   onAddTask: () => void;
+  onRebaseline: () => void;
   language: Language;
   onLanguageChange: (language: Language) => void;
 }
 
-export function Header({ currentRole, onRoleChange, onAddTask, language, onLanguageChange }: HeaderProps) {
+export function Header({ currentRole, onRoleChange, onAddTask, onRebaseline, language, onLanguageChange }: HeaderProps) {
   const t = useTranslation(language);
+  const canManage = currentRole === 'Project Manager' || currentRole === 'Developer';
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -47,6 +49,17 @@ export function Header({ currentRole, onRoleChange, onAddTask, language, onLangu
                 </option>
               ))}
             </select>
+
+            {canManage && (
+              <button
+                onClick={onRebaseline}
+                className="px-3 py-2 border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors flex items-center gap-2"
+                title={language === 'fr' ? 'Recalibrer le projet' : 'Rebaseline Project'}
+              >
+                <RefreshCw className="w-4 h-4" />
+                <span className="hidden md:inline">{language === 'fr' ? 'Recalibrer' : 'Rebaseline'}</span>
+              </button>
+            )}
 
             <button
               onClick={onAddTask}

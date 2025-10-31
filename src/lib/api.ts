@@ -234,3 +234,71 @@ export async function shiftSchedule(
 
   return { shiftedCount: toShift.length };
 }
+
+export async function rebaselineProject(
+  newBaselineStart: string,
+  resetStatuses: boolean,
+  clearDelayReasons: boolean
+): Promise<{ shiftedCount: number; deltaDays: number }> {
+  const { data: allTasks, error: fetchError } = await supabase
+    .from('tasks')
+    .select('*')
+    .order('start_date', { ascending: true });
+
+  if (fetchError) throw fetchError;
+
+  if (allTasks.length === 0) {
+    return { shiftedCount: 0, deltaDays: 0 };
+  }
+
+  const minStart = allTasks.reduce((min, task) => {
+    return task.start_date < min ? task.start_date : min;
+  }, allTasks[0].start_date);
+
+  const deltaDays = Math.round(
+    (new Date(newBaselineStart).getTime() - new Date(minStart).getTime()) / 86400000
+  );
+
+  if (deltaDays === 0) {
+    return { shiftedCount: 0, deltaDays: 0 };
+  }
+
+  const updates = allTasks.map((t) => {
+    const newStartDate = new Date(t.start_date);
+    newStartDate.setDate(newStartDate.getDate() + deltaDays);
+    const newEndDate = new Date(t.end_date);
+    newEndDate.setDate(newEndDate.getDate() + deltaDays);
+
+    const update: any = {
+      id: t.id,
+      start_date: newStartDate.toISOString().slice(0, 10),
+      end_date: newEndDate.toISOString().slice(0, 10),
+      updated_at: new Date().toISOString(),
+    };
+
+    if (resetStatuses && t.status !== 'Done') {
+      update.status = 'On Track';
+      if (clearDelayReasons) {
+        update.delay_reason = null;
+      }
+    }
+
+    return update;
+  });
+
+  const { error: updateError } = await supabase.from('tasks').upsert(updates, { onConflict: 'id' });
+
+  if (updateError) throw updateError;
+
+  const comment = {
+    task_id: allTasks[0].id,
+    author_role: 'Project Manager',
+    message: `Rebaseline applied: shifted ${deltaDays} days from ${minStart} to ${newBaselineStart}.`,
+  };
+
+  const { error: commentError } = await supabase.from('comments').insert([comment]);
+
+  if (commentError) console.error('Error adding rebaseline comment:', commentError);
+
+  return { shiftedCount: allTasks.length, deltaDays };
+}

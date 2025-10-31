@@ -30,7 +30,7 @@ export function TaskListItem({
   onShift,
   onDelete,
 }: TaskListItemProps) {
-  const daysRemaining = getDaysRemaining(task.end_date);
+  const daysRemaining = getDaysRemaining(task.end_date, task.status, task.percent_done);
   const canUpdate = task.owner_role === currentRole;
   const canManage = currentRole === 'Project Manager' || currentRole === 'Developer';
   const position = calculateGanttPosition(

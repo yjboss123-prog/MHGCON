@@ -33,11 +33,25 @@ export function formatDateTime(dateString: string): string {
   });
 }
 
-export function getDaysRemaining(endDate: string): number {
+export function getDaysRemaining(endDate: string, status: string, percentDone: number): number {
   const end = new Date(endDate);
   const now = new Date();
   const diffMs = end.getTime() - now.getTime();
-  return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  const daysDiff = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+  if (status === 'Delayed') {
+    return daysDiff;
+  }
+
+  if (percentDone >= 100 || status === 'Done') {
+    return daysDiff > 0 ? daysDiff : 0;
+  }
+
+  if (daysDiff < 0 && percentDone < 100) {
+    return daysDiff;
+  }
+
+  return daysDiff;
 }
 
 export function getStatusColor(status: string): string {

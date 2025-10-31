@@ -7,8 +7,9 @@ import { TaskDrawer } from './components/TaskDrawer';
 import { AddTaskModal } from './components/AddTaskModal';
 import { WeekDetailsModal } from './components/WeekDetailsModal';
 import { ShiftModal } from './components/ShiftModal';
+import { RebaselineModal } from './components/RebaselineModal';
 import { Task, Role, TaskStatus } from './types';
-import { getTasks, initializeData, shiftSchedule, deleteTask } from './lib/api';
+import { getTasks, initializeData, shiftSchedule, deleteTask, rebaselineProject } from './lib/api';
 import { Language, useTranslation } from './lib/i18n';
 
 const PROJECT_START = '2024-11-01';
@@ -28,6 +29,7 @@ function App() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isWeekModalOpen, setIsWeekModalOpen] = useState(false);
   const [isShiftModalOpen, setIsShiftModalOpen] = useState(false);
+  const [isRebaselineModalOpen, setIsRebaselineModalOpen] = useState(false);
   const [selectedWeek, setSelectedWeek] = useState<{ year: number; week: number } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [toast, setToast] = useState<string | null>(null);
@@ -209,12 +211,38 @@ function App() {
     }
   };
 
+  const handleRebaselineConfirm = async (
+    newBaselineStart: string,
+    resetStatuses: boolean,
+    clearDelayReasons: boolean
+  ) => {
+    try {
+      const result = await rebaselineProject(newBaselineStart, resetStatuses, clearDelayReasons);
+      await loadTasks();
+
+      const message = language === 'fr'
+        ? `Recalibrage appliqué: ${result.shiftedCount} tâches déplacées de ${result.deltaDays} jours.`
+        : `Rebaseline applied: ${result.shiftedCount} tasks shifted by ${result.deltaDays} days.`;
+
+      setToast(message);
+      setTimeout(() => setToast(null), 4000);
+    } catch (error) {
+      console.error('Error rebaselining project:', error);
+      const errorMsg = language === 'fr'
+        ? 'Erreur lors du recalibrage du projet.'
+        : 'Error rebaselining project.';
+      setToast(errorMsg);
+      setTimeout(() => setToast(null), 3000);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
       <Header
         currentRole={currentRole}
         onRoleChange={setCurrentRole}
         onAddTask={() => setIsAddModalOpen(true)}
+        onRebaseline={() => setIsRebaselineModalOpen(true)}
         language={language}
         onLanguageChange={setLanguage}
       />
@@ -320,6 +348,13 @@ function App() {
         onClose={() => setIsShiftModalOpen(false)}
         task={selectedTask}
         onConfirm={handleShiftConfirm}
+        language={language}
+      />
+
+      <RebaselineModal
+        isOpen={isRebaselineModalOpen}
+        onClose={() => setIsRebaselineModalOpen(false)}
+        onConfirm={handleRebaselineConfirm}
         language={language}
       />
     </div>
