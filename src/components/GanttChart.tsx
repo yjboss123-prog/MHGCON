@@ -25,23 +25,45 @@ export function GanttChart({ tasks, projectStart, projectEnd, onWeekClick }: Gan
     const end = new Date(projectEnd);
     const weeksData = getWeeksInRange(start, end);
 
-    const monthsMap = new Map<string, { label: string; span: number; weeks: number[] }>();
+    const monthsMap = new Map<string, { label: string; span: number; weekNumbers: number[] }>();
 
-    weeksData.forEach((week) => {
+    weeksData.forEach((week, index) => {
       const monthKey = `${week.year}-${week.date.getMonth()}`;
       const monthLabel = week.date.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
 
       if (!monthsMap.has(monthKey)) {
-        monthsMap.set(monthKey, { label: monthLabel, span: 0, weeks: [] });
+        monthsMap.set(monthKey, { label: monthLabel, span: 0, weekNumbers: [] });
       }
       const monthData = monthsMap.get(monthKey)!;
       monthData.span += 1;
-      monthData.weeks.push(week.week);
+      monthData.weekNumbers.push(monthData.weekNumbers.length + 1);
+    });
+
+    const weeksWithMonthNumbers = weeksData.map((week) => {
+      const monthKey = `${week.year}-${week.date.getMonth()}`;
+      const monthData = monthsMap.get(monthKey)!;
+      const weekInMonth = monthData.weekNumbers[monthData.weekNumbers.findIndex((_, idx) => {
+        let count = 0;
+        for (const [key, data] of monthsMap.entries()) {
+          if (key === monthKey) {
+            return weeksData.indexOf(week) - count === idx;
+          }
+          count += data.span;
+        }
+        return false;
+      })];
+
+      return {
+        ...week,
+        weekInMonth: ((weeksData.indexOf(week) - Array.from(monthsMap.entries())
+          .slice(0, Array.from(monthsMap.keys()).indexOf(monthKey))
+          .reduce((sum, [, data]) => sum + data.span, 0)) % monthData.span) + 1
+      };
     });
 
     return {
       months: Array.from(monthsMap.values()),
-      weeks: weeksData,
+      weeks: weeksWithMonthNumbers,
       totalWeeks: weeksData.length,
     };
   }, [projectStart, projectEnd]);
@@ -113,7 +135,7 @@ export function GanttChart({ tasks, projectStart, projectEnd, onWeekClick }: Gan
                   className="border-r border-slate-200 bg-slate-50 px-1 py-2 text-center flex-1"
                   style={{ minWidth: '40px' }}
                 >
-                  <span className="text-xs text-slate-600">{week.week}</span>
+                  <span className="text-xs text-slate-600">{week.weekInMonth}</span>
                 </div>
               ))}
             </div>
