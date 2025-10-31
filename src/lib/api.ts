@@ -203,23 +203,23 @@ export async function shiftSchedule(
     return { shiftedCount: 0 };
   }
 
-  const updates = toShift.map((t) => {
+  for (const t of toShift) {
     const newStartDate = new Date(t.start_date);
     newStartDate.setDate(newStartDate.getDate() + shiftDays);
     const newEndDate = new Date(t.end_date);
     newEndDate.setDate(newEndDate.getDate() + shiftDays);
 
-    return {
-      id: t.id,
-      start_date: newStartDate.toISOString().slice(0, 10),
-      end_date: newEndDate.toISOString().slice(0, 10),
-      updated_at: new Date().toISOString(),
-    };
-  });
+    const { error: updateError } = await supabase
+      .from('tasks')
+      .update({
+        start_date: newStartDate.toISOString().slice(0, 10),
+        end_date: newEndDate.toISOString().slice(0, 10),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', t.id);
 
-  const { error: updateError } = await supabase.from('tasks').upsert(updates, { onConflict: 'id' });
-
-  if (updateError) throw updateError;
+    if (updateError) throw updateError;
+  }
 
   const currentDate = new Date().toISOString().slice(0, 10);
   const comments = toShift.map((t) => ({
@@ -263,14 +263,13 @@ export async function rebaselineProject(
     return { shiftedCount: 0, deltaDays: 0 };
   }
 
-  const updates = allTasks.map((t) => {
+  for (const t of allTasks) {
     const newStartDate = new Date(t.start_date);
     newStartDate.setDate(newStartDate.getDate() + deltaDays);
     const newEndDate = new Date(t.end_date);
     newEndDate.setDate(newEndDate.getDate() + deltaDays);
 
     const update: any = {
-      id: t.id,
       start_date: newStartDate.toISOString().slice(0, 10),
       end_date: newEndDate.toISOString().slice(0, 10),
       updated_at: new Date().toISOString(),
@@ -283,12 +282,13 @@ export async function rebaselineProject(
       }
     }
 
-    return update;
-  });
+    const { error: updateError } = await supabase
+      .from('tasks')
+      .update(update)
+      .eq('id', t.id);
 
-  const { error: updateError } = await supabase.from('tasks').upsert(updates, { onConflict: 'id' });
-
-  if (updateError) throw updateError;
+    if (updateError) throw updateError;
+  }
 
   const comment = {
     task_id: allTasks[0].id,
