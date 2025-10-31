@@ -8,8 +8,9 @@ import { AddTaskModal } from './components/AddTaskModal';
 import { WeekDetailsModal } from './components/WeekDetailsModal';
 import { ShiftModal } from './components/ShiftModal';
 import { RebaselineModal } from './components/RebaselineModal';
+import { ProjectSettingsModal } from './components/ProjectSettingsModal';
 import { Task, Role, TaskStatus } from './types';
-import { getTasks, initializeData, shiftSchedule, deleteTask, rebaselineProject } from './lib/api';
+import { getTasks, initializeData, shiftSchedule, deleteTask, rebaselineProject, getProject, updateProject } from './lib/api';
 import { Language, useTranslation } from './lib/i18n';
 
 const PROJECT_START = '2024-11-01';
@@ -30,9 +31,11 @@ function App() {
   const [isWeekModalOpen, setIsWeekModalOpen] = useState(false);
   const [isShiftModalOpen, setIsShiftModalOpen] = useState(false);
   const [isRebaselineModalOpen, setIsRebaselineModalOpen] = useState(false);
+  const [isProjectSettingsOpen, setIsProjectSettingsOpen] = useState(false);
   const [selectedWeek, setSelectedWeek] = useState<{ year: number; week: number } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [toast, setToast] = useState<string | null>(null);
+  const [project, setProject] = useState<any>(null);
 
   const [selectedStatuses, setSelectedStatuses] = useState<TaskStatus[]>([]);
   const [selectedRoles, setSelectedRoles] = useState<Role[]>([]);
@@ -40,6 +43,7 @@ function App() {
 
   useEffect(() => {
     loadTasks();
+    loadProject();
   }, []);
 
   const loadTasks = async () => {
@@ -52,6 +56,15 @@ function App() {
       console.error('Error loading tasks:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadProject = async () => {
+    try {
+      const data = await getProject();
+      setProject(data);
+    } catch (error) {
+      console.error('Error loading project:', error);
     }
   };
 
@@ -236,6 +249,29 @@ function App() {
     }
   };
 
+  const handleProjectSettingsSave = async (name: string, description: string) => {
+    if (!project) return;
+
+    try {
+      await updateProject(project.id, name, description);
+      await loadProject();
+
+      const message = language === 'fr'
+        ? 'Paramètres du projet mis à jour avec succès.'
+        : 'Project settings updated successfully.';
+
+      setToast(message);
+      setTimeout(() => setToast(null), 3000);
+    } catch (error) {
+      console.error('Error updating project:', error);
+      const errorMsg = language === 'fr'
+        ? 'Erreur lors de la mise à jour des paramètres.'
+        : 'Error updating project settings.';
+      setToast(errorMsg);
+      setTimeout(() => setToast(null), 3000);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
       <Header
@@ -243,8 +279,11 @@ function App() {
         onRoleChange={setCurrentRole}
         onAddTask={() => setIsAddModalOpen(true)}
         onRebaseline={() => setIsRebaselineModalOpen(true)}
+        onProjectSettings={() => setIsProjectSettingsOpen(true)}
         language={language}
         onLanguageChange={setLanguage}
+        projectName={project?.name || 'MHG Tracker'}
+        projectDescription={project?.description || ''}
       />
 
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -258,6 +297,7 @@ function App() {
             onRoleToggle={handleRoleToggle}
             onMonthToggle={handleMonthToggle}
             onClearFilters={handleClearFilters}
+            language={language}
           />
 
           <div className="flex bg-white rounded-lg shadow-sm p-1">
@@ -307,6 +347,7 @@ function App() {
               onTaskUpdate={handleTaskUpdate}
               onTaskShift={handleShiftTask}
               onTaskDelete={handleDeleteTask}
+              language={language}
             />
           )}
         </main>
@@ -355,6 +396,14 @@ function App() {
         isOpen={isRebaselineModalOpen}
         onClose={() => setIsRebaselineModalOpen(false)}
         onConfirm={handleRebaselineConfirm}
+        language={language}
+      />
+
+      <ProjectSettingsModal
+        isOpen={isProjectSettingsOpen}
+        onClose={() => setIsProjectSettingsOpen(false)}
+        project={project}
+        onSave={handleProjectSettingsSave}
         language={language}
       />
     </div>

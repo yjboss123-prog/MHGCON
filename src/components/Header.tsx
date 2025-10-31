@@ -7,11 +7,14 @@ interface HeaderProps {
   onRoleChange: (role: Role) => void;
   onAddTask: () => void;
   onRebaseline: () => void;
+  onProjectSettings: () => void;
   language: Language;
   onLanguageChange: (language: Language) => void;
+  projectName: string;
+  projectDescription: string;
 }
 
-export function Header({ currentRole, onRoleChange, onAddTask, onRebaseline, language, onLanguageChange }: HeaderProps) {
+export function Header({ currentRole, onRoleChange, onAddTask, onRebaseline, onProjectSettings, language, onLanguageChange, projectName, projectDescription }: HeaderProps) {
   const t = useTranslation(language);
   const canManage = currentRole === 'Project Manager' || currentRole === 'Developer';
   return (
@@ -19,13 +22,19 @@ export function Header({ currentRole, onRoleChange, onAddTask, onRebaseline, lan
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
+            <button
+              onClick={onProjectSettings}
+              className="flex items-center gap-2 hover:bg-slate-50 px-2 py-1 rounded-lg transition-colors"
+              title={t.projectSettings}
+            >
               <Settings className="w-6 h-6 text-slate-700" />
-              <h1 className="text-xl font-bold text-slate-900">MHG Tracker</h1>
-            </div>
-            <div className="hidden sm:block text-sm text-slate-500 border-l border-slate-200 pl-4">
-              SEBN Bouknadel – EXT 01/02
-            </div>
+              <h1 className="text-xl font-bold text-slate-900">{projectName}</h1>
+            </button>
+            {projectDescription && (
+              <div className="hidden sm:block text-sm text-slate-500 border-l border-slate-200 pl-4">
+                {projectDescription}
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-3">

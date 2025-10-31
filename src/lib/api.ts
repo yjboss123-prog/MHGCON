@@ -302,3 +302,34 @@ export async function rebaselineProject(
 
   return { shiftedCount: allTasks.length, deltaDays };
 }
+
+export async function getProject(projectId: string = '00000000-0000-0000-0000-000000000001') {
+  const { data, error } = await supabase
+    .from('projects')
+    .select('*')
+    .eq('id', projectId)
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function updateProject(
+  projectId: string,
+  name: string,
+  description: string
+) {
+  const { data, error } = await supabase
+    .from('projects')
+    .update({
+      name,
+      description,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', projectId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}

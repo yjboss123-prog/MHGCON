@@ -8,6 +8,7 @@ import {
   getRoleBadgeColor,
   calculateGanttPosition,
 } from '../lib/utils';
+import { Language, useTranslation, translateRole, translateStatus } from '../lib/i18n';
 
 interface TaskListItemProps {
   task: Task;
@@ -18,6 +19,7 @@ interface TaskListItemProps {
   onUpdate: (task: Task) => void;
   onShift?: (task: Task) => void;
   onDelete?: (task: Task) => void;
+  language: Language;
 }
 
 export function TaskListItem({
@@ -29,7 +31,9 @@ export function TaskListItem({
   onUpdate,
   onShift,
   onDelete,
+  language,
 }: TaskListItemProps) {
+  const t = useTranslation(language);
   const daysRemaining = getDaysRemaining(task.end_date, task.status, task.percent_done);
   const canUpdate = task.owner_role === currentRole;
   const canManage = currentRole === 'Project Manager' || currentRole === 'Developer';
@@ -49,10 +53,10 @@ export function TaskListItem({
               <h3 className="font-semibold text-slate-900 truncate">{task.name}</h3>
               <div className="flex flex-wrap items-center gap-2 mt-1">
                 <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getRoleBadgeColor(task.owner_role)}`}>
-                  {task.owner_role}
+                  {translateRole(task.owner_role, language)}
                 </span>
                 <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getStatusBadgeColor(task.status)}`}>
-                  {task.status}
+                  {translateStatus(task.status, language)}
                 </span>
               </div>
             </div>
@@ -82,19 +86,19 @@ export function TaskListItem({
             </span>
             {daysRemaining > 0 && (
               <span className="text-slate-500">
-                {daysRemaining} day{daysRemaining !== 1 ? 's' : ''} remaining
+                {daysRemaining} {daysRemaining !== 1 ? t.daysRemaining : t.dayRemaining}
               </span>
             )}
             {daysRemaining < 0 && (
               <span className="text-red-600 font-medium">
-                {Math.abs(daysRemaining)} day{Math.abs(daysRemaining) !== 1 ? 's' : ''} overdue
+                {Math.abs(daysRemaining)} {Math.abs(daysRemaining) !== 1 ? t.daysOverdue : t.dayOverdue}
               </span>
             )}
           </div>
 
           {task.delay_reason && (
             <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded text-xs text-amber-800">
-              <span className="font-medium">Delay reason:</span> {task.delay_reason}
+              <span className="font-medium">{t.delayReason}:</span> {task.delay_reason}
             </div>
           )}
         </div>
@@ -104,34 +108,34 @@ export function TaskListItem({
             onClick={() => onView(task)}
             className="flex-1 lg:flex-none px-4 py-2 border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors"
           >
-            View
+            {t.view}
           </button>
           {canUpdate && (
             <button
               onClick={() => onUpdate(task)}
               className="flex-1 lg:flex-none px-4 py-2 bg-slate-700 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors"
             >
-              Update
+              {t.update}
             </button>
           )}
           {canManage && onShift && (
             <button
               onClick={() => onShift(task)}
               className="flex-1 lg:flex-none px-4 py-2 border border-blue-300 text-blue-700 text-sm font-medium rounded-lg hover:bg-blue-50 transition-colors flex items-center justify-center gap-1"
-              title="Delay / Shift Schedule"
+              title={language === 'fr' ? 'Décaler le planning' : 'Delay / Shift Schedule'}
             >
               <Calendar className="w-4 h-4" />
-              <span className="hidden lg:inline">Shift</span>
+              <span className="hidden lg:inline">{t.shift}</span>
             </button>
           )}
           {canManage && onDelete && (
             <button
               onClick={() => onDelete(task)}
               className="flex-1 lg:flex-none px-4 py-2 border border-red-300 text-red-700 text-sm font-medium rounded-lg hover:bg-red-50 transition-colors flex items-center justify-center gap-1"
-              title="Delete Task"
+              title={language === 'fr' ? 'Supprimer la tâche' : 'Delete Task'}
             >
               <Trash2 className="w-4 h-4" />
-              <span className="hidden lg:inline">Delete</span>
+              <span className="hidden lg:inline">{t.delete}</span>
             </button>
           )}
         </div>

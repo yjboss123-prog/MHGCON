@@ -34,6 +34,18 @@ export const translations = {
     cancel: 'Cancel',
     saveChanges: 'Save Changes',
     saving: 'Saving...',
+    view: 'View',
+    update: 'Update',
+    shift: 'Shift',
+    delete: 'Delete',
+    daysRemaining: 'days remaining',
+    dayRemaining: 'day remaining',
+    daysOverdue: 'days overdue',
+    dayOverdue: 'day overdue',
+    delayReason: 'Delay reason',
+    projectSettings: 'Project Settings',
+    projectName: 'Project Name',
+    projectDescription: 'Project Description',
   },
   fr: {
     ganttChart: 'Diagramme de Gantt',
@@ -68,9 +80,43 @@ export const translations = {
     cancel: 'Annuler',
     saveChanges: 'Enregistrer les modifications',
     saving: 'Enregistrement...',
+    view: 'Voir',
+    update: 'Mettre à jour',
+    shift: 'Décaler',
+    delete: 'Supprimer',
+    daysRemaining: 'jours restants',
+    dayRemaining: 'jour restant',
+    daysOverdue: 'jours de retard',
+    dayOverdue: 'jour de retard',
+    delayReason: 'Raison du retard',
+    projectSettings: 'Paramètres du projet',
+    projectName: 'Nom du projet',
+    projectDescription: 'Description du projet',
   },
 };
 
 export function useTranslation(language: Language) {
   return translations[language];
+}
+
+export function translateRole(role: string, language: Language): string {
+  const roleMap: Record<string, { en: string; fr: string }> = {
+    'Project Manager': { en: 'Project Manager', fr: 'Chef de projet' },
+    'Developer': { en: 'Developer', fr: 'Développeur' },
+    'Construction Contractor': { en: 'Construction Contractor', fr: 'Entrepreneur en construction' },
+    'Architect': { en: 'Architect', fr: 'Architecte' },
+    'Chief of Plumbing': { en: 'Chief of Plumbing', fr: 'Chef de plomberie' },
+    'Chief of Electronics': { en: 'Chief of Electronics', fr: 'Chef d\'électronique' },
+  };
+  return roleMap[role]?.[language] || role;
+}
+
+export function translateStatus(status: string, language: Language): string {
+  const statusMap: Record<string, { en: string; fr: string }> = {
+    'On Track': { en: 'On Track', fr: 'En cours' },
+    'Delayed': { en: 'Delayed', fr: 'Retardé' },
+    'Blocked': { en: 'Blocked', fr: 'Bloqué' },
+    'Done': { en: 'Done', fr: 'Terminé' },
+  };
+  return statusMap[status]?.[language] || status;
 }

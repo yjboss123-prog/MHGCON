@@ -1,5 +1,6 @@
 import { Task, Role } from '../types';
 import { TaskListItem } from './TaskListItem';
+import { Language } from '../lib/i18n';
 
 interface TaskListProps {
   tasks: Task[];
@@ -10,6 +11,7 @@ interface TaskListProps {
   onTaskUpdate: (task: Task) => void;
   onTaskShift?: (task: Task) => void;
   onTaskDelete?: (task: Task) => void;
+  language: Language;
 }
 
 export function TaskList({
@@ -21,6 +23,7 @@ export function TaskList({
   onTaskUpdate,
   onTaskShift,
   onTaskDelete,
+  language,
 }: TaskListProps) {
   if (tasks.length === 0) {
     return (
@@ -43,6 +46,7 @@ export function TaskList({
           onUpdate={onTaskUpdate}
           onShift={onTaskShift}
           onDelete={onTaskDelete}
+          language={language}
         />
       ))}
     </div>

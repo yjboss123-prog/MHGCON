@@ -1,5 +1,6 @@
 import { Role, TaskStatus, ROLES, TASK_STATUSES } from '../types';
 import { Filter } from 'lucide-react';
+import { Language, useTranslation, translateRole, translateStatus } from '../lib/i18n';
 
 interface FilterPanelProps {
   selectedStatuses: TaskStatus[];
@@ -10,6 +11,7 @@ interface FilterPanelProps {
   onRoleToggle: (role: Role) => void;
   onMonthToggle: (month: string) => void;
   onClearFilters: () => void;
+  language: Language;
 }
 
 export function FilterPanel({
@@ -21,7 +23,9 @@ export function FilterPanel({
   onRoleToggle,
   onMonthToggle,
   onClearFilters,
+  language,
 }: FilterPanelProps) {
+  const t = useTranslation(language);
   const hasActiveFilters =
     selectedStatuses.length > 0 || selectedRoles.length > 0 || selectedMonths.length > 0;
 
@@ -30,12 +34,12 @@ export function FilterPanel({
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <Filter className="w-5 h-5 text-slate-700" />
-          <h2 className="font-semibold text-slate-900">Filters</h2>
+          <h2 className="font-semibold text-slate-900">{t.filters}</h2>
         </div>
 
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-slate-700">Status:</span>
+            <span className="text-sm font-medium text-slate-700">{t.status}:</span>
             <div className="flex gap-2">
               {TASK_STATUSES.map((status) => (
                 <label key={status} className="flex items-center gap-1 cursor-pointer">
@@ -45,7 +49,7 @@ export function FilterPanel({
                     onChange={() => onStatusToggle(status)}
                     className="w-4 h-4 text-slate-700 border-slate-300 rounded focus:ring-slate-400"
                   />
-                  <span className="text-sm text-slate-600">{status}</span>
+                  <span className="text-sm text-slate-600">{translateStatus(status, language)}</span>
                 </label>
               ))}
             </div>
@@ -54,7 +58,7 @@ export function FilterPanel({
           <div className="h-6 w-px bg-slate-300" />
 
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-slate-700">Role:</span>
+            <span className="text-sm font-medium text-slate-700">{t.role}:</span>
             <div className="flex gap-2 flex-wrap">
               {ROLES.map((role) => (
                 <label key={role} className="flex items-center gap-1 cursor-pointer">
@@ -64,7 +68,7 @@ export function FilterPanel({
                     onChange={() => onRoleToggle(role)}
                     className="w-4 h-4 text-slate-700 border-slate-300 rounded focus:ring-slate-400"
                   />
-                  <span className="text-sm text-slate-600">{role}</span>
+                  <span className="text-sm text-slate-600">{translateRole(role, language)}</span>
                 </label>
               ))}
             </div>
@@ -77,7 +81,7 @@ export function FilterPanel({
                 onClick={onClearFilters}
                 className="text-sm text-slate-600 hover:text-slate-900 font-medium underline"
               >
-                Clear all
+                {t.clearAll}
               </button>
             </>
           )}
