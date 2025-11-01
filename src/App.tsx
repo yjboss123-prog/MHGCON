@@ -13,8 +13,8 @@ import { Task, Role, TaskStatus } from './types';
 import { getTasks, initializeData, shiftSchedule, deleteTask, rebaselineProject, getProject, updateProject } from './lib/api';
 import { Language, useTranslation } from './lib/i18n';
 
-const PROJECT_START = '2024-11-01';
-const PROJECT_END = '2025-09-30';
+const PROJECT_START = '2026-01-06';
+const PROJECT_END = '2026-12-31';
 
 type ViewMode = 'gantt' | 'list';
 
