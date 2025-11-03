@@ -9,7 +9,7 @@ import { WeekDetailsModal } from './components/WeekDetailsModal';
 import { ShiftModal } from './components/ShiftModal';
 import { RebaselineModal } from './components/RebaselineModal';
 import { ProjectSettingsModal } from './components/ProjectSettingsModal';
-import { Task, Role, TaskStatus } from './types';
+import { Task, Role, TaskStatus, DEFAULT_ROLES, Project } from './types';
 import { getTasks, initializeData, shiftSchedule, deleteTask, rebaselineProject, getProject, updateProject } from './lib/api';
 import { Language, useTranslation } from './lib/i18n';
 
@@ -36,10 +36,15 @@ function App() {
   const [selectedWeek, setSelectedWeek] = useState<{ year: number; week: number } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [toast, setToast] = useState<string | null>(null);
-  const [project, setProject] = useState<any>(null);
+  const [project, setProject] = useState<Project | null>(null);
+
+  const allRoles = useMemo(() => {
+    if (!project) return DEFAULT_ROLES;
+    return [...DEFAULT_ROLES, ...(project.custom_contractors || [])];
+  }, [project]);
 
   const [selectedStatuses, setSelectedStatuses] = useState<TaskStatus[]>([]);
-  const [selectedRoles, setSelectedRoles] = useState<Role[]>([]);
+  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [selectedMonths, setSelectedMonths] = useState<string[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -271,12 +276,13 @@ function App() {
     }
   };
 
-  const handleProjectSettingsSave = async (name: string, description: string) => {
+  const handleProjectSettingsSave = async (name: string, description: string, customContractors: string[]) => {
     if (!project) return;
 
     try {
-      await updateProject(project.id, name, description);
+      await updateProject(project.id, name, description, customContractors);
       await loadProject();
+      await loadTasks();
 
       const message = language === 'fr'
         ? 'Paramètres du projet mis à jour avec succès.'
@@ -307,6 +313,7 @@ function App() {
           onLanguageChange={setLanguage}
           projectName={project?.name || 'MHG Tracker'}
           projectDescription={project?.description || ''}
+          allRoles={allRoles}
         />
       )}
 
@@ -323,6 +330,7 @@ function App() {
               onMonthToggle={handleMonthToggle}
               onClearFilters={handleClearFilters}
               language={language}
+              allRoles={allRoles}
             />
 
             <div className="flex bg-white rounded-lg shadow-sm p-1 self-center sm:self-auto">
@@ -411,6 +419,7 @@ function App() {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onTaskAdded={loadTasks}
+        allRoles={allRoles}
       />
 
       <WeekDetailsModal

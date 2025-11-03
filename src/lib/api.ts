@@ -342,13 +342,15 @@ export async function getProject(projectId: string = '00000000-0000-0000-0000-00
 export async function updateProject(
   projectId: string,
   name: string,
-  description: string
+  description: string,
+  customContractors: string[]
 ) {
   const { data, error } = await supabase
     .from('projects')
     .update({
       name,
       description,
+      custom_contractors: customContractors,
       updated_at: new Date().toISOString(),
     })
     .eq('id', projectId)

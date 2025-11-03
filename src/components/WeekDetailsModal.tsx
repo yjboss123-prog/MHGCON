@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, Upload, Trash2 } from 'lucide-react';
-import { Task, Role } from '../types';
+import { Task } from '../types';
 import { getWeekWork, saveWeekWork } from '../lib/api';
 import { compressImage } from '../lib/utils';
 import { Language, useTranslation } from '../lib/i18n';
@@ -11,7 +11,7 @@ interface WeekDetailsModalProps {
   task: Task | null;
   year: number;
   week: number;
-  currentRole: Role;
+  currentRole: string;
   language: Language;
 }
 

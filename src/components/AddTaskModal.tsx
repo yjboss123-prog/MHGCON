@@ -1,17 +1,17 @@
 import { useState } from 'react';
 import { X, AlertCircle, Check } from 'lucide-react';
-import { Role, ROLES } from '../types';
 import { createTask } from '../lib/api';
 
 interface AddTaskModalProps {
   isOpen: boolean;
   onClose: () => void;
   onTaskAdded: () => void;
+  allRoles: string[];
 }
 
-export function AddTaskModal({ isOpen, onClose, onTaskAdded }: AddTaskModalProps) {
+export function AddTaskModal({ isOpen, onClose, onTaskAdded, allRoles }: AddTaskModalProps) {
   const [name, setName] = useState('');
-  const [ownerRoles, setOwnerRoles] = useState<Role[]>(['Project Manager']);
+  const [ownerRoles, setOwnerRoles] = useState<string[]>(['Project Manager']);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -113,7 +113,7 @@ export function AddTaskModal({ isOpen, onClose, onTaskAdded }: AddTaskModalProps
                 Assigned To <span className="text-red-600">*</span>
               </label>
               <div className="space-y-2 max-h-48 overflow-y-auto border border-slate-300 rounded-lg p-3">
-                {ROLES.map((role) => (
+                {allRoles.map((role) => (
                   <label key={role} className="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-2 rounded">
                     <input
                       type="checkbox"

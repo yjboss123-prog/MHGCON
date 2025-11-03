@@ -4,14 +4,15 @@ export type Role =
   | 'Construction Contractor'
   | 'Architect'
   | 'Chief of Plumbing'
-  | 'Chief of Electronics';
+  | 'Chief of Electronics'
+  | string;
 
 export type TaskStatus = 'On Track' | 'Delayed' | 'Blocked' | 'Done';
 
 export type Task = {
   id: string;
   name: string;
-  owner_roles: Role[];
+  owner_roles: string[];
   start_date: string;
   end_date: string;
   percent_done: number;
@@ -26,7 +27,7 @@ export type Task = {
 export type Comment = {
   id: string;
   task_id: string;
-  author_role: Role;
+  author_role: string;
   message: string;
   created_at: string;
 };
@@ -34,7 +35,7 @@ export type Comment = {
 export type ProgressUpdate = {
   id: string;
   task_id: string;
-  author_role: Role;
+  author_role: string;
   percent_done: number;
   status: TaskStatus;
   delay_reason?: string;
@@ -43,7 +44,18 @@ export type ProgressUpdate = {
   created_at: string;
 };
 
-export const ROLES: Role[] = [
+export type Project = {
+  id: string;
+  name: string;
+  description: string;
+  start_date: string;
+  end_date: string;
+  custom_contractors: string[];
+  created_at: string;
+  updated_at: string;
+};
+
+export const DEFAULT_ROLES: string[] = [
   'Developer',
   'Project Manager',
   'Construction Contractor',

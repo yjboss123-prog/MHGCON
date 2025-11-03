@@ -1,9 +1,7 @@
-import { Role } from '../types';
-
 export const seedTasks = [
   {
     name: 'Installation de chantier',
-    owner_roles: ['Project Manager' as Role],
+    owner_roles: ['Project Manager'],
     start_date: '2026-01-06',
     end_date: '2026-01-20',
     percent_done: 0,
@@ -11,7 +9,7 @@ export const seedTasks = [
   },
   {
     name: 'Terrassement',
-    owner_roles: ['Construction Contractor' as Role],
+    owner_roles: ['Construction Contractor'],
     start_date: '2026-01-15',
     end_date: '2026-02-25',
     percent_done: 0,
@@ -19,7 +17,7 @@ export const seedTasks = [
   },
   {
     name: 'Fondations production',
-    owner_roles: ['Construction Contractor' as Role],
+    owner_roles: ['Construction Contractor'],
     start_date: '2026-02-20',
     end_date: '2026-04-23',
     percent_done: 0,
@@ -27,7 +25,7 @@ export const seedTasks = [
   },
   {
     name: 'Charpente métallique',
-    owner_roles: ['Construction Contractor' as Role],
+    owner_roles: ['Construction Contractor'],
     start_date: '2026-04-08',
     end_date: '2026-06-21',
     percent_done: 0,
@@ -35,7 +33,7 @@ export const seedTasks = [
   },
   {
     name: 'Couverture & bardage',
-    owner_roles: ['Construction Contractor' as Role],
+    owner_roles: ['Construction Contractor'],
     start_date: '2026-05-20',
     end_date: '2026-08-05',
     percent_done: 0,
@@ -43,7 +41,7 @@ export const seedTasks = [
   },
   {
     name: 'Dallage',
-    owner_roles: ['Construction Contractor' as Role],
+    owner_roles: ['Construction Contractor'],
     start_date: '2026-06-06',
     end_date: '2026-07-21',
     percent_done: 0,
@@ -51,7 +49,7 @@ export const seedTasks = [
   },
   {
     name: 'Fondations administration/social',
-    owner_roles: ['Construction Contractor' as Role],
+    owner_roles: ['Construction Contractor'],
     start_date: '2026-05-06',
     end_date: '2026-07-06',
     percent_done: 0,
@@ -59,7 +57,7 @@ export const seedTasks = [
   },
   {
     name: 'Élévation',
-    owner_roles: ['Construction Contractor' as Role],
+    owner_roles: ['Construction Contractor'],
     start_date: '2026-06-21',
     end_date: '2026-09-05',
     percent_done: 0,
@@ -67,7 +65,7 @@ export const seedTasks = [
   },
   {
     name: 'Plancher',
-    owner_roles: ['Construction Contractor' as Role],
+    owner_roles: ['Construction Contractor'],
     start_date: '2026-07-21',
     end_date: '2026-09-19',
     percent_done: 0,
@@ -75,7 +73,7 @@ export const seedTasks = [
   },
   {
     name: 'Équipements industriels',
-    owner_roles: ['Project Manager' as Role],
+    owner_roles: ['Project Manager'],
     start_date: '2026-08-07',
     end_date: '2026-10-21',
     percent_done: 0,
@@ -83,7 +81,7 @@ export const seedTasks = [
   },
   {
     name: 'Lots architecturaux',
-    owner_roles: ['Architect' as Role],
+    owner_roles: ['Architect'],
     start_date: '2026-08-21',
     end_date: '2026-11-04',
     percent_done: 0,
@@ -91,7 +89,7 @@ export const seedTasks = [
   },
   {
     name: 'Lots techniques - Électronique',
-    owner_roles: ['Chief of Electronics' as Role],
+    owner_roles: ['Chief of Electronics'],
     start_date: '2026-09-06',
     end_date: '2026-11-20',
     percent_done: 0,
@@ -99,7 +97,7 @@ export const seedTasks = [
   },
   {
     name: 'Lots techniques - Plomberie',
-    owner_roles: ['Chief of Plumbing' as Role],
+    owner_roles: ['Chief of Plumbing'],
     start_date: '2026-09-06',
     end_date: '2026-11-20',
     percent_done: 0,
@@ -107,7 +105,7 @@ export const seedTasks = [
   },
   {
     name: 'Aménagement extérieur',
-    owner_roles: ['Construction Contractor' as Role],
+    owner_roles: ['Construction Contractor'],
     start_date: '2026-10-07',
     end_date: '2026-11-25',
     percent_done: 0,
@@ -115,7 +113,7 @@ export const seedTasks = [
   },
   {
     name: 'Réception EXT 01',
-    owner_roles: ['Project Manager' as Role],
+    owner_roles: ['Project Manager'],
     start_date: '2026-11-20',
     end_date: '2026-11-30',
     percent_done: 0,
@@ -123,7 +121,7 @@ export const seedTasks = [
   },
   {
     name: 'Réception EXT 02',
-    owner_roles: ['Project Manager' as Role],
+    owner_roles: ['Project Manager'],
     start_date: '2026-11-25',
     end_date: '2026-12-05',
     percent_done: 0,

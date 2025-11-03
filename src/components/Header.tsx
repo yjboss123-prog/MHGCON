@@ -1,10 +1,10 @@
-import { Role, ROLES } from '../types';
+import { Role } from '../types';
 import { Settings, RefreshCw } from 'lucide-react';
 import { Language, useTranslation } from '../lib/i18n';
 
 interface HeaderProps {
-  currentRole: Role;
-  onRoleChange: (role: Role) => void;
+  currentRole: string;
+  onRoleChange: (role: string) => void;
   onAddTask: () => void;
   onRebaseline: () => void;
   onProjectSettings: () => void;
@@ -12,9 +12,10 @@ interface HeaderProps {
   onLanguageChange: (language: Language) => void;
   projectName: string;
   projectDescription: string;
+  allRoles: string[];
 }
 
-export function Header({ currentRole, onRoleChange, onAddTask, onRebaseline, onProjectSettings, language, onLanguageChange, projectName, projectDescription }: HeaderProps) {
+export function Header({ currentRole, onRoleChange, onAddTask, onRebaseline, onProjectSettings, language, onLanguageChange, projectName, projectDescription, allRoles }: HeaderProps) {
   const t = useTranslation(language);
   const canManage = currentRole === 'Project Manager' || currentRole === 'Developer';
   return (
@@ -49,10 +50,10 @@ export function Header({ currentRole, onRoleChange, onAddTask, onRebaseline, onP
 
             <select
               value={currentRole}
-              onChange={(e) => onRoleChange(e.target.value as Role)}
+              onChange={(e) => onRoleChange(e.target.value)}
               className="hidden sm:block px-3 py-2 border border-slate-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-slate-400 bg-white max-w-[140px]"
             >
-              {ROLES.map((role) => (
+              {allRoles.map((role) => (
                 <option key={role} value={role}>
                   {role}
                 </option>

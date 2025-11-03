@@ -1,18 +1,19 @@
 import { useState } from 'react';
-import { Role, TaskStatus, ROLES, TASK_STATUSES } from '../types';
+import { TaskStatus, TASK_STATUSES } from '../types';
 import { Filter, ChevronDown, ChevronUp } from 'lucide-react';
 import { Language, useTranslation, translateRole, translateStatus } from '../lib/i18n';
 
 interface FilterPanelProps {
   selectedStatuses: TaskStatus[];
-  selectedRoles: Role[];
+  selectedRoles: string[];
   selectedMonths: string[];
   availableMonths: string[];
   onStatusToggle: (status: TaskStatus) => void;
-  onRoleToggle: (role: Role) => void;
+  onRoleToggle: (role: string) => void;
   onMonthToggle: (month: string) => void;
   onClearFilters: () => void;
   language: Language;
+  allRoles: string[];
 }
 
 export function FilterPanel({
@@ -25,6 +26,7 @@ export function FilterPanel({
   onMonthToggle,
   onClearFilters,
   language,
+  allRoles,
 }: FilterPanelProps) {
   const t = useTranslation(language);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -84,7 +86,7 @@ export function FilterPanel({
           <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
             <span className="text-xs sm:text-sm font-medium text-slate-700 flex-shrink-0">{t.role}:</span>
             <div className="flex flex-wrap gap-2">
-              {ROLES.map((role) => (
+              {allRoles.map((role) => (
                 <label key={role} className="flex items-center gap-1 cursor-pointer">
                   <input
                     type="checkbox"

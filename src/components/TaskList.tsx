@@ -1,10 +1,10 @@
-import { Task, Role } from '../types';
+import { Task } from '../types';
 import { TaskListItem } from './TaskListItem';
 import { Language } from '../lib/i18n';
 
 interface TaskListProps {
   tasks: Task[];
-  currentRole: Role;
+  currentRole: string;
   projectStart: string;
   projectEnd: string;
   onTaskView: (task: Task) => void;

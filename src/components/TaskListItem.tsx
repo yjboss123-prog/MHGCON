@@ -1,4 +1,4 @@
-import { Task, Role } from '../types';
+import { Task } from '../types';
 import { Calendar, Trash2, ArrowRight } from 'lucide-react';
 import {
   formatDate,
@@ -12,7 +12,7 @@ import { Language, useTranslation, translateRole, translateStatus } from '../lib
 
 interface TaskListItemProps {
   task: Task;
-  currentRole: Role;
+  currentRole: string;
   projectStart: string;
   projectEnd: string;
   onView: (task: Task) => void;

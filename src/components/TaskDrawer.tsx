@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Task, Role, Comment, ProgressUpdate, TaskStatus, TASK_STATUSES } from '../types';
+import { Task, Comment, ProgressUpdate, TaskStatus, TASK_STATUSES } from '../types';
 import { X, Upload, Send, AlertCircle } from 'lucide-react';
 import {
   formatRelativeTime,
@@ -12,7 +12,7 @@ import { getComments, getProgressUpdates, createComment, createProgressUpdate } 
 
 interface TaskDrawerProps {
   task: Task | null;
-  currentRole: Role;
+  currentRole: string;
   isOpen: boolean;
   mode: 'view' | 'update';
   onClose: () => void;
