@@ -343,16 +343,23 @@ export async function updateProject(
   projectId: string,
   name: string,
   description: string,
-  customContractors: string[]
+  customContractors: string[],
+  currentDate?: string
 ) {
+  const updateData: any = {
+    name,
+    description,
+    custom_contractors: customContractors,
+    updated_at: new Date().toISOString(),
+  };
+
+  if (currentDate !== undefined) {
+    updateData.project_current_date = currentDate;
+  }
+
   const { data, error } = await supabase
     .from('projects')
-    .update({
-      name,
-      description,
-      custom_contractors: customContractors,
-      updated_at: new Date().toISOString(),
-    })
+    .update(updateData)
     .eq('id', projectId)
     .select()
     .single();

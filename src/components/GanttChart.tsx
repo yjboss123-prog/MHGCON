@@ -8,6 +8,7 @@ interface GanttChartProps {
   tasks: Task[];
   projectStart: string;
   projectEnd: string;
+  currentDate?: string;
   onWeekClick: (task: Task, year: number, week: number) => void;
   language: Language;
 }
@@ -20,11 +21,11 @@ interface WeekCell {
   monthLabel?: string;
 }
 
-export function GanttChart({ tasks, projectStart, projectEnd, onWeekClick, language }: GanttChartProps) {
+export function GanttChart({ tasks, projectStart, projectEnd, currentDate, onWeekClick, language }: GanttChartProps) {
   const [hoveredCell, setHoveredCell] = useState<string | null>(null);
   const t = useTranslation(language);
 
-  const { months, weeks, totalWeeks } = useMemo(() => {
+  const { months, weeks, totalWeeks, currentWeekIndex } = useMemo(() => {
     const start = new Date(projectStart);
     const end = new Date(projectEnd);
     const weeksData = getWeeksInRange(start, end);
@@ -62,12 +63,24 @@ export function GanttChart({ tasks, projectStart, projectEnd, onWeekClick, langu
       });
     });
 
+    let currentIdx = -1;
+    if (currentDate) {
+      const current = new Date(currentDate);
+      currentIdx = weeksWithMonthNumbers.findIndex((w) => {
+        const weekStart = new Date(w.date);
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekEnd.getDate() + 6);
+        return current >= weekStart && current <= weekEnd;
+      });
+    }
+
     return {
       months: Array.from(monthsMap.values()),
       weeks: weeksWithMonthNumbers,
       totalWeeks: weeksData.length,
+      currentWeekIndex: currentIdx,
     };
-  }, [projectStart, projectEnd]);
+  }, [projectStart, projectEnd, currentDate]);
 
   const getTaskWeekCells = (task: Task): WeekCell[] => {
     const taskStart = new Date(task.start_date);
@@ -133,10 +146,15 @@ export function GanttChart({ tasks, projectStart, projectEnd, onWeekClick, langu
               {weeks.map((week, idx) => (
                 <div
                   key={idx}
-                  className="border-r border-slate-200 bg-slate-50 px-1 py-2 text-center flex-1"
+                  className={`border-r border-slate-200 bg-slate-50 px-1 py-2 text-center flex-1 relative ${
+                    idx === currentWeekIndex ? 'bg-blue-100' : ''
+                  }`}
                   style={{ minWidth: '40px' }}
                 >
                   <span className="text-xs text-slate-600">{week.weekInMonth}</span>
+                  {idx === currentWeekIndex && (
+                    <div className="absolute top-0 left-0 w-full h-0.5 bg-blue-600"></div>
+                  )}
                 </div>
               ))}
             </div>
@@ -169,6 +187,7 @@ export function GanttChart({ tasks, projectStart, projectEnd, onWeekClick, langu
                   {taskWeeks.map((weekCell, idx) => {
                     const cellKey = `${task.id}-${weekCell.year}-${weekCell.week}`;
                     const isHovered = hoveredCell === cellKey;
+                    const isTodayWeek = idx === currentWeekIndex;
 
                     return (
                       <div
@@ -189,6 +208,9 @@ export function GanttChart({ tasks, projectStart, projectEnd, onWeekClick, langu
                               isHovered ? 'opacity-80 ring-2 ring-slate-900' : 'opacity-90'
                             } transition-all`}
                           />
+                        )}
+                        {isTodayWeek && (
+                          <div className="absolute inset-y-0 left-0 w-1 bg-blue-600 z-10"></div>
                         )}
                       </div>
                     );

@@ -46,6 +46,7 @@ export const translations = {
     projectSettings: 'Project Settings',
     projectName: 'Project Name',
     projectDescription: 'Project Description',
+    currentDate: 'Current Date (Today)',
   },
   fr: {
     ganttChart: 'Diagramme de Gantt',
@@ -92,6 +93,7 @@ export const translations = {
     projectSettings: 'Paramètres du projet',
     projectName: 'Nom du projet',
     projectDescription: 'Description du projet',
+    currentDate: 'Date actuelle (Aujourd\'hui)',
   },
 };
 

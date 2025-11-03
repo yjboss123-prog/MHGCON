@@ -51,6 +51,7 @@ export type Project = {
   start_date: string;
   end_date: string;
   custom_contractors: string[];
+  project_current_date: string;
   created_at: string;
   updated_at: string;
 };

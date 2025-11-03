@@ -7,7 +7,7 @@ interface ProjectSettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
   project: Project | null;
-  onSave: (name: string, description: string, customContractors: string[]) => void;
+  onSave: (name: string, description: string, customContractors: string[], currentDate: string) => void;
   language: Language;
 }
 
@@ -23,6 +23,7 @@ export function ProjectSettingsModal({
   const [description, setDescription] = useState('');
   const [customContractors, setCustomContractors] = useState<string[]>([]);
   const [newContractor, setNewContractor] = useState('');
+  const [currentDate, setCurrentDate] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
@@ -30,6 +31,7 @@ export function ProjectSettingsModal({
       setName(project.name);
       setDescription(project.description || '');
       setCustomContractors(project.custom_contractors || []);
+      setCurrentDate(project.project_current_date || new Date().toISOString().slice(0, 10));
     }
   }, [isOpen, project]);
 
@@ -50,7 +52,7 @@ export function ProjectSettingsModal({
   const handleSave = async () => {
     setIsProcessing(true);
     try {
-      await onSave(name, description, customContractors);
+      await onSave(name, description, customContractors, currentDate);
       onClose();
     } catch (error) {
       console.error('Error saving project settings:', error);
@@ -104,6 +106,23 @@ export function ProjectSettingsModal({
                     : 'Enter project description'
                 }
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                {t.currentDate}
+              </label>
+              <input
+                type="date"
+                value={currentDate}
+                onChange={(e) => setCurrentDate(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+              />
+              <p className="text-xs text-slate-500 mt-1">
+                {language === 'fr'
+                  ? 'Marque où nous sommes dans le calendrier du projet'
+                  : 'Marks where we are in the project timeline'}
+              </p>
             </div>
 
             <div>

@@ -276,11 +276,11 @@ function App() {
     }
   };
 
-  const handleProjectSettingsSave = async (name: string, description: string, customContractors: string[]) => {
+  const handleProjectSettingsSave = async (name: string, description: string, customContractors: string[], currentDate: string) => {
     if (!project) return;
 
     try {
-      await updateProject(project.id, name, description, customContractors);
+      await updateProject(project.id, name, description, customContractors, currentDate);
       await loadProject();
       await loadTasks();
 
@@ -381,6 +381,7 @@ function App() {
               tasks={filteredTasks}
               projectStart={PROJECT_START}
               projectEnd={PROJECT_END}
+              currentDate={project?.project_current_date}
               onWeekClick={handleWeekClick}
               language={language}
             />
