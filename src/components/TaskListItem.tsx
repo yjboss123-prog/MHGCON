@@ -45,12 +45,23 @@ export function TaskListItem({
   );
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-3 sm:p-4 hover:shadow-md transition-shadow">
+    <div className={`rounded-lg shadow-sm p-3 sm:p-4 hover:shadow-md transition-shadow ${task.was_shifted ? 'bg-blue-50 border-2 border-blue-600' : 'bg-white border-2 border-transparent'}`}>
       <div className="flex flex-col lg:flex-row lg:items-center gap-3 sm:gap-4">
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-2">
             <div className="flex-1 min-w-0">
-              <h3 className="text-sm sm:text-base font-semibold text-slate-900 break-words">{task.name}</h3>
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className="text-sm sm:text-base font-semibold text-slate-900 break-words">{task.name}</h3>
+                {task.was_shifted && (
+                  <span
+                    className="inline-flex items-center gap-1 px-2 sm:px-3 py-1 rounded-md text-xs sm:text-sm font-bold bg-blue-600 text-white shadow-md animate-pulse flex-shrink-0"
+                    title={language === 'fr' ? 'Planning décalé' : 'Schedule shifted'}
+                  >
+                    <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <span>{language === 'fr' ? 'DÉCALÉ' : 'SHIFTED'}</span>
+                  </span>
+                )}
+              </div>
               <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-1">
                 <span className={`inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded text-xs font-medium ${getRoleBadgeColor(task.owner_role)}`}>
                   {translateRole(task.owner_role, language)}
@@ -58,15 +69,6 @@ export function TaskListItem({
                 <span className={`inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded text-xs font-medium ${getStatusBadgeColor(task.status)}`}>
                   {translateStatus(task.status, language)}
                 </span>
-                {task.was_shifted && (
-                  <span
-                    className="inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200"
-                    title={language === 'fr' ? 'Planning décalé' : 'Schedule shifted'}
-                  >
-                    <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                    <span className="hidden sm:inline">{language === 'fr' ? 'Décalé' : 'Shifted'}</span>
-                  </span>
-                )}
               </div>
             </div>
           </div>

@@ -158,6 +158,22 @@ export function TaskDrawer({
         </div>
 
         <div className="p-6 space-y-6">
+          {task.was_shifted && (
+            <div className="bg-blue-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 animate-pulse">
+              <div className="bg-white text-blue-600 rounded-full p-2">
+                <ArrowRight className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="font-bold text-sm uppercase tracking-wide">Schedule Shifted</div>
+                {task.last_shift_date && (
+                  <div className="text-xs text-blue-100 mt-0.5">
+                    Last shifted: {new Date(task.last_shift_date).toLocaleDateString()}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           <div>
             <h3 className="text-xl font-semibold text-slate-900 mb-2">{task.name}</h3>
             <div className="flex flex-wrap gap-2">

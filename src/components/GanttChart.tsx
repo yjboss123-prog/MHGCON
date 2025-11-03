@@ -147,16 +147,17 @@ export function GanttChart({ tasks, projectStart, projectEnd, onWeekClick, langu
             const taskWeeks = getTaskWeekCells(task);
 
             return (
-              <div key={task.id} className="flex border-b border-slate-200 hover:bg-slate-50">
+              <div key={task.id} className={`flex border-b border-slate-200 hover:bg-slate-50 ${task.was_shifted ? 'bg-blue-50/30' : ''}`}>
                 <div className="w-40 sm:w-64 flex-shrink-0 border-r border-slate-300 px-2 sm:px-4 py-2 sm:py-3">
                   <div className="flex items-center gap-1 sm:gap-2">
                     <div className="text-xs sm:text-sm font-medium text-slate-900 truncate" title={task.name}>{task.name}</div>
                     {task.was_shifted && (
                       <span
-                        className="inline-flex items-center gap-0.5 px-1 sm:px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200 flex-shrink-0"
+                        className="inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-xs font-bold bg-blue-600 text-white shadow-sm flex-shrink-0 animate-pulse"
                         title={language === 'fr' ? 'Planning décalé' : 'Schedule shifted'}
                       >
-                        <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                        <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                        <span className="hidden sm:inline">{language === 'fr' ? 'DÉCALÉ' : 'SHIFTED'}</span>
                       </span>
                     )}
                   </div>
