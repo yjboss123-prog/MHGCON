@@ -106,21 +106,21 @@ export function GanttChart({ tasks, projectStart, projectEnd, onWeekClick, langu
 
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-      <div className="overflow-x-auto">
-        <div className="inline-block min-w-full">
+      <div className="overflow-x-auto overscroll-x-contain touch-pan-x">
+        <div className="inline-block min-w-full" style={{ minWidth: '900px' }}>
           {/* Month Headers */}
           <div className="flex border-b-2 border-slate-300">
-            <div className="w-64 flex-shrink-0 bg-slate-50 border-r border-slate-300 px-4 py-3">
-              <span className="text-sm font-semibold text-slate-700">{t.tasks}</span>
+            <div className="w-40 sm:w-64 flex-shrink-0 bg-slate-50 border-r border-slate-300 px-2 sm:px-4 py-2 sm:py-3">
+              <span className="text-xs sm:text-sm font-semibold text-slate-700">{t.tasks}</span>
             </div>
             <div className="flex flex-1">
               {months.map((month, idx) => (
                 <div
                   key={idx}
-                  className="border-r border-slate-300 bg-slate-50 px-2 py-3 text-center"
+                  className="border-r border-slate-300 bg-slate-50 px-1 sm:px-2 py-2 sm:py-3 text-center"
                   style={{ width: `${(month.span / totalWeeks) * 100}%` }}
                 >
-                  <span className="text-sm font-semibold text-slate-700">{month.label}</span>
+                  <span className="text-xs sm:text-sm font-semibold text-slate-700">{month.label}</span>
                 </div>
               ))}
             </div>
@@ -128,7 +128,7 @@ export function GanttChart({ tasks, projectStart, projectEnd, onWeekClick, langu
 
           {/* Week Numbers */}
           <div className="flex border-b border-slate-300">
-            <div className="w-64 flex-shrink-0 bg-slate-50 border-r border-slate-300"></div>
+            <div className="w-40 sm:w-64 flex-shrink-0 bg-slate-50 border-r border-slate-300"></div>
             <div className="flex flex-1">
               {weeks.map((week, idx) => (
                 <div
@@ -148,19 +148,19 @@ export function GanttChart({ tasks, projectStart, projectEnd, onWeekClick, langu
 
             return (
               <div key={task.id} className="flex border-b border-slate-200 hover:bg-slate-50">
-                <div className="w-64 flex-shrink-0 border-r border-slate-300 px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <div className="text-sm font-medium text-slate-900">{task.name}</div>
+                <div className="w-40 sm:w-64 flex-shrink-0 border-r border-slate-300 px-2 sm:px-4 py-2 sm:py-3">
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    <div className="text-xs sm:text-sm font-medium text-slate-900 truncate" title={task.name}>{task.name}</div>
                     {task.was_shifted && (
                       <span
-                        className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200"
+                        className="inline-flex items-center gap-0.5 px-1 sm:px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200 flex-shrink-0"
                         title={language === 'fr' ? 'Planning décalé' : 'Schedule shifted'}
                       >
-                        <ArrowRight className="w-3 h-3" />
+                        <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                       </span>
                     )}
                   </div>
-                  <div className="text-xs text-slate-500 mt-1">{task.owner_role}</div>
+                  <div className="text-xs text-slate-500 mt-0.5 sm:mt-1 truncate" title={task.owner_role}>{task.owner_role}</div>
                 </div>
                 <div className="flex flex-1">
                   {taskWeeks.map((weekCell, idx) => {

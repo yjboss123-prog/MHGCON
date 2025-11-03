@@ -45,26 +45,26 @@ export function TaskListItem({
   );
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow">
-      <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+    <div className="bg-white rounded-lg shadow-sm p-3 sm:p-4 hover:shadow-md transition-shadow">
+      <div className="flex flex-col lg:flex-row lg:items-center gap-3 sm:gap-4">
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-2">
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-slate-900 truncate">{task.name}</h3>
-              <div className="flex flex-wrap items-center gap-2 mt-1">
-                <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getRoleBadgeColor(task.owner_role)}`}>
+              <h3 className="text-sm sm:text-base font-semibold text-slate-900 break-words">{task.name}</h3>
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-1">
+                <span className={`inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded text-xs font-medium ${getRoleBadgeColor(task.owner_role)}`}>
                   {translateRole(task.owner_role, language)}
                 </span>
-                <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getStatusBadgeColor(task.status)}`}>
+                <span className={`inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded text-xs font-medium ${getStatusBadgeColor(task.status)}`}>
                   {translateStatus(task.status, language)}
                 </span>
                 {task.was_shifted && (
                   <span
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200"
+                    className="inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200"
                     title={language === 'fr' ? 'Planning décalé' : 'Schedule shifted'}
                   >
-                    <ArrowRight className="w-3 h-3" />
-                    <span>{language === 'fr' ? 'Décalé' : 'Shifted'}</span>
+                    <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                    <span className="hidden sm:inline">{language === 'fr' ? 'Décalé' : 'Shifted'}</span>
                   </span>
                 )}
               </div>
@@ -112,17 +112,17 @@ export function TaskListItem({
           )}
         </div>
 
-        <div className="flex lg:flex-col gap-2">
+        <div className="flex lg:flex-col gap-1.5 sm:gap-2">
           <button
             onClick={() => onView(task)}
-            className="flex-1 lg:flex-none px-4 py-2 border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors"
+            className="flex-1 lg:flex-none px-2 sm:px-4 py-1.5 sm:py-2 border border-slate-300 text-slate-700 text-xs sm:text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors"
           >
             {t.view}
           </button>
           {canUpdate && (
             <button
               onClick={() => onUpdate(task)}
-              className="flex-1 lg:flex-none px-4 py-2 bg-slate-700 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors"
+              className="flex-1 lg:flex-none px-2 sm:px-4 py-1.5 sm:py-2 bg-slate-700 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors"
             >
               {t.update}
             </button>
@@ -130,7 +130,7 @@ export function TaskListItem({
           {canManage && onShift && (
             <button
               onClick={() => onShift(task)}
-              className="flex-1 lg:flex-none px-4 py-2 border border-blue-300 text-blue-700 text-sm font-medium rounded-lg hover:bg-blue-50 transition-colors flex items-center justify-center gap-1"
+              className="flex-1 lg:flex-none px-2 sm:px-4 py-1.5 sm:py-2 border border-blue-300 text-blue-700 text-xs sm:text-sm font-medium rounded-lg hover:bg-blue-50 transition-colors flex items-center justify-center gap-1"
               title={language === 'fr' ? 'Décaler le planning' : 'Delay / Shift Schedule'}
             >
               <Calendar className="w-4 h-4" />

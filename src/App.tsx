@@ -286,8 +286,8 @@ function App() {
         projectDescription={project?.description || ''}
       />
 
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="mb-6 flex items-center justify-between gap-4">
+      <div className="max-w-[1600px] mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-6">
+        <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
           <FilterPanel
             selectedStatuses={selectedStatuses}
             selectedRoles={selectedRoles}
@@ -300,10 +300,10 @@ function App() {
             language={language}
           />
 
-          <div className="flex bg-white rounded-lg shadow-sm p-1">
+          <div className="flex bg-white rounded-lg shadow-sm p-1 self-center sm:self-auto">
             <button
               onClick={() => setViewMode('gantt')}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors ${
                 viewMode === 'gantt'
                   ? 'bg-slate-900 text-white'
                   : 'text-slate-600 hover:text-slate-900'
@@ -313,7 +313,7 @@ function App() {
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors ${
                 viewMode === 'list'
                   ? 'bg-slate-900 text-white'
                   : 'text-slate-600 hover:text-slate-900'
