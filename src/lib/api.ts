@@ -4,21 +4,26 @@ import { seedTasks } from './seedData';
 
 export async function initializeData() {
   try {
+    console.log('Starting initializeData...');
     const { count, error: countError } = await supabase
       .from('tasks')
       .select('*', { count: 'exact', head: true });
 
     if (countError) {
       console.error('Error checking task count:', countError);
-      throw new Error(`Database error: ${countError.message}`);
+      console.error('Error details:', JSON.stringify(countError, null, 2));
+      throw new Error(`Database error: ${countError.message}. Code: ${countError.code || 'unknown'}. Hint: ${countError.hint || 'none'}. Details: ${countError.details || 'none'}`);
     }
+
+    console.log('Task count:', count);
 
     if (count === 0) {
       console.log('No tasks found, seeding database...');
       const { error } = await supabase.from('tasks').insert(seedTasks);
       if (error) {
         console.error('Error seeding data:', error);
-        throw new Error(`Failed to seed database: ${error.message}`);
+        console.error('Error details:', JSON.stringify(error, null, 2));
+        throw new Error(`Failed to seed database: ${error.message}. Code: ${error.code || 'unknown'}. Details: ${error.details || 'none'}`);
       }
       console.log('Database seeded successfully');
     } else {
