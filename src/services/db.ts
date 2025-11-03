@@ -182,6 +182,38 @@ export async function getUpdates(taskId: string): Promise<ProgressUpdate[]> {
   return rows.map(normalizeUpdate);
 }
 
+export async function getUpdatesForTasks(
+  taskIds: string[]
+): Promise<Record<string, ProgressUpdate[]>> {
+  if (taskIds.length === 0) {
+    return {};
+  }
+
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from('updates')
+    .select('*')
+    .in('task_id', taskIds)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const grouped: Record<string, ProgressUpdate[]> = {};
+  const rows = (data ?? []) as UpdateRow[];
+
+  for (const row of rows) {
+    const normalized = normalizeUpdate(row);
+    if (!grouped[normalized.task_id]) {
+      grouped[normalized.task_id] = [];
+    }
+    grouped[normalized.task_id].push(normalized);
+  }
+
+  return grouped;
+}
+
 export async function getComments(taskId: string): Promise<CommentRow[]> {
   const supabase = getSupabaseClient();
   const { data, error } = await supabase

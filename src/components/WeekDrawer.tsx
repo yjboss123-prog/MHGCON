@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { X, ChevronRight } from 'lucide-react';
-import { TaskRow, getUpdates } from '../services/db';
+import { TaskRow, getUpdatesForTasks } from '../services/db';
 import { GanttWeek } from './GanttChart';
 import { ProgressUpdate } from '../types';
 import { formatRelativeTime, getRoleBadgeColor, getStatusBadgeColor } from '../lib/utils';
@@ -39,19 +39,11 @@ export function WeekDrawer({
 
       setIsLoading(true);
       try {
-        const results = await Promise.all(
-          tasks.map(async (task) => {
-            const updates = await getUpdates(task.id);
-            return [task.id, updates] as const;
-          })
-        );
+        const uniqueTaskIds = Array.from(new Set(tasks.map((task) => task.id)));
+        const map = await getUpdatesForTasks(uniqueTaskIds);
 
         if (!isMounted) return;
 
-        const map: Record<string, ProgressUpdate[]> = {};
-        for (const [taskId, updates] of results) {
-          map[taskId] = updates;
-        }
         setUpdatesByTask(map);
       } catch (error) {
         console.error('Failed to load updates for week view:', error);
