@@ -1,10 +1,11 @@
-import { supabase } from './supabase';
+import { getSupabaseClient } from './supabase';
 import { Task, Comment, ProgressUpdate, Role, TaskStatus } from '../types';
 import { seedTasks } from './seedData';
 
 export async function initializeData() {
   try {
     console.log('Starting initializeData...');
+    const supabase = getSupabaseClient();
     const { count, error: countError } = await supabase
       .from('tasks')
       .select('*', { count: 'exact', head: true });
@@ -36,6 +37,7 @@ export async function initializeData() {
 }
 
 export async function getTasks(): Promise<Task[]> {
+  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from('tasks')
     .select('*')
@@ -49,6 +51,7 @@ export async function getTasks(): Promise<Task[]> {
 }
 
 export async function createTask(task: Omit<Task, 'id' | 'created_at' | 'updated_at'>) {
+  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from('tasks')
     .insert([task])
@@ -60,6 +63,7 @@ export async function createTask(task: Omit<Task, 'id' | 'created_at' | 'updated
 }
 
 export async function updateTask(id: string, updates: Partial<Task>) {
+  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from('tasks')
     .update({ ...updates, updated_at: new Date().toISOString() })
@@ -72,6 +76,7 @@ export async function updateTask(id: string, updates: Partial<Task>) {
 }
 
 export async function deleteTask(id: string) {
+  const supabase = getSupabaseClient();
   const { error } = await supabase
     .from('tasks')
     .delete()
@@ -81,6 +86,7 @@ export async function deleteTask(id: string) {
 }
 
 export async function getComments(taskId: string): Promise<Comment[]> {
+  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from('comments')
     .select('*')
@@ -92,6 +98,7 @@ export async function getComments(taskId: string): Promise<Comment[]> {
 }
 
 export async function createComment(taskId: string, authorRole: Role, message: string) {
+  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from('comments')
     .insert([{ task_id: taskId, author_role: authorRole, message }])
@@ -103,6 +110,7 @@ export async function createComment(taskId: string, authorRole: Role, message: s
 }
 
 export async function getProgressUpdates(taskId: string): Promise<ProgressUpdate[]> {
+  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from('progress_updates')
     .select('*')
@@ -122,6 +130,7 @@ export async function createProgressUpdate(
   note?: string,
   photoBase64?: string
 ) {
+  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from('progress_updates')
     .insert([
@@ -154,6 +163,7 @@ export async function getWeekWork(
   year: number,
   week: number
 ): Promise<{ work_description: string; photos: string[] } | null> {
+  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from('task_weeks')
     .select('work_description, photos')
@@ -173,6 +183,7 @@ export async function saveWeekWork(
   workDescription: string,
   photos: string[]
 ) {
+  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from('task_weeks')
     .upsert(
@@ -203,6 +214,7 @@ export async function shiftSchedule(
 ): Promise<{ shiftedCount: number }> {
   const shiftDays = amount * (unit === 'Weeks' ? 7 : 1);
 
+  const supabase = getSupabaseClient();
   const { data: allTasks, error: fetchError } = await supabase
     .from('tasks')
     .select('*')
@@ -265,6 +277,7 @@ export async function rebaselineProject(
   resetStatuses: boolean,
   clearDelayReasons: boolean
 ): Promise<{ shiftedCount: number; deltaDays: number }> {
+  const supabase = getSupabaseClient();
   const { data: allTasks, error: fetchError } = await supabase
     .from('tasks')
     .select('*')
@@ -329,6 +342,7 @@ export async function rebaselineProject(
 }
 
 export async function getProject(projectId: string = '00000000-0000-0000-0000-000000000001') {
+  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from('projects')
     .select('*')
@@ -344,6 +358,7 @@ export async function updateProject(
   name: string,
   description: string
 ) {
+  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from('projects')
     .update({
