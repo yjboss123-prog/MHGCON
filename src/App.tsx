@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Header } from './components/Header';
 import { FilterPanel } from './components/FilterPanel';
 import { GanttChart } from './components/GanttChart';
+import { GanttChartHorizontal } from './components/GanttChartHorizontal';
 import { TaskList } from './components/TaskList';
 import { TaskDrawer } from './components/TaskDrawer';
 import { AddTaskModal } from './components/AddTaskModal';
@@ -17,11 +18,13 @@ const PROJECT_START = '2026-01-06';
 const PROJECT_END = '2026-12-31';
 
 type ViewMode = 'gantt' | 'list';
+type GanttOrientation = 'vertical' | 'horizontal';
 
 function App() {
   const [currentRole, setCurrentRole] = useState<Role>('Project Manager');
   const [language, setLanguage] = useState<Language>('en');
   const [viewMode, setViewMode] = useState<ViewMode>('gantt');
+  const [ganttOrientation, setGanttOrientation] = useState<GanttOrientation>('vertical');
   const t = useTranslation(language);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -330,13 +333,49 @@ function App() {
               <p className="text-slate-500">{t.loadingTasks}</p>
             </div>
           ) : viewMode === 'gantt' ? (
-            <GanttChart
-              tasks={filteredTasks}
-              projectStart={PROJECT_START}
-              projectEnd={PROJECT_END}
-              onWeekClick={handleWeekClick}
-              language={language}
-            />
+            <div className="space-y-3">
+              <div className="sm:hidden flex justify-center">
+                <div className="inline-flex bg-white rounded-lg shadow-sm p-1">
+                  <button
+                    onClick={() => setGanttOrientation('vertical')}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                      ganttOrientation === 'vertical'
+                        ? 'bg-slate-900 text-white'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    {language === 'fr' ? 'Vertical' : 'Vertical'}
+                  </button>
+                  <button
+                    onClick={() => setGanttOrientation('horizontal')}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                      ganttOrientation === 'horizontal'
+                        ? 'bg-slate-900 text-white'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    {language === 'fr' ? 'Horizontal' : 'Horizontal'}
+                  </button>
+                </div>
+              </div>
+
+              {ganttOrientation === 'vertical' ? (
+                <GanttChart
+                  tasks={filteredTasks}
+                  projectStart={PROJECT_START}
+                  projectEnd={PROJECT_END}
+                  onWeekClick={handleWeekClick}
+                  language={language}
+                />
+              ) : (
+                <GanttChartHorizontal
+                  tasks={filteredTasks}
+                  projectStart={PROJECT_START}
+                  projectEnd={PROJECT_END}
+                  language={language}
+                />
+              )}
+            </div>
           ) : (
             <TaskList
               tasks={filteredTasks}
