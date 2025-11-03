@@ -19,30 +19,34 @@ export function Header({ currentRole, onRoleChange, onAddTask, onRebaseline, onP
   const t = useTranslation(language);
   const canManage = currentRole === 'Project Manager' || currentRole === 'Developer';
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-14 sm:h-16 gap-2">
-          <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
+    <header className="glass-effect border-b border-slate-200/50 sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 sm:h-20 gap-3">
+          <div className="flex items-center gap-3 sm:gap-6 min-w-0 flex-1">
             <button
               onClick={onProjectSettings}
-              className="flex items-center gap-1 sm:gap-2 hover:bg-slate-50 px-1 sm:px-2 py-1 rounded-lg transition-colors min-w-0"
+              className="flex items-center gap-2 sm:gap-3 hover:bg-white/60 px-3 py-2 rounded-xl transition-all duration-200 min-w-0 group"
               title={t.projectSettings}
             >
-              <Settings className="w-5 h-5 sm:w-6 sm:h-6 text-slate-700 flex-shrink-0" />
-              <h1 className="text-base sm:text-xl font-bold text-slate-900 truncate">{projectName}</h1>
+              <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg shadow-blue-500/30 group-hover:shadow-blue-500/50 transition-all duration-200">
+                <Settings className="w-4 h-4 sm:w-5 sm:h-5 text-white flex-shrink-0" />
+              </div>
+              <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent truncate">
+                {projectName}
+              </h1>
             </button>
             {projectDescription && (
-              <div className="hidden lg:block text-sm text-slate-500 border-l border-slate-200 pl-4 truncate">
+              <div className="hidden lg:block text-sm text-slate-600 border-l border-slate-300 pl-6 truncate">
                 {projectDescription}
               </div>
             )}
           </div>
 
-          <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
             <select
               value={language}
               onChange={(e) => onLanguageChange(e.target.value as Language)}
-              className="px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-300 rounded-lg text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-slate-400 bg-white"
+              className="input-modern text-xs sm:text-sm font-medium py-2 px-3"
             >
               <option value="en">EN</option>
               <option value="fr">FR</option>
@@ -51,7 +55,7 @@ export function Header({ currentRole, onRoleChange, onAddTask, onRebaseline, onP
             <select
               value={currentRole}
               onChange={(e) => onRoleChange(e.target.value)}
-              className="hidden sm:block px-3 py-2 border border-slate-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-slate-400 bg-white max-w-[140px]"
+              className="hidden sm:block input-modern text-sm font-medium py-2 px-3 max-w-[160px]"
             >
               {allRoles.map((role) => (
                 <option key={role} value={role}>
@@ -63,17 +67,17 @@ export function Header({ currentRole, onRoleChange, onAddTask, onRebaseline, onP
             {canManage && (
               <button
                 onClick={onRebaseline}
-                className="hidden sm:flex px-2 sm:px-3 py-1.5 sm:py-2 border border-slate-300 text-slate-700 text-xs sm:text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors items-center gap-1 sm:gap-2"
+                className="hidden lg:flex btn-secondary px-4 py-2 text-sm items-center gap-2"
                 title={language === 'fr' ? 'Recalibrer le projet' : 'Rebaseline Project'}
               >
-                <RefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                <span className="hidden md:inline">{language === 'fr' ? 'Recalibrer' : 'Rebaseline'}</span>
+                <RefreshCw className="w-4 h-4" />
+                <span>{language === 'fr' ? 'Recalibrer' : 'Rebaseline'}</span>
               </button>
             )}
 
             <button
               onClick={onAddTask}
-              className="px-2 sm:px-4 py-1.5 sm:py-2 bg-slate-700 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors whitespace-nowrap"
+              className="btn-primary px-4 sm:px-6 py-2 sm:py-2.5 text-sm sm:text-base whitespace-nowrap"
             >
               <span className="hidden sm:inline">+ {t.addTask}</span>
               <span className="sm:hidden">+</span>

@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  body {
+    @apply bg-gradient-to-br from-slate-50 via-blue-50 to-slate-50;
+    @apply min-h-screen;
+  }
+}
+
 @layer utilities {
   .landscape-mode {
     height: 100vh;
@@ -21,6 +28,39 @@
   .landscape-mode .overflow-x-auto {
     flex: 1;
     overflow-y: auto;
+  }
+
+  .glass-effect {
+    @apply bg-white/80 backdrop-blur-xl;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+  }
+
+  .card-modern {
+    @apply bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300;
+    border: 1px solid rgba(226, 232, 240, 0.8);
+  }
+
+  .btn-primary {
+    @apply bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-xl;
+    @apply hover:from-blue-700 hover:to-blue-800 transition-all duration-200;
+    @apply shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40;
+  }
+
+  .btn-secondary {
+    @apply bg-white text-slate-700 font-medium rounded-xl border border-slate-200;
+    @apply hover:bg-slate-50 hover:border-slate-300 transition-all duration-200;
+    @apply shadow-sm hover:shadow-md;
+  }
+
+  .input-modern {
+    @apply px-4 py-3 border border-slate-200 rounded-xl;
+    @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+    @apply transition-all duration-200 bg-white;
+  }
+
+  .badge-modern {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold;
+    @apply shadow-sm;
   }
 }
 
