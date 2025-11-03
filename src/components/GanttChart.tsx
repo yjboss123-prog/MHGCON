@@ -161,7 +161,9 @@ export function GanttChart({ tasks, projectStart, projectEnd, onWeekClick, langu
                       </span>
                     )}
                   </div>
-                  <div className="text-xs text-slate-500 mt-0.5 sm:mt-1 truncate" title={task.owner_role}>{task.owner_role}</div>
+                  <div className="text-xs text-slate-500 mt-0.5 sm:mt-1 truncate" title={task.owner_roles.join(', ')}>
+                    {task.owner_roles.join(', ')}
+                  </div>
                 </div>
                 <div className="flex flex-1">
                   {taskWeeks.map((weekCell, idx) => {

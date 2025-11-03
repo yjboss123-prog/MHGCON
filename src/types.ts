@@ -11,7 +11,7 @@ export type TaskStatus = 'On Track' | 'Delayed' | 'Blocked' | 'Done';
 export type Task = {
   id: string;
   name: string;
-  owner_role: Role;
+  owner_roles: Role[];
   start_date: string;
   end_date: string;
   percent_done: number;

@@ -135,7 +135,7 @@ export function TaskDrawer({
 
   if (!task || !isOpen) return null;
 
-  const canUpdate = task.owner_role === currentRole;
+  const canUpdate = task.owner_roles.includes(currentRole);
   const needsDelayReason = (status === 'Delayed' || status === 'Blocked') && percentDone < 100;
 
   return (
@@ -177,9 +177,11 @@ export function TaskDrawer({
           <div>
             <h3 className="text-xl font-semibold text-slate-900 mb-2">{task.name}</h3>
             <div className="flex flex-wrap gap-2">
-              <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${getRoleBadgeColor(task.owner_role)}`}>
-                {task.owner_role}
-              </span>
+              {task.owner_roles.map((role) => (
+                <span key={role} className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${getRoleBadgeColor(role)}`}>
+                  {role}
+                </span>
+              ))}
               <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${getStatusBadgeColor(task.status)}`}>
                 {task.status} - {task.percent_done}%
               </span>

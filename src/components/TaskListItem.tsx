@@ -35,7 +35,7 @@ export function TaskListItem({
 }: TaskListItemProps) {
   const t = useTranslation(language);
   const daysRemaining = getDaysRemaining(task.end_date, task.status, task.percent_done);
-  const canUpdate = task.owner_role === currentRole;
+  const canUpdate = task.owner_roles.includes(currentRole);
   const canManage = currentRole === 'Project Manager' || currentRole === 'Developer';
   const position = calculateGanttPosition(
     task.start_date,
@@ -63,9 +63,11 @@ export function TaskListItem({
                 )}
               </div>
               <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-1">
-                <span className={`inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded text-xs font-medium ${getRoleBadgeColor(task.owner_role)}`}>
-                  {translateRole(task.owner_role, language)}
-                </span>
+                {task.owner_roles.map((role) => (
+                  <span key={role} className={`inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded text-xs font-medium ${getRoleBadgeColor(role)}`}>
+                    {translateRole(role, language)}
+                  </span>
+                ))}
                 <span className={`inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded text-xs font-medium ${getStatusBadgeColor(task.status)}`}>
                   {translateStatus(task.status, language)}
                 </span>

@@ -106,7 +106,7 @@ function App() {
         return false;
       }
 
-      if (selectedRoles.length > 0 && !selectedRoles.includes(task.owner_role)) {
+      if (selectedRoles.length > 0 && !task.owner_roles.some(role => selectedRoles.includes(role))) {
         return false;
       }
 

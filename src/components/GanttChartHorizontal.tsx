@@ -73,7 +73,7 @@ export function GanttChartHorizontal({
                       </span>
                     )}
                   </div>
-                  <div className="text-xs text-slate-500">{task.owner_role}</div>
+                  <div className="text-xs text-slate-500">{task.owner_roles.join(', ')}</div>
                 </div>
                 <div className="flex flex-col items-end gap-1">
                   <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
