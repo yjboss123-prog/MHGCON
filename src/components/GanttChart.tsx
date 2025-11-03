@@ -105,9 +105,9 @@ export function GanttChart({ tasks, projectStart, projectEnd, onWeekClick, langu
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-      <div className="overflow-x-auto overscroll-x-contain touch-pan-x">
-        <div className="inline-block min-w-full" style={{ minWidth: '900px' }}>
+    <div className="bg-white rounded-lg shadow-sm overflow-hidden landscape:h-full">
+      <div className="overflow-x-auto overscroll-x-contain touch-pan-x landscape:h-full">
+        <div className="inline-block min-w-full landscape:h-full" style={{ minWidth: '900px' }}>
           {/* Month Headers */}
           <div className="flex border-b-2 border-slate-300">
             <div className="w-40 sm:w-64 flex-shrink-0 bg-slate-50 border-r border-slate-300 px-2 sm:px-4 py-2 sm:py-3">

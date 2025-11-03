@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from 'react';
 import { Header } from './components/Header';
 import { FilterPanel } from './components/FilterPanel';
 import { GanttChart } from './components/GanttChart';
-import { GanttChartHorizontal } from './components/GanttChartHorizontal';
 import { TaskList } from './components/TaskList';
 import { TaskDrawer } from './components/TaskDrawer';
 import { AddTaskModal } from './components/AddTaskModal';
@@ -18,13 +17,12 @@ const PROJECT_START = '2026-01-06';
 const PROJECT_END = '2026-12-31';
 
 type ViewMode = 'gantt' | 'list';
-type GanttOrientation = 'vertical' | 'horizontal';
 
 function App() {
   const [currentRole, setCurrentRole] = useState<Role>('Project Manager');
   const [language, setLanguage] = useState<Language>('en');
   const [viewMode, setViewMode] = useState<ViewMode>('gantt');
-  const [ganttOrientation, setGanttOrientation] = useState<GanttOrientation>('vertical');
+  const [isLandscape, setIsLandscape] = useState(false);
   const t = useTranslation(language);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -47,6 +45,21 @@ function App() {
   useEffect(() => {
     loadTasks();
     loadProject();
+  }, []);
+
+  useEffect(() => {
+    const checkOrientation = () => {
+      setIsLandscape(window.innerWidth > window.innerHeight && window.innerWidth < 1024);
+    };
+
+    checkOrientation();
+    window.addEventListener('resize', checkOrientation);
+    window.addEventListener('orientationchange', checkOrientation);
+
+    return () => {
+      window.removeEventListener('resize', checkOrientation);
+      window.removeEventListener('orientationchange', checkOrientation);
+    };
   }, []);
 
   const loadTasks = async () => {
@@ -276,43 +289,46 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <Header
-        currentRole={currentRole}
-        onRoleChange={setCurrentRole}
-        onAddTask={() => setIsAddModalOpen(true)}
-        onRebaseline={() => setIsRebaselineModalOpen(true)}
-        onProjectSettings={() => setIsProjectSettingsOpen(true)}
-        language={language}
-        onLanguageChange={setLanguage}
-        projectName={project?.name || 'MHG Tracker'}
-        projectDescription={project?.description || ''}
-      />
+    <div className={`min-h-screen bg-slate-50 ${isLandscape ? 'landscape-mode' : ''}`}>
+      {!isLandscape && (
+        <Header
+          currentRole={currentRole}
+          onRoleChange={setCurrentRole}
+          onAddTask={() => setIsAddModalOpen(true)}
+          onRebaseline={() => setIsRebaselineModalOpen(true)}
+          onProjectSettings={() => setIsProjectSettingsOpen(true)}
+          language={language}
+          onLanguageChange={setLanguage}
+          projectName={project?.name || 'MHG Tracker'}
+          projectDescription={project?.description || ''}
+        />
+      )}
 
-      <div className="max-w-[1600px] mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-6">
-        <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
-          <FilterPanel
-            selectedStatuses={selectedStatuses}
-            selectedRoles={selectedRoles}
-            selectedMonths={selectedMonths}
-            availableMonths={availableMonths}
-            onStatusToggle={handleStatusToggle}
-            onRoleToggle={handleRoleToggle}
-            onMonthToggle={handleMonthToggle}
-            onClearFilters={handleClearFilters}
-            language={language}
-          />
+      <div className={`mx-auto ${isLandscape ? 'px-2 py-2' : 'max-w-[1600px] px-2 sm:px-4 lg:px-8 py-4 sm:py-6'}`}>
+        {!isLandscape && (
+          <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
+            <FilterPanel
+              selectedStatuses={selectedStatuses}
+              selectedRoles={selectedRoles}
+              selectedMonths={selectedMonths}
+              availableMonths={availableMonths}
+              onStatusToggle={handleStatusToggle}
+              onRoleToggle={handleRoleToggle}
+              onMonthToggle={handleMonthToggle}
+              onClearFilters={handleClearFilters}
+              language={language}
+            />
 
-          <div className="flex bg-white rounded-lg shadow-sm p-1 self-center sm:self-auto">
-            <button
-              onClick={() => setViewMode('gantt')}
-              className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors ${
-                viewMode === 'gantt'
-                  ? 'bg-slate-900 text-white'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              {t.ganttChart}
+            <div className="flex bg-white rounded-lg shadow-sm p-1 self-center sm:self-auto">
+              <button
+                onClick={() => setViewMode('gantt')}
+                className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors ${
+                  viewMode === 'gantt'
+                    ? 'bg-slate-900 text-white'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                {t.ganttChart}
             </button>
             <button
               onClick={() => setViewMode('list')}
@@ -325,57 +341,22 @@ function App() {
               {t.listView}
             </button>
           </div>
-        </div>
+          </div>
+        )}
 
         <main>
           {isLoading ? (
             <div className="bg-white rounded-lg shadow-sm p-8 text-center">
               <p className="text-slate-500">{t.loadingTasks}</p>
             </div>
-          ) : viewMode === 'gantt' ? (
-            <div className="space-y-3">
-              <div className="sm:hidden flex justify-center">
-                <div className="inline-flex bg-white rounded-lg shadow-sm p-1">
-                  <button
-                    onClick={() => setGanttOrientation('vertical')}
-                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                      ganttOrientation === 'vertical'
-                        ? 'bg-slate-900 text-white'
-                        : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    {language === 'fr' ? 'Vertical' : 'Vertical'}
-                  </button>
-                  <button
-                    onClick={() => setGanttOrientation('horizontal')}
-                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                      ganttOrientation === 'horizontal'
-                        ? 'bg-slate-900 text-white'
-                        : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    {language === 'fr' ? 'Horizontal' : 'Horizontal'}
-                  </button>
-                </div>
-              </div>
-
-              {ganttOrientation === 'vertical' ? (
-                <GanttChart
-                  tasks={filteredTasks}
-                  projectStart={PROJECT_START}
-                  projectEnd={PROJECT_END}
-                  onWeekClick={handleWeekClick}
-                  language={language}
-                />
-              ) : (
-                <GanttChartHorizontal
-                  tasks={filteredTasks}
-                  projectStart={PROJECT_START}
-                  projectEnd={PROJECT_END}
-                  language={language}
-                />
-              )}
-            </div>
+          ) : (viewMode === 'gantt' || isLandscape) ? (
+            <GanttChart
+              tasks={filteredTasks}
+              projectStart={PROJECT_START}
+              projectEnd={PROJECT_END}
+              onWeekClick={handleWeekClick}
+              language={language}
+            />
           ) : (
             <TaskList
               tasks={filteredTasks}

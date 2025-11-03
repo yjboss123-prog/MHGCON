@@ -1,3 +1,35 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer utilities {
+  .landscape-mode {
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .landscape-mode main {
+    height: calc(100vh - 1rem);
+  }
+
+  .landscape-mode .bg-white.rounded-lg {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .landscape-mode .overflow-x-auto {
+    flex: 1;
+    overflow-y: auto;
+  }
+}
+
+@media (orientation: landscape) and (max-width: 1023px) {
+  .gantt-landscape-text {
+    font-size: 0.625rem;
+  }
+
+  .gantt-landscape-row {
+    padding: 0.25rem 0.5rem;
+  }
+}
