@@ -25,7 +25,13 @@ export function TaskList({
   onTaskDelete,
   language,
 }: TaskListProps) {
-  if (tasks.length === 0) {
+  const canManage = currentRole === 'Project Manager' || currentRole === 'Developer';
+
+  const filteredTasks = canManage
+    ? tasks
+    : tasks.filter(task => task.owner_roles.includes(currentRole));
+
+  if (filteredTasks.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow-sm p-8 text-center">
         <p className="text-slate-500">No tasks found matching your filters.</p>
@@ -35,7 +41,7 @@ export function TaskList({
 
   return (
     <div className="space-y-3">
-      {tasks.map((task) => (
+      {filteredTasks.map((task) => (
         <TaskListItem
           key={task.id}
           task={task}

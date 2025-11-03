@@ -109,7 +109,7 @@ export function TaskListItem({
             )}
           </div>
 
-          {task.delay_reason && (
+          {task.delay_reason && canManage && (
             <div className="mt-3 p-3 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl text-xs text-amber-900">
               <span className="font-semibold">{t.delayReason}:</span> {task.delay_reason}
             </div>
