@@ -41,6 +41,7 @@ function App() {
   const [selectedStatuses, setSelectedStatuses] = useState<TaskStatus[]>([]);
   const [selectedRoles, setSelectedRoles] = useState<Role[]>([]);
   const [selectedMonths, setSelectedMonths] = useState<string[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     loadTasks();
@@ -64,12 +65,17 @@ function App() {
 
   const loadTasks = async () => {
     setIsLoading(true);
+    setLoadError(null);
     try {
+      console.log('Initializing data...');
       await initializeData();
+      console.log('Fetching tasks...');
       const data = await getTasks();
+      console.log('Tasks loaded:', data?.length || 0);
       setTasks(data);
     } catch (error) {
       console.error('Error loading tasks:', error);
+      setLoadError(error instanceof Error ? error.message : 'Failed to load tasks');
     } finally {
       setIsLoading(false);
     }
@@ -345,7 +351,20 @@ function App() {
         )}
 
         <main>
-          {isLoading ? (
+          {loadError ? (
+            <div className="bg-white rounded-lg shadow-sm p-8">
+              <div className="text-center">
+                <h3 className="text-lg font-semibold text-red-600 mb-2">Error Loading Application</h3>
+                <p className="text-slate-700 mb-4">{loadError}</p>
+                <button
+                  onClick={loadTasks}
+                  className="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+          ) : isLoading ? (
             <div className="bg-white rounded-lg shadow-sm p-8 text-center">
               <p className="text-slate-500">{t.loadingTasks}</p>
             </div>

@@ -3,15 +3,30 @@ import { Task, Comment, ProgressUpdate, Role, TaskStatus } from '../types';
 import { seedTasks } from './seedData';
 
 export async function initializeData() {
-  const { count } = await supabase
-    .from('tasks')
-    .select('*', { count: 'exact', head: true });
+  try {
+    const { count, error: countError } = await supabase
+      .from('tasks')
+      .select('*', { count: 'exact', head: true });
 
-  if (count === 0) {
-    const { error } = await supabase.from('tasks').insert(seedTasks);
-    if (error) {
-      console.error('Error seeding data:', error);
+    if (countError) {
+      console.error('Error checking task count:', countError);
+      throw new Error(`Database error: ${countError.message}`);
     }
+
+    if (count === 0) {
+      console.log('No tasks found, seeding database...');
+      const { error } = await supabase.from('tasks').insert(seedTasks);
+      if (error) {
+        console.error('Error seeding data:', error);
+        throw new Error(`Failed to seed database: ${error.message}`);
+      }
+      console.log('Database seeded successfully');
+    } else {
+      console.log(`Found ${count} existing tasks`);
+    }
+  } catch (error) {
+    console.error('initializeData error:', error);
+    throw error;
   }
 }
 
@@ -21,7 +36,10 @@ export async function getTasks(): Promise<Task[]> {
     .select('*')
     .order('start_date', { ascending: true });
 
-  if (error) throw error;
+  if (error) {
+    console.error('Error fetching tasks:', error);
+    throw new Error(`Failed to fetch tasks: ${error.message}`);
+  }
   return data || [];
 }
 
