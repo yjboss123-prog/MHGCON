@@ -258,6 +258,7 @@ function App() {
   ) => {
     try {
       const result = await rebaselineProject(newBaselineStart, resetStatuses, clearDelayReasons);
+      await loadProject();
       await loadTasks();
 
       const message = language === 'fr'
@@ -280,8 +281,8 @@ function App() {
     if (!project) return;
 
     try {
-      await updateProject(project.id, name, description, customContractors, currentDate);
-      await loadProject();
+      const updatedProject = await updateProject(project.id, name, description, customContractors, currentDate);
+      setProject(updatedProject);
       await loadTasks();
 
       const message = language === 'fr'

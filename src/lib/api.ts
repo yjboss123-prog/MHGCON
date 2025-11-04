@@ -315,6 +315,25 @@ export async function rebaselineProject(
     if (updateError) throw updateError;
   }
 
+  const { data: project } = await supabase
+    .from('projects')
+    .select('project_current_date')
+    .eq('id', '00000000-0000-0000-0000-000000000001')
+    .single();
+
+  if (project?.project_current_date) {
+    const newCurrentDate = new Date(project.project_current_date);
+    newCurrentDate.setDate(newCurrentDate.getDate() + deltaDays);
+
+    await supabase
+      .from('projects')
+      .update({
+        project_current_date: newCurrentDate.toISOString().slice(0, 10),
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', '00000000-0000-0000-0000-000000000001');
+  }
+
   const comment = {
     task_id: allTasks[0].id,
     author_role: 'Project Manager',
