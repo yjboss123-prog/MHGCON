@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { TaskStatus, TASK_STATUSES } from '../types';
 import { Filter, ChevronDown, ChevronUp } from 'lucide-react';
 import { Language, useTranslation, translateRole, translateStatus } from '../lib/i18n';
@@ -16,7 +16,7 @@ interface FilterPanelProps {
   allRoles: string[];
 }
 
-export function FilterPanel({
+export const FilterPanel = memo(function FilterPanel({
   selectedStatuses,
   selectedRoles,
   selectedMonths,
@@ -105,4 +105,4 @@ export function FilterPanel({
       </div>
     </div>
   );
-}
+});

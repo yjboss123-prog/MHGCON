@@ -2,33 +2,28 @@ import { supabase } from './supabase';
 import { Task, Comment, ProgressUpdate, Role, TaskStatus } from '../types';
 import { seedTasks } from './seedData';
 
+let isInitialized = false;
+
 export async function initializeData() {
+  if (isInitialized) return;
+
   try {
-    console.log('Starting initializeData...');
     const { count, error: countError } = await supabase
       .from('tasks')
       .select('*', { count: 'exact', head: true });
 
     if (countError) {
-      console.error('Error checking task count:', countError);
-      console.error('Error details:', JSON.stringify(countError, null, 2));
-      throw new Error(`Database error: ${countError.message}. Code: ${countError.code || 'unknown'}. Hint: ${countError.hint || 'none'}. Details: ${countError.details || 'none'}`);
+      throw new Error(`Database error: ${countError.message}`);
     }
-
-    console.log('Task count:', count);
 
     if (count === 0) {
-      console.log('No tasks found, seeding database...');
       const { error } = await supabase.from('tasks').insert(seedTasks);
       if (error) {
-        console.error('Error seeding data:', error);
-        console.error('Error details:', JSON.stringify(error, null, 2));
-        throw new Error(`Failed to seed database: ${error.message}. Code: ${error.code || 'unknown'}. Details: ${error.details || 'none'}`);
+        throw new Error(`Failed to seed database: ${error.message}`);
       }
-      console.log('Database seeded successfully');
-    } else {
-      console.log(`Found ${count} existing tasks`);
     }
+
+    isInitialized = true;
   } catch (error) {
     console.error('initializeData error:', error);
     throw error;

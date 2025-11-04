@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Role } from '../types';
 import { Settings, RefreshCw } from 'lucide-react';
 import { Language, useTranslation } from '../lib/i18n';
@@ -15,7 +16,7 @@ interface HeaderProps {
   allRoles: string[];
 }
 
-export function Header({ currentRole, onRoleChange, onAddTask, onRebaseline, onProjectSettings, language, onLanguageChange, projectName, projectDescription, allRoles }: HeaderProps) {
+export const Header = memo(function Header({ currentRole, onRoleChange, onAddTask, onRebaseline, onProjectSettings, language, onLanguageChange, projectName, projectDescription, allRoles }: HeaderProps) {
   const t = useTranslation(language);
   const canManage = currentRole === 'Project Manager' || currentRole === 'Developer';
   return (
@@ -87,4 +88,4 @@ export function Header({ currentRole, onRoleChange, onAddTask, onRebaseline, onP
       </div>
     </header>
   );
-}
+});

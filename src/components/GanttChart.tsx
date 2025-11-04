@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, memo, useCallback } from 'react';
 import { Task } from '../types';
 import { getWeekNumber, getWeeksInRange } from '../lib/utils';
 import { Language, useTranslation } from '../lib/i18n';
@@ -21,7 +21,22 @@ interface WeekCell {
   monthLabel?: string;
 }
 
-export function GanttChart({ tasks, projectStart, projectEnd, currentDate, onWeekClick, language }: GanttChartProps) {
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'Done':
+      return 'bg-emerald-500';
+    case 'On Track':
+      return 'bg-slate-400';
+    case 'Delayed':
+      return 'bg-amber-500';
+    case 'Blocked':
+      return 'bg-red-500';
+    default:
+      return 'bg-slate-300';
+  }
+};
+
+export const GanttChart = memo(function GanttChart({ tasks, projectStart, projectEnd, currentDate, onWeekClick, language }: GanttChartProps) {
   const [hoveredCell, setHoveredCell] = useState<string | null>(null);
   const t = useTranslation(language);
 
@@ -82,7 +97,7 @@ export function GanttChart({ tasks, projectStart, projectEnd, currentDate, onWee
     };
   }, [projectStart, projectEnd, currentDate]);
 
-  const getTaskWeekCells = (task: Task): WeekCell[] => {
+  const getTaskWeekCells = useCallback((task: Task): WeekCell[] => {
     const taskStart = new Date(task.start_date);
     const taskEnd = new Date(task.end_date);
 
@@ -100,22 +115,8 @@ export function GanttChart({ tasks, projectStart, projectEnd, currentDate, onWee
         isInTaskRange,
       };
     });
-  };
+  }, [weeks]);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Done':
-        return 'bg-emerald-500';
-      case 'On Track':
-        return 'bg-slate-400';
-      case 'Delayed':
-        return 'bg-amber-500';
-      case 'Blocked':
-        return 'bg-red-500';
-      default:
-        return 'bg-slate-300';
-    }
-  };
 
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-hidden landscape:h-full">
@@ -244,4 +245,4 @@ export function GanttChart({ tasks, projectStart, projectEnd, currentDate, onWee
       </div>
     </div>
   );
-}
+});

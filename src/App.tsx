@@ -1,17 +1,18 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { Header } from './components/Header';
 import { FilterPanel } from './components/FilterPanel';
 import { GanttChart } from './components/GanttChart';
 import { TaskList } from './components/TaskList';
 import { TaskDrawer } from './components/TaskDrawer';
-import { AddTaskModal } from './components/AddTaskModal';
-import { WeekDetailsModal } from './components/WeekDetailsModal';
-import { ShiftModal } from './components/ShiftModal';
-import { RebaselineModal } from './components/RebaselineModal';
-import { ProjectSettingsModal } from './components/ProjectSettingsModal';
 import { Task, Role, TaskStatus, DEFAULT_ROLES, Project } from './types';
 import { getTasks, initializeData, shiftSchedule, deleteTask, rebaselineProject, getProject, updateProject } from './lib/api';
 import { Language, useTranslation } from './lib/i18n';
+
+const AddTaskModal = lazy(() => import('./components/AddTaskModal').then(m => ({ default: m.AddTaskModal })));
+const WeekDetailsModal = lazy(() => import('./components/WeekDetailsModal').then(m => ({ default: m.WeekDetailsModal })));
+const ShiftModal = lazy(() => import('./components/ShiftModal').then(m => ({ default: m.ShiftModal })));
+const RebaselineModal = lazy(() => import('./components/RebaselineModal').then(m => ({ default: m.RebaselineModal })));
+const ProjectSettingsModal = lazy(() => import('./components/ProjectSettingsModal').then(m => ({ default: m.ProjectSettingsModal })));
 
 const PROJECT_START = '2026-01-06';
 const PROJECT_END = '2026-12-31';
@@ -417,45 +418,47 @@ function App() {
         onTaskUpdated={handleTaskUpdated}
       />
 
-      <AddTaskModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onTaskAdded={loadTasks}
-        allRoles={allRoles}
-      />
+      <Suspense fallback={null}>
+        <AddTaskModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          onTaskAdded={loadTasks}
+          allRoles={allRoles}
+        />
 
-      <WeekDetailsModal
-        isOpen={isWeekModalOpen}
-        onClose={handleWeekModalClose}
-        task={selectedTask}
-        year={selectedWeek?.year || 0}
-        week={selectedWeek?.week || 0}
-        currentRole={currentRole}
-        language={language}
-      />
+        <WeekDetailsModal
+          isOpen={isWeekModalOpen}
+          onClose={handleWeekModalClose}
+          task={selectedTask}
+          year={selectedWeek?.year || 0}
+          week={selectedWeek?.week || 0}
+          currentRole={currentRole}
+          language={language}
+        />
 
-      <ShiftModal
-        isOpen={isShiftModalOpen}
-        onClose={() => setIsShiftModalOpen(false)}
-        task={selectedTask}
-        onConfirm={handleShiftConfirm}
-        language={language}
-      />
+        <ShiftModal
+          isOpen={isShiftModalOpen}
+          onClose={() => setIsShiftModalOpen(false)}
+          task={selectedTask}
+          onConfirm={handleShiftConfirm}
+          language={language}
+        />
 
-      <RebaselineModal
-        isOpen={isRebaselineModalOpen}
-        onClose={() => setIsRebaselineModalOpen(false)}
-        onConfirm={handleRebaselineConfirm}
-        language={language}
-      />
+        <RebaselineModal
+          isOpen={isRebaselineModalOpen}
+          onClose={() => setIsRebaselineModalOpen(false)}
+          onConfirm={handleRebaselineConfirm}
+          language={language}
+        />
 
-      <ProjectSettingsModal
-        isOpen={isProjectSettingsOpen}
-        onClose={() => setIsProjectSettingsOpen(false)}
-        project={project}
-        onSave={handleProjectSettingsSave}
-        language={language}
-      />
+        <ProjectSettingsModal
+          isOpen={isProjectSettingsOpen}
+          onClose={() => setIsProjectSettingsOpen(false)}
+          project={project}
+          onSave={handleProjectSettingsSave}
+          language={language}
+        />
+      </Suspense>
     </div>
   );
 }
