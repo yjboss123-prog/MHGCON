@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo, useCallback } from 'react';
 import { Task, Comment, ProgressUpdate, TaskStatus, TASK_STATUSES } from '../types';
 import { X, Upload, Send, AlertCircle } from 'lucide-react';
 import {
@@ -19,7 +19,7 @@ interface TaskDrawerProps {
   onTaskUpdated: () => void;
 }
 
-export function TaskDrawer({
+export const TaskDrawer = memo(function TaskDrawer({
   task,
   currentRole,
   isOpen,
@@ -48,7 +48,7 @@ export function TaskDrawer({
     }
   }, [task, isOpen]);
 
-  const loadTaskData = async () => {
+  const loadTaskData = useCallback(async () => {
     if (!task) return;
     try {
       const [commentsData, updatesData] = await Promise.all([
@@ -60,7 +60,7 @@ export function TaskDrawer({
     } catch (err) {
       console.error('Error loading task data:', err);
     }
-  };
+  }, [task]);
 
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -141,10 +141,10 @@ export function TaskDrawer({
   return (
     <>
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity"
+        className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-200"
         onClick={onClose}
       />
-      <div className="fixed inset-y-0 right-0 w-full sm:w-[600px] bg-white shadow-xl z-50 overflow-y-auto">
+      <div className="fixed inset-y-0 right-0 w-full sm:w-[600px] bg-white shadow-xl z-50 overflow-y-auto transform transition-transform duration-300 ease-out will-change-transform">
         <div className="sticky top-0 bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-slate-900">
             {mode === 'update' ? 'Update Task' : 'Task Details'}
@@ -386,4 +386,4 @@ export function TaskDrawer({
       </div>
     </>
   );
-}
+});

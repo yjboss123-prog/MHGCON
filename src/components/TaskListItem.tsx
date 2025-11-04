@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react';
 import { Task } from '../types';
 import { Calendar, Trash2, ArrowRight } from 'lucide-react';
 import {
@@ -22,7 +23,7 @@ interface TaskListItemProps {
   language: Language;
 }
 
-export function TaskListItem({
+export const TaskListItem = memo(function TaskListItem({
   task,
   currentRole,
   projectStart,
@@ -34,15 +35,28 @@ export function TaskListItem({
   language,
 }: TaskListItemProps) {
   const t = useTranslation(language);
-  const daysRemaining = getDaysRemaining(task.end_date, task.status, task.percent_done);
-  const canUpdate = task.owner_roles.includes(currentRole);
-  const canManage = currentRole === 'Project Manager' || currentRole === 'Developer';
-  const position = calculateGanttPosition(
+
+  const daysRemaining = useMemo(() =>
+    getDaysRemaining(task.end_date, task.status, task.percent_done),
+    [task.end_date, task.status, task.percent_done]
+  );
+
+  const canUpdate = useMemo(() =>
+    task.owner_roles.includes(currentRole),
+    [task.owner_roles, currentRole]
+  );
+
+  const canManage = useMemo(() =>
+    currentRole === 'Project Manager' || currentRole === 'Developer',
+    [currentRole]
+  );
+
+  const position = useMemo(() => calculateGanttPosition(
     task.start_date,
     task.end_date,
     projectStart,
     projectEnd
-  );
+  ), [task.start_date, task.end_date, projectStart, projectEnd]);
 
   return (
     <div className={`card-modern p-4 sm:p-5 ${task.was_shifted ? 'ring-2 ring-blue-500 bg-gradient-to-br from-blue-50 to-white' : ''}`}>
@@ -155,4 +169,4 @@ export function TaskListItem({
       </div>
     </div>
   );
-}
+});

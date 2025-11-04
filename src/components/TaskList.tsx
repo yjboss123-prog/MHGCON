@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react';
 import { Task } from '../types';
 import { TaskListItem } from './TaskListItem';
 import { Language } from '../lib/i18n';
@@ -14,7 +15,7 @@ interface TaskListProps {
   language: Language;
 }
 
-export function TaskList({
+export const TaskList = memo(function TaskList({
   tasks,
   currentRole,
   projectStart,
@@ -25,11 +26,15 @@ export function TaskList({
   onTaskDelete,
   language,
 }: TaskListProps) {
-  const canManage = currentRole === 'Project Manager' || currentRole === 'Developer';
+  const canManage = useMemo(() =>
+    currentRole === 'Project Manager' || currentRole === 'Developer',
+    [currentRole]
+  );
 
-  const filteredTasks = canManage
-    ? tasks
-    : tasks.filter(task => task.owner_roles.includes(currentRole));
+  const filteredTasks = useMemo(() =>
+    canManage ? tasks : tasks.filter(task => task.owner_roles.includes(currentRole)),
+    [canManage, tasks, currentRole]
+  );
 
   if (filteredTasks.length === 0) {
     return (
@@ -57,4 +62,4 @@ export function TaskList({
       ))}
     </div>
   );
-}
+});
