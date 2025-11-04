@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
 import { Task } from '../types';
-import { Language, useTranslation } from '../lib/i18n';
+import { Language } from '../lib/i18n';
 
 interface ShiftModalProps {
   isOpen: boolean;
@@ -12,7 +12,6 @@ interface ShiftModalProps {
 }
 
 export function ShiftModal({ isOpen, onClose, task, onConfirm, language }: ShiftModalProps) {
-  const t = useTranslation(language);
   const [amount, setAmount] = useState<number>(1);
   const [unit, setUnit] = useState<'Days' | 'Weeks'>('Days');
   const [skipDone, setSkipDone] = useState<boolean>(true);

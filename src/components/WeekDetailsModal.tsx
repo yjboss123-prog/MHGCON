@@ -15,11 +15,6 @@ interface WeekDetailsModalProps {
   language: Language;
 }
 
-interface WeekWork {
-  work_description: string;
-  photos: string[];
-}
-
 export function WeekDetailsModal({
   isOpen,
   onClose,

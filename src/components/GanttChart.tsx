@@ -1,6 +1,6 @@
 import { useState, useMemo, memo, useCallback } from 'react';
 import { Task } from '../types';
-import { getWeekNumber, getWeeksInRange } from '../lib/utils';
+import { getWeeksInRange } from '../lib/utils';
 import { Language, useTranslation } from '../lib/i18n';
 import { ArrowRight } from 'lucide-react';
 

@@ -1,5 +1,4 @@
 import { memo } from 'react';
-import { Role } from '../types';
 import { Settings, RefreshCw } from 'lucide-react';
 import { Language, useTranslation } from '../lib/i18n';
 

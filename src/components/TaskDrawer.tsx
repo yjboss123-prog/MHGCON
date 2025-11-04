@@ -1,6 +1,6 @@
 import { useState, useEffect, memo, useCallback } from 'react';
 import { Task, Comment, ProgressUpdate, TaskStatus, TASK_STATUSES } from '../types';
-import { X, Upload, Send, AlertCircle } from 'lucide-react';
+import { X, Upload, Send, AlertCircle, ArrowRight } from 'lucide-react';
 import {
   formatRelativeTime,
   formatDateTime,
@@ -39,26 +39,6 @@ export const TaskDrawer = memo(function TaskDrawer({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (task && isOpen) {
-      loadTaskData();
-      setPercentDone(task.percent_done);
-      setStatus(task.status);
-      setDelayReason(task.delay_reason || '');
-    }
-  }, [task, isOpen]);
-
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isOpen]);
-
   const loadTaskData = useCallback(async () => {
     if (!task) return;
     try {
@@ -72,6 +52,26 @@ export const TaskDrawer = memo(function TaskDrawer({
       console.error('Error loading task data:', err);
     }
   }, [task]);
+
+  useEffect(() => {
+    if (task && isOpen) {
+      loadTaskData();
+      setPercentDone(task.percent_done);
+      setStatus(task.status);
+      setDelayReason(task.delay_reason || '');
+    }
+  }, [task, isOpen, loadTaskData]);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
 
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

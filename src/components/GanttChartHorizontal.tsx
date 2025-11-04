@@ -81,8 +81,8 @@ export function GanttChartHorizontal({
                       ? 'bg-emerald-100 text-emerald-800'
                       : task.status === 'Delayed'
                       ? 'bg-amber-100 text-amber-800'
-                      : task.status === 'At Risk'
-                      ? 'bg-orange-100 text-orange-800'
+                      : task.status === 'Blocked'
+                      ? 'bg-red-100 text-red-800'
                       : 'bg-slate-100 text-slate-800'
                   }`}>
                     {task.status}

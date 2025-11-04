@@ -174,12 +174,15 @@ function App() {
   };
 
   const handleTaskUpdated = async () => {
-    await loadTasks();
     if (selectedTask) {
-      const updatedTask = tasks.find((t) => t.id === selectedTask.id);
+      const data = await getTasks();
+      const updatedTask = data.find((t) => t.id === selectedTask.id);
       if (updatedTask) {
         setSelectedTask(updatedTask);
       }
+      setTasks(data);
+    } else {
+      await loadTasks();
     }
   };
 
