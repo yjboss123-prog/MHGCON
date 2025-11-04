@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
+import { useState, useEffect, useMemo, lazy, Suspense, useCallback } from 'react';
 import { Header } from './components/Header';
 import { FilterPanel } from './components/FilterPanel';
 import { GanttChart } from './components/GanttChart';
@@ -154,17 +154,17 @@ function App() {
     setSelectedMonths([]);
   };
 
-  const handleTaskView = (task: Task) => {
+  const handleTaskView = useCallback((task: Task) => {
     setSelectedTask(task);
     setDrawerMode('view');
     setIsDrawerOpen(true);
-  };
+  }, []);
 
-  const handleTaskUpdate = (task: Task) => {
+  const handleTaskUpdate = useCallback((task: Task) => {
     setSelectedTask(task);
     setDrawerMode('update');
     setIsDrawerOpen(true);
-  };
+  }, []);
 
   const handleDrawerClose = () => {
     setIsDrawerOpen(false);

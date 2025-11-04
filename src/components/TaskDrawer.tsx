@@ -48,6 +48,17 @@ export const TaskDrawer = memo(function TaskDrawer({
     }
   }, [task, isOpen]);
 
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
   const loadTaskData = useCallback(async () => {
     if (!task) return;
     try {
@@ -133,19 +144,29 @@ export const TaskDrawer = memo(function TaskDrawer({
     }
   };
 
-  if (!task || !isOpen) return null;
+  if (!task) return null;
 
   const canUpdate = task.owner_roles.includes(currentRole);
   const needsDelayReason = (status === 'Delayed' || status === 'Blocked') && percentDone < 100;
 
+  if (!isOpen) return null;
+
   return (
     <>
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-200"
+        className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-200 backdrop-blur-sm"
         onClick={onClose}
+        style={{ isolation: 'isolate' }}
       />
-      <div className="fixed inset-y-0 right-0 w-full sm:w-[600px] bg-white shadow-xl z-50 overflow-y-auto transform transition-transform duration-300 ease-out will-change-transform">
-        <div className="sticky top-0 bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+      <div
+        className="fixed inset-y-0 right-0 w-full sm:w-[600px] bg-white shadow-xl z-50 overflow-y-auto"
+        style={{
+          transform: 'translateZ(0)',
+          willChange: 'transform',
+          contain: 'layout style paint'
+        }}
+      >
+        <div className="sticky top-0 bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between z-10" style={{ contain: 'layout' }}>
           <h2 className="text-lg font-semibold text-slate-900">
             {mode === 'update' ? 'Update Task' : 'Task Details'}
           </h2>
