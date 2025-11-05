@@ -393,14 +393,11 @@ export async function getInvitations() {
 }
 
 export async function createInvitation(email: string, role: string) {
-  const { data: { user } } = await supabase.auth.getUser();
-
   const { data, error } = await supabase
     .from('invitations')
     .insert([{
       email,
-      role,
-      invited_by: user?.id
+      role
     }])
     .select()
     .single();
