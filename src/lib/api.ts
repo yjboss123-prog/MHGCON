@@ -381,3 +381,73 @@ export async function updateProject(
   if (error) throw error;
   return data;
 }
+
+export async function getInvitations() {
+  const { data, error } = await supabase
+    .from('invitations')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data || [];
+}
+
+export async function createInvitation(email: string, role: string) {
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const { data, error } = await supabase
+    .from('invitations')
+    .insert([{
+      email,
+      role,
+      invited_by: user?.id
+    }])
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function validateInvitationCode(code: string) {
+  const { data, error } = await supabase
+    .from('invitations')
+    .select('*')
+    .eq('invitation_code', code)
+    .eq('accepted', false)
+    .gt('expires_at', new Date().toISOString())
+    .maybeSingle();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function getProfile(userId: string) {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', userId)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function getCurrentUserProfile() {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  return getProfile(user.id);
+}
+
+export async function updateProfile(userId: string, updates: { full_name?: string; avatar_url?: string }) {
+  const { data, error } = await supabase
+    .from('profiles')
+    .update(updates)
+    .eq('id', userId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}

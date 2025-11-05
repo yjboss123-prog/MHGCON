@@ -13,6 +13,7 @@ const WeekDetailsModal = lazy(() => import('./components/WeekDetailsModal').then
 const ShiftModal = lazy(() => import('./components/ShiftModal').then(m => ({ default: m.ShiftModal })));
 const RebaselineModal = lazy(() => import('./components/RebaselineModal').then(m => ({ default: m.RebaselineModal })));
 const ProjectSettingsModal = lazy(() => import('./components/ProjectSettingsModal').then(m => ({ default: m.ProjectSettingsModal })));
+const InvitationManager = lazy(() => import('./components/InvitationManager').then(m => ({ default: m.InvitationManager })));
 
 const PROJECT_START = '2026-01-06';
 const PROJECT_END = '2026-12-31';
@@ -34,6 +35,7 @@ function App() {
   const [isShiftModalOpen, setIsShiftModalOpen] = useState(false);
   const [isRebaselineModalOpen, setIsRebaselineModalOpen] = useState(false);
   const [isProjectSettingsOpen, setIsProjectSettingsOpen] = useState(false);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [selectedWeek, setSelectedWeek] = useState<{ year: number; week: number } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [toast, setToast] = useState<string | null>(null);
@@ -314,6 +316,7 @@ function App() {
           onAddTask={() => setIsAddModalOpen(true)}
           onRebaseline={() => setIsRebaselineModalOpen(true)}
           onProjectSettings={() => setIsProjectSettingsOpen(true)}
+          onInvite={() => setIsInviteModalOpen(true)}
           language={language}
           onLanguageChange={setLanguage}
           projectName={project?.name || 'MHG Tracker'}
@@ -460,6 +463,12 @@ function App() {
           project={project}
           onSave={handleProjectSettingsSave}
           language={language}
+        />
+
+        <InvitationManager
+          isOpen={isInviteModalOpen}
+          onClose={() => setIsInviteModalOpen(false)}
+          allRoles={allRoles}
         />
       </Suspense>
     </div>

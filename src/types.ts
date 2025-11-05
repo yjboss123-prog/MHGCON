@@ -66,3 +66,24 @@ export const DEFAULT_ROLES: string[] = [
 ];
 
 export const TASK_STATUSES: TaskStatus[] = ['On Track', 'Delayed', 'Blocked', 'Done'];
+
+export type Profile = {
+  id: string;
+  email: string;
+  full_name?: string;
+  role: string;
+  avatar_url?: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type Invitation = {
+  id: string;
+  email: string;
+  role: string;
+  invitation_code: string;
+  invited_by?: string;
+  accepted: boolean;
+  expires_at: string;
+  created_at: string;
+};

@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Settings, RefreshCw } from 'lucide-react';
+import { Settings, RefreshCw, UserPlus } from 'lucide-react';
 import { Language, useTranslation } from '../lib/i18n';
 
 interface HeaderProps {
@@ -8,6 +8,7 @@ interface HeaderProps {
   onAddTask: () => void;
   onRebaseline: () => void;
   onProjectSettings: () => void;
+  onInvite: () => void;
   language: Language;
   onLanguageChange: (language: Language) => void;
   projectName: string;
@@ -15,7 +16,7 @@ interface HeaderProps {
   allRoles: string[];
 }
 
-export const Header = memo(function Header({ currentRole, onRoleChange, onAddTask, onRebaseline, onProjectSettings, language, onLanguageChange, projectName, projectDescription, allRoles }: HeaderProps) {
+export const Header = memo(function Header({ currentRole, onRoleChange, onAddTask, onRebaseline, onProjectSettings, onInvite, language, onLanguageChange, projectName, projectDescription, allRoles }: HeaderProps) {
   const t = useTranslation(language);
   const canManage = currentRole === 'Project Manager' || currentRole === 'Developer';
   return (
@@ -65,14 +66,25 @@ export const Header = memo(function Header({ currentRole, onRoleChange, onAddTas
             </select>
 
             {canManage && (
-              <button
-                onClick={onRebaseline}
-                className="hidden lg:flex btn-secondary px-4 py-2 text-sm items-center gap-2"
-                title={language === 'fr' ? 'Recalibrer le projet' : 'Rebaseline Project'}
-              >
-                <RefreshCw className="w-4 h-4" />
-                <span>{language === 'fr' ? 'Recalibrer' : 'Rebaseline'}</span>
-              </button>
+              <>
+                <button
+                  onClick={onInvite}
+                  className="hidden md:flex btn-secondary px-4 py-2 text-sm items-center gap-2"
+                  title={language === 'fr' ? 'Inviter des entrepreneurs' : 'Invite Contractors'}
+                >
+                  <UserPlus className="w-4 h-4" />
+                  <span>{language === 'fr' ? 'Inviter' : 'Invite'}</span>
+                </button>
+
+                <button
+                  onClick={onRebaseline}
+                  className="hidden lg:flex btn-secondary px-4 py-2 text-sm items-center gap-2"
+                  title={language === 'fr' ? 'Recalibrer le projet' : 'Rebaseline Project'}
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  <span>{language === 'fr' ? 'Recalibrer' : 'Rebaseline'}</span>
+                </button>
+              </>
             )}
 
             <button
