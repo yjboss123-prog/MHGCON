@@ -30,11 +30,17 @@ export async function initializeData() {
   }
 }
 
-export async function getTasks(): Promise<Task[]> {
-  const { data, error } = await supabase
+export async function getTasks(projectId?: string): Promise<Task[]> {
+  let query = supabase
     .from('tasks')
     .select('*')
     .order('start_date', { ascending: true });
+
+  if (projectId) {
+    query = query.eq('project_id', projectId);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error('Error fetching tasks:', error);
@@ -447,4 +453,110 @@ export async function updateProfile(userId: string, updates: { full_name?: strin
 
   if (error) throw error;
   return data;
+}
+
+export async function getAllProjects(includeArchived: boolean = false) {
+  let query = supabase
+    .from('projects')
+    .select('*')
+    .order('created_at', { ascending: true });
+
+  if (!includeArchived) {
+    query = query.eq('archived', false);
+  }
+
+  const { data, error } = await query;
+
+  if (error) throw error;
+  return data || [];
+}
+
+export async function createProject(name: string, description: string) {
+  const { data, error } = await supabase
+    .from('projects')
+    .insert([{
+      name,
+      description,
+      start_date: '2026-01-06',
+      end_date: '2026-12-31',
+      custom_contractors: [],
+      archived: false
+    }])
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function duplicateProject(sourceProjectId: string) {
+  const sourceProject = await getProject(sourceProjectId);
+
+  const newProject = await createProject(
+    `Copy of ${sourceProject.name}`,
+    sourceProject.description
+  );
+
+  const { data: sourceTasks } = await supabase
+    .from('tasks')
+    .select('*')
+    .eq('project_id', sourceProjectId);
+
+  if (sourceTasks && sourceTasks.length > 0) {
+    const newTasks = sourceTasks.map(task => ({
+      name: task.name,
+      owner_roles: task.owner_roles,
+      start_date: task.start_date,
+      end_date: task.end_date,
+      percent_done: 0,
+      status: 'On Track',
+      delay_reason: null,
+      project_id: newProject.id,
+      was_shifted: false,
+      last_shift_date: null
+    }));
+
+    const { error: tasksError } = await supabase
+      .from('tasks')
+      .insert(newTasks);
+
+    if (tasksError) console.error('Error duplicating tasks:', tasksError);
+  }
+
+  return newProject;
+}
+
+export async function archiveProject(projectId: string) {
+  const { data, error } = await supabase
+    .from('projects')
+    .update({ archived: true, updated_at: new Date().toISOString() })
+    .eq('id', projectId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function unarchiveProject(projectId: string) {
+  const { data, error } = await supabase
+    .from('projects')
+    .update({ archived: false, updated_at: new Date().toISOString() })
+    .eq('id', projectId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteProject(projectId: string) {
+  await supabase.from('tasks').delete().eq('project_id', projectId);
+
+  const { error } = await supabase
+    .from('projects')
+    .delete()
+    .eq('id', projectId);
+
+  if (error) throw error;
 }

@@ -4,8 +4,9 @@ import { FilterPanel } from './components/FilterPanel';
 import { GanttChart } from './components/GanttChart';
 import { TaskList } from './components/TaskList';
 import { TaskDrawer } from './components/TaskDrawer';
+import { ProjectTabs } from './components/ProjectTabs';
 import { Task, Role, TaskStatus, DEFAULT_ROLES, Project } from './types';
-import { getTasks, initializeData, shiftSchedule, deleteTask, rebaselineProject, getProject, updateProject } from './lib/api';
+import { getTasks, initializeData, shiftSchedule, deleteTask, rebaselineProject, getProject, updateProject, getAllProjects, createProject, duplicateProject, archiveProject, unarchiveProject, deleteProject } from './lib/api';
 import { Language, useTranslation } from './lib/i18n';
 
 const AddTaskModal = lazy(() => import('./components/AddTaskModal').then(m => ({ default: m.AddTaskModal })));
@@ -14,6 +15,7 @@ const ShiftModal = lazy(() => import('./components/ShiftModal').then(m => ({ def
 const RebaselineModal = lazy(() => import('./components/RebaselineModal').then(m => ({ default: m.RebaselineModal })));
 const ProjectSettingsModal = lazy(() => import('./components/ProjectSettingsModal').then(m => ({ default: m.ProjectSettingsModal })));
 const InvitationManager = lazy(() => import('./components/InvitationManager').then(m => ({ default: m.InvitationManager })));
+const ProjectOperationsModal = lazy(() => import('./components/ProjectOperationsModal').then(m => ({ default: m.ProjectOperationsModal })));
 
 const PROJECT_START = '2026-01-06';
 const PROJECT_END = '2026-12-31';
@@ -40,6 +42,12 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [toast, setToast] = useState<string | null>(null);
   const [project, setProject] = useState<Project | null>(null);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [activeProjectId, setActiveProjectId] = useState<string>('');
+  const [showArchived, setShowArchived] = useState(false);
+  const [projectModalMode, setProjectModalMode] = useState<'create' | 'rename'>('create');
+  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
+  const [projectToRename, setProjectToRename] = useState<string | null>(null);
 
   const allRoles = useMemo(() => {
     if (!project) return DEFAULT_ROLES;
@@ -52,9 +60,31 @@ function App() {
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadTasks();
-    loadProject();
-  }, []);
+    loadProjects();
+  }, [showArchived]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const projectIdFromUrl = params.get('projectId');
+
+    if (projectIdFromUrl && projects.some(p => p.id === projectIdFromUrl)) {
+      setActiveProjectId(projectIdFromUrl);
+    } else if (projects.length > 0 && !activeProjectId) {
+      setActiveProjectId(projects[0].id);
+    }
+  }, [projects]);
+
+  useEffect(() => {
+    if (activeProjectId) {
+      loadProject();
+      loadTasks();
+
+      const params = new URLSearchParams(window.location.search);
+      params.set('projectId', activeProjectId);
+      const newUrl = `${window.location.pathname}?${params.toString()}`;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, [activeProjectId]);
 
   useEffect(() => {
     const checkOrientation = () => {
@@ -71,15 +101,23 @@ function App() {
     };
   }, []);
 
+  const loadProjects = async () => {
+    try {
+      const data = await getAllProjects(showArchived);
+      setProjects(data);
+    } catch (error) {
+      console.error('Error loading projects:', error);
+    }
+  };
+
   const loadTasks = async () => {
+    if (!activeProjectId) return;
+
     setIsLoading(true);
     setLoadError(null);
     try {
-      console.log('Initializing data...');
       await initializeData();
-      console.log('Fetching tasks...');
-      const data = await getTasks();
-      console.log('Tasks loaded:', data?.length || 0);
+      const data = await getTasks(activeProjectId);
       setTasks(data);
     } catch (error) {
       console.error('Error loading tasks:', error);
@@ -90,8 +128,10 @@ function App() {
   };
 
   const loadProject = async () => {
+    if (!activeProjectId) return;
+
     try {
-      const data = await getProject();
+      const data = await getProject(activeProjectId);
       setProject(data);
     } catch (error) {
       console.error('Error loading project:', error);
@@ -283,6 +323,101 @@ function App() {
     }
   };
 
+  const handleCreateProject = async (name: string, description: string) => {
+    try {
+      const newProject = await createProject(name, description);
+      await loadProjects();
+      setActiveProjectId(newProject.id);
+      setToast('Project created successfully');
+      setTimeout(() => setToast(null), 3000);
+    } catch (error) {
+      console.error('Error creating project:', error);
+      setToast('Error creating project');
+      setTimeout(() => setToast(null), 3000);
+    }
+  };
+
+  const handleRenameProject = async (name: string) => {
+    if (!projectToRename || !project) return;
+
+    try {
+      await updateProject(projectToRename, name, project.description, project.custom_contractors);
+      await loadProjects();
+      await loadProject();
+      setToast('Project renamed successfully');
+      setTimeout(() => setToast(null), 3000);
+    } catch (error) {
+      console.error('Error renaming project:', error);
+      setToast('Error renaming project');
+      setTimeout(() => setToast(null), 3000);
+    }
+  };
+
+  const handleDuplicateProject = async (projectId: string) => {
+    try {
+      const newProject = await duplicateProject(projectId);
+      await loadProjects();
+      setActiveProjectId(newProject.id);
+      setToast('Project duplicated successfully');
+      setTimeout(() => setToast(null), 3000);
+    } catch (error) {
+      console.error('Error duplicating project:', error);
+      setToast('Error duplicating project');
+      setTimeout(() => setToast(null), 3000);
+    }
+  };
+
+  const handleArchiveProject = async (projectId: string) => {
+    try {
+      await archiveProject(projectId);
+      await loadProjects();
+      if (projectId === activeProjectId && projects.length > 1) {
+        const nextProject = projects.find(p => p.id !== projectId && !p.archived);
+        if (nextProject) setActiveProjectId(nextProject.id);
+      }
+      setToast('Project archived successfully');
+      setTimeout(() => setToast(null), 3000);
+    } catch (error) {
+      console.error('Error archiving project:', error);
+      setToast('Error archiving project');
+      setTimeout(() => setToast(null), 3000);
+    }
+  };
+
+  const handleUnarchiveProject = async (projectId: string) => {
+    try {
+      await unarchiveProject(projectId);
+      await loadProjects();
+      setToast('Project unarchived successfully');
+      setTimeout(() => setToast(null), 3000);
+    } catch (error) {
+      console.error('Error unarchiving project:', error);
+      setToast('Error unarchiving project');
+      setTimeout(() => setToast(null), 3000);
+    }
+  };
+
+  const handleDeleteProject = async (projectId: string) => {
+    if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      await deleteProject(projectId);
+      await loadProjects();
+      if (projectId === activeProjectId && projects.length > 1) {
+        const nextProject = projects.find(p => p.id !== projectId);
+        if (nextProject) setActiveProjectId(nextProject.id);
+      }
+      setToast('Project deleted successfully');
+      setTimeout(() => setToast(null), 3000);
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      setToast('Error deleting project');
+      setTimeout(() => setToast(null), 3000);
+    }
+  };
+
   const handleProjectSettingsSave = async (name: string, description: string, customContractors: string[], currentDate: string) => {
     if (!project) return;
 
@@ -307,22 +442,50 @@ function App() {
     }
   };
 
+  const canManage = currentRole === 'Project Manager' || currentRole === 'Developer';
+
   return (
     <div className={`min-h-screen bg-slate-50 ${isLandscape ? 'landscape-mode' : ''}`}>
       {!isLandscape && (
-        <Header
-          currentRole={currentRole}
-          onRoleChange={setCurrentRole}
-          onAddTask={() => setIsAddModalOpen(true)}
-          onRebaseline={() => setIsRebaselineModalOpen(true)}
-          onProjectSettings={() => setIsProjectSettingsOpen(true)}
-          onInvite={() => setIsInviteModalOpen(true)}
-          language={language}
-          onLanguageChange={setLanguage}
-          projectName={project?.name || 'MHG Tracker'}
-          projectDescription={project?.description || ''}
-          allRoles={allRoles}
-        />
+        <>
+          <Header
+            currentRole={currentRole}
+            onRoleChange={setCurrentRole}
+            onAddTask={() => setIsAddModalOpen(true)}
+            onRebaseline={() => setIsRebaselineModalOpen(true)}
+            onProjectSettings={() => setIsProjectSettingsOpen(true)}
+            onInvite={() => setIsInviteModalOpen(true)}
+            language={language}
+            onLanguageChange={setLanguage}
+            projectName={project?.name || 'MHG Tracker'}
+            projectDescription={project?.description || ''}
+            allRoles={allRoles}
+          />
+          <ProjectTabs
+            projects={projects}
+            activeProjectId={activeProjectId}
+            onProjectChange={setActiveProjectId}
+            onCreateProject={() => {
+              setProjectModalMode('create');
+              setIsProjectModalOpen(true);
+            }}
+            onRenameProject={(projectId) => {
+              const proj = projects.find(p => p.id === projectId);
+              if (proj) {
+                setProjectToRename(projectId);
+                setProjectModalMode('rename');
+                setIsProjectModalOpen(true);
+              }
+            }}
+            onDuplicateProject={handleDuplicateProject}
+            onArchiveProject={handleArchiveProject}
+            onUnarchiveProject={handleUnarchiveProject}
+            onDeleteProject={handleDeleteProject}
+            showArchived={showArchived}
+            onToggleShowArchived={() => setShowArchived(!showArchived)}
+            canManage={canManage}
+          />
+        </>
       )}
 
       <div className={`mx-auto ${isLandscape ? 'px-2 py-2' : 'max-w-[1600px] px-2 sm:px-4 lg:px-8 py-4 sm:py-6'}`}>
@@ -469,6 +632,23 @@ function App() {
           isOpen={isInviteModalOpen}
           onClose={() => setIsInviteModalOpen(false)}
           allRoles={allRoles}
+        />
+
+        <ProjectOperationsModal
+          isOpen={isProjectModalOpen}
+          onClose={() => {
+            setIsProjectModalOpen(false);
+            setProjectToRename(null);
+          }}
+          mode={projectModalMode}
+          currentName={projectToRename ? projects.find(p => p.id === projectToRename)?.name : ''}
+          onSubmit={(name, description) => {
+            if (projectModalMode === 'create') {
+              handleCreateProject(name, description);
+            } else {
+              handleRenameProject(name);
+            }
+          }}
         />
       </Suspense>
     </div>
