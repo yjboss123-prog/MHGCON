@@ -480,7 +480,8 @@ export async function createProject(name: string, description: string) {
       start_date: '2026-01-06',
       end_date: '2026-12-31',
       custom_contractors: [],
-      archived: false
+      archived: false,
+      project_current_date: '2026-01-06'
     }])
     .select()
     .single();
