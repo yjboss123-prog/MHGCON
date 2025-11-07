@@ -45,11 +45,11 @@ export function ProjectTabs({
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg z-40 overflow-visible">
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 overflow-visible">
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide py-2 overflow-visible">
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg z-[1000]" style={{ overflow: 'visible' }}>
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8" style={{ overflow: 'visible' }}>
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide py-2" style={{ overflowY: 'visible' }}>
           {projects.map((project) => (
-            <div key={project.id} className="relative flex-shrink-0 group">
+            <div key={project.id} className="relative flex-shrink-0 group" style={{ overflow: 'visible', position: 'static' }}>
               <button
                 onClick={() => onProjectChange(project.id)}
                 className={`
@@ -78,10 +78,10 @@ export function ProjectTabs({
               {openMenuId === project.id && canManage && (
                 <>
                   <div
-                    className="fixed inset-0 z-[100]"
+                    className="fixed inset-0 z-[1001]"
                     onClick={() => setOpenMenuId(null)}
                   />
-                  <div className="absolute bottom-full left-0 mb-1 w-48 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-[101]">
+                  <div className="absolute bottom-full left-0 mb-2 w-48 bg-white rounded-lg shadow-xl border border-slate-200 py-1 z-[1002]">
                     <button
                       onClick={(e) => handleMenuAction(e, () => onRenameProject(project.id))}
                       className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
