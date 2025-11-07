@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, FolderPlus, AlertCircle } from 'lucide-react';
 
 interface ProjectOperationsModalProps {
@@ -19,6 +19,14 @@ export function ProjectOperationsModal({
   const [name, setName] = useState(currentName);
   const [description, setDescription] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setName(currentName);
+      setDescription('');
+      setError(null);
+    }
+  }, [isOpen, currentName]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,3 +135,5 @@ export function ProjectOperationsModal({
     </>
   );
 }
+
+export default ProjectOperationsModal;
