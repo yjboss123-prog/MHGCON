@@ -447,48 +447,22 @@ function App() {
   return (
     <div className={`min-h-screen bg-slate-50 ${isLandscape ? 'landscape-mode' : ''}`}>
       {!isLandscape && (
-        <>
-          <Header
-            currentRole={currentRole}
-            onRoleChange={setCurrentRole}
-            onAddTask={() => setIsAddModalOpen(true)}
-            onRebaseline={() => setIsRebaselineModalOpen(true)}
-            onProjectSettings={() => setIsProjectSettingsOpen(true)}
-            onInvite={() => setIsInviteModalOpen(true)}
-            language={language}
-            onLanguageChange={setLanguage}
-            projectName={project?.name || 'MHG Tracker'}
-            projectDescription={project?.description || ''}
-            allRoles={allRoles}
-          />
-          <ProjectTabs
-            projects={projects}
-            activeProjectId={activeProjectId}
-            onProjectChange={setActiveProjectId}
-            onCreateProject={() => {
-              setProjectModalMode('create');
-              setIsProjectModalOpen(true);
-            }}
-            onRenameProject={(projectId) => {
-              const proj = projects.find(p => p.id === projectId);
-              if (proj) {
-                setProjectToRename(projectId);
-                setProjectModalMode('rename');
-                setIsProjectModalOpen(true);
-              }
-            }}
-            onDuplicateProject={handleDuplicateProject}
-            onArchiveProject={handleArchiveProject}
-            onUnarchiveProject={handleUnarchiveProject}
-            onDeleteProject={handleDeleteProject}
-            showArchived={showArchived}
-            onToggleShowArchived={() => setShowArchived(!showArchived)}
-            canManage={canManage}
-          />
-        </>
+        <Header
+          currentRole={currentRole}
+          onRoleChange={setCurrentRole}
+          onAddTask={() => setIsAddModalOpen(true)}
+          onRebaseline={() => setIsRebaselineModalOpen(true)}
+          onProjectSettings={() => setIsProjectSettingsOpen(true)}
+          onInvite={() => setIsInviteModalOpen(true)}
+          language={language}
+          onLanguageChange={setLanguage}
+          projectName={project?.name || 'MHG Tracker'}
+          projectDescription={project?.description || ''}
+          allRoles={allRoles}
+        />
       )}
 
-      <div className={`mx-auto ${isLandscape ? 'px-2 py-2' : 'max-w-[1600px] px-2 sm:px-4 lg:px-8 py-4 sm:py-6'}`}>
+      <div className={`mx-auto ${isLandscape ? 'px-2 py-2' : 'max-w-[1600px] px-2 sm:px-4 lg:px-8 py-4 sm:py-6 pb-20'}`}>
         {!isLandscape && (
           <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
             <FilterPanel
@@ -571,6 +545,33 @@ function App() {
           )}
         </main>
       </div>
+
+      {!isLandscape && (
+        <ProjectTabs
+          projects={projects}
+          activeProjectId={activeProjectId}
+          onProjectChange={setActiveProjectId}
+          onCreateProject={() => {
+            setProjectModalMode('create');
+            setIsProjectModalOpen(true);
+          }}
+          onRenameProject={(projectId) => {
+            const proj = projects.find(p => p.id === projectId);
+            if (proj) {
+              setProjectToRename(projectId);
+              setProjectModalMode('rename');
+              setIsProjectModalOpen(true);
+            }
+          }}
+          onDuplicateProject={handleDuplicateProject}
+          onArchiveProject={handleArchiveProject}
+          onUnarchiveProject={handleUnarchiveProject}
+          onDeleteProject={handleDeleteProject}
+          showArchived={showArchived}
+          onToggleShowArchived={() => setShowArchived(!showArchived)}
+          canManage={canManage}
+        />
+      )}
 
       {toast && (
         <div className="fixed bottom-4 right-4 bg-slate-900 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in">

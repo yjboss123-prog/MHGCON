@@ -45,7 +45,7 @@ export function ProjectTabs({
   };
 
   return (
-    <div className="bg-white border-b border-slate-200 shadow-sm">
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg z-40">
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide py-2">
           {projects.map((project) => (
@@ -53,9 +53,9 @@ export function ProjectTabs({
               <button
                 onClick={() => onProjectChange(project.id)}
                 className={`
-                  flex items-center gap-2 px-4 py-2 rounded-t-lg transition-all duration-200
+                  flex items-center gap-2 px-4 py-2 rounded-b-lg transition-all duration-200
                   ${activeProjectId === project.id
-                    ? 'bg-slate-100 text-slate-900 font-medium border-b-2 border-blue-500'
+                    ? 'bg-slate-100 text-slate-900 font-medium border-t-2 border-blue-500'
                     : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                   }
                   ${project.archived ? 'opacity-60 italic' : ''}
@@ -81,7 +81,7 @@ export function ProjectTabs({
                     className="fixed inset-0 z-[100]"
                     onClick={() => setOpenMenuId(null)}
                   />
-                  <div className="absolute bottom-full left-0 mb-1 w-48 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-[101]">
+                  <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-[101]">
                     <button
                       onClick={(e) => handleMenuAction(e, () => onRenameProject(project.id))}
                       className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
