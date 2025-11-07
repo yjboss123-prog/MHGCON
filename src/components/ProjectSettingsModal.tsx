@@ -196,3 +196,5 @@ export function ProjectSettingsModal({
     </div>
   );
 }
+
+export default ProjectSettingsModal;
