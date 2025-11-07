@@ -78,10 +78,10 @@ export function ProjectTabs({
               {openMenuId === project.id && canManage && (
                 <>
                   <div
-                    className="fixed inset-0 z-40"
+                    className="fixed inset-0 z-[100]"
                     onClick={() => setOpenMenuId(null)}
                   />
-                  <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-50">
+                  <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-[101]">
                     <button
                       onClick={(e) => handleMenuAction(e, () => onRenameProject(project.id))}
                       className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
