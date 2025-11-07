@@ -633,7 +633,9 @@ function App() {
           onClose={() => setIsInviteModalOpen(false)}
           allRoles={allRoles}
         />
+      </Suspense>
 
+      <Suspense fallback={null}>
         <ProjectOperationsModal
           isOpen={isProjectModalOpen}
           onClose={() => {
