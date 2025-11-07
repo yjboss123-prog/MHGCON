@@ -45,9 +45,9 @@ export function ProjectTabs({
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg z-40">
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide py-2">
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg z-40 overflow-visible">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 overflow-visible">
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide py-2 overflow-visible">
           {projects.map((project) => (
             <div key={project.id} className="relative flex-shrink-0 group">
               <button
