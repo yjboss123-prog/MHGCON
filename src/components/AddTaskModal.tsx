@@ -101,10 +101,11 @@ export function AddTaskModal({ isOpen, onClose, onTaskAdded, allRoles }: AddTask
               </label>
               <input
                 type="text"
+                autoComplete="off"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Enter task name"
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-400"
+                className="w-full px-3 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-400"
               />
             </div>
 
@@ -114,7 +115,7 @@ export function AddTaskModal({ isOpen, onClose, onTaskAdded, allRoles }: AddTask
               </label>
               <div className="space-y-2 max-h-48 overflow-y-auto border border-slate-300 rounded-lg p-3">
                 {allRoles.map((role) => (
-                  <label key={role} className="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-2 rounded">
+                  <label key={role} className="flex items-center gap-2 cursor-pointer hover:bg-slate-50 active:bg-slate-100 p-3 rounded" style={{ minHeight: '44px' }}>
                     <input
                       type="checkbox"
                       checked={ownerRoles.includes(role)}
@@ -125,7 +126,7 @@ export function AddTaskModal({ isOpen, onClose, onTaskAdded, allRoles }: AddTask
                           setOwnerRoles(ownerRoles.filter((r) => r !== role));
                         }
                       }}
-                      className="w-4 h-4 text-slate-600 rounded focus:ring-2 focus:ring-slate-400"
+                      className="w-5 h-5 text-slate-600 rounded focus:ring-2 focus:ring-slate-400"
                     />
                     <span className="text-sm text-slate-700">{role}</span>
                     {ownerRoles.includes(role) && <Check className="w-4 h-4 text-slate-600 ml-auto" />}
@@ -147,7 +148,7 @@ export function AddTaskModal({ isOpen, onClose, onTaskAdded, allRoles }: AddTask
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-400"
+                className="w-full px-3 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-400"
               />
             </div>
 
@@ -159,7 +160,7 @@ export function AddTaskModal({ isOpen, onClose, onTaskAdded, allRoles }: AddTask
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-400"
+                className="w-full px-3 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-400"
               />
             </div>
 
@@ -167,14 +168,16 @@ export function AddTaskModal({ isOpen, onClose, onTaskAdded, allRoles }: AddTask
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-2 border border-slate-300 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-colors"
+                className="flex-1 px-4 py-3 border border-slate-300 text-slate-700 font-medium rounded-lg hover:bg-slate-50 active:bg-slate-100 transition-colors"
+                style={{ minHeight: '44px' }}
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-1 px-4 py-2 bg-slate-700 text-white font-medium rounded-lg hover:bg-slate-800 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
+                className="flex-1 px-4 py-3 bg-slate-700 text-white font-medium rounded-lg hover:bg-slate-800 active:bg-slate-900 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
+                style={{ minHeight: '44px' }}
               >
                 {isSubmitting ? 'Creating...' : 'Create Task'}
               </button>

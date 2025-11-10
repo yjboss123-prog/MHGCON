@@ -7,6 +7,16 @@
     @apply bg-gradient-to-br from-slate-50 via-blue-50 to-slate-50;
     @apply min-h-screen;
   }
+
+  input, select, textarea, button {
+    font-size: 16px;
+  }
+
+  @media (min-width: 640px) {
+    input, select, textarea, button {
+      font-size: inherit;
+    }
+  }
 }
 
 @layer utilities {
@@ -42,20 +52,25 @@
 
   .btn-primary {
     @apply bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-xl;
-    @apply hover:from-blue-700 hover:to-blue-800 transition-all duration-200;
+    @apply hover:from-blue-700 hover:to-blue-800 active:from-blue-800 active:to-blue-900 transition-all duration-200;
     @apply shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40;
+    min-height: 44px;
+    min-width: 44px;
   }
 
   .btn-secondary {
     @apply bg-white text-slate-700 font-medium rounded-xl border border-slate-200;
-    @apply hover:bg-slate-50 hover:border-slate-300 transition-all duration-200;
+    @apply hover:bg-slate-50 hover:border-slate-300 active:bg-slate-100 transition-all duration-200;
     @apply shadow-sm hover:shadow-md;
+    min-height: 44px;
+    min-width: 44px;
   }
 
   .input-modern {
     @apply px-4 py-3 border border-slate-200 rounded-xl;
     @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
     @apply transition-all duration-200 bg-white;
+    min-height: 44px;
   }
 
   .badge-modern {

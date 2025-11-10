@@ -120,6 +120,8 @@ export function InvitationManager({ isOpen, onClose, allRoles }: InvitationManag
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                   <input
                     type="email"
+                    inputMode="email"
+                    autoComplete="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="contractor@example.com"
@@ -146,7 +148,8 @@ export function InvitationManager({ isOpen, onClose, allRoles }: InvitationManag
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full px-4 py-2 bg-slate-700 text-white font-medium rounded-lg hover:bg-slate-800 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
+                className="w-full px-4 py-3 bg-slate-700 text-white font-medium rounded-lg hover:bg-slate-800 active:bg-slate-900 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
+                style={{ minHeight: '44px' }}
               >
                 {isLoading ? 'Sending...' : 'Send Invitation'}
               </button>
@@ -176,7 +179,8 @@ export function InvitationManager({ isOpen, onClose, allRoles }: InvitationManag
                       </div>
                       <button
                         onClick={() => copyToClipboard(inv.invitation_code)}
-                        className="ml-3 px-3 py-1.5 text-xs font-medium text-slate-700 bg-white border border-slate-300 rounded hover:bg-slate-50 transition-colors flex items-center gap-1.5"
+                        className="ml-3 px-3 py-2.5 text-xs font-medium text-slate-700 bg-white border border-slate-300 rounded hover:bg-slate-50 active:bg-slate-100 transition-colors flex items-center gap-1.5"
+                        style={{ minHeight: '44px' }}
                       >
                         {copiedCode === inv.invitation_code ? (
                           <>
