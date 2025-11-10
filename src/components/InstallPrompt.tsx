@@ -12,7 +12,6 @@ function isInStandalone() {
 export default function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showIOSModal, setShowIOSModal] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
     const handler = (e: any) => {
@@ -20,16 +19,6 @@ export default function InstallPrompt() {
       setDeferredPrompt(e);
     };
     window.addEventListener('beforeinstallprompt', handler);
-
-    const dismissedTime = localStorage.getItem('install-dismissed');
-    if (dismissedTime) {
-      const daysSinceDismissed = (Date.now() - parseInt(dismissedTime)) / (1000 * 60 * 60 * 24);
-      if (daysSinceDismissed < 7) {
-        setDismissed(true);
-      } else {
-        localStorage.removeItem('install-dismissed');
-      }
-    }
 
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
@@ -48,11 +37,9 @@ export default function InstallPrompt() {
 
   const handleDismiss = () => {
     setShowIOSModal(false);
-    setDismissed(true);
-    localStorage.setItem('install-dismissed', Date.now().toString());
   };
 
-  if (isInStandalone() || dismissed) return null;
+  if (isInStandalone()) return null;
 
   return (
     <>
