@@ -368,10 +368,10 @@ export const TaskDrawer = memo(function TaskDrawer({
                       {(isAdmin || update.author_role === currentRole) && (
                         <button
                           onClick={() => handleDeleteUpdate(update.id)}
-                          className="p-1 hover:bg-red-50 rounded transition-colors"
+                          className="p-2 hover:bg-red-50 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
                           title="Delete update"
                         >
-                          <Trash2 className="w-3 h-3 text-red-600" />
+                          <Trash2 className="w-4 h-4 text-red-600" />
                         </button>
                       )}
                     </div>
@@ -414,10 +414,10 @@ export const TaskDrawer = memo(function TaskDrawer({
                       {(isAdmin || comment.author_role === currentRole) && (
                         <button
                           onClick={() => handleDeleteComment(comment.id)}
-                          className="p-1 hover:bg-red-50 rounded transition-colors"
+                          className="p-2 hover:bg-red-50 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
                           title="Delete comment"
                         >
-                          <Trash2 className="w-3 h-3 text-red-600" />
+                          <Trash2 className="w-4 h-4 text-red-600" />
                         </button>
                       )}
                     </div>
