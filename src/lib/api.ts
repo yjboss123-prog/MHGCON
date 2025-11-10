@@ -430,6 +430,15 @@ export async function createInvitation(email: string, role: string) {
   return data;
 }
 
+export async function deleteInvitation(invitationId: string) {
+  const { error } = await supabase
+    .from('invitations')
+    .delete()
+    .eq('id', invitationId);
+
+  if (error) throw error;
+}
+
 export async function validateInvitationCode(code: string) {
   const { data, error } = await supabase
     .from('invitations')
