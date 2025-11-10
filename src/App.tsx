@@ -498,7 +498,7 @@ function App() {
   };
 
   const isAdmin = userProfile?.role === 'Admin';
-  const canManage = isAdmin;
+  const canManage = currentRole === 'Project Manager' || currentRole === 'Developer' || isAdmin;
 
   return (
     <div className={`min-h-screen bg-slate-50 ${isLandscape ? 'landscape-mode' : ''}`}>

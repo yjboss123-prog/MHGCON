@@ -179,18 +179,20 @@ export function ProjectSettingsModal({
             </div>
 
             {canManage && onInvite && (
-              <div className="md:hidden">
-                <button
-                  onClick={() => {
-                    onClose();
-                    onInvite();
-                  }}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-slate-700 text-white font-medium rounded-lg hover:bg-slate-800 transition-colors"
-                  style={{ minHeight: '44px' }}
-                >
-                  <UserPlus className="w-4 h-4" />
-                  <span>{language === 'fr' ? 'Inviter des entrepreneurs' : 'Invite Contractors'}</span>
-                </button>
+              <div className="md:hidden pt-2">
+                <div className="border-t border-slate-200 pt-4">
+                  <button
+                    onClick={() => {
+                      onClose();
+                      onInvite();
+                    }}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-slate-700 text-white font-medium rounded-lg hover:bg-slate-800 active:bg-slate-900 transition-colors"
+                    style={{ minHeight: '44px' }}
+                  >
+                    <UserPlus className="w-4 h-4" />
+                    <span>{language === 'fr' ? 'Inviter des entrepreneurs' : 'Invite Contractors'}</span>
+                  </button>
+                </div>
               </div>
             )}
           </div>
