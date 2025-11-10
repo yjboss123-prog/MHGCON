@@ -173,7 +173,7 @@ export const TaskDrawer = memo(function TaskDrawer({
 
   if (!task) return null;
 
-  const canUpdate = task.owner_roles.includes(currentRole);
+  const canUpdate = task.owner_roles.includes(currentRole) || currentRole === 'Admin' || currentRole === 'Project Manager';
   const needsDelayReason = (status === 'Delayed' || status === 'Blocked') && percentDone < 100;
 
   if (!isOpen) return null;

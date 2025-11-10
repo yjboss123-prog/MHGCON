@@ -139,7 +139,7 @@ export function InvitationManager({ isOpen, onClose, allRoles }: InvitationManag
                   onChange={(e) => setRole(e.target.value)}
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-400"
                 >
-                  {allRoles.filter(r => r !== 'Project Manager').map((r) => (
+                  {allRoles.filter(r => r !== 'Project Manager' && r !== 'Admin').map((r) => (
                     <option key={r} value={r}>{r}</option>
                   ))}
                 </select>

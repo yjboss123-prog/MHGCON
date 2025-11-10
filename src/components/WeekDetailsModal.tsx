@@ -92,7 +92,7 @@ export function WeekDetailsModal({
     setPhotos((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const canEdit = task?.owner_roles.includes(currentRole) || currentRole === 'Project Manager';
+  const canEdit = task?.owner_roles.includes(currentRole) || currentRole === 'Project Manager' || currentRole === 'Admin';
 
   if (!isOpen || !task) return null;
 

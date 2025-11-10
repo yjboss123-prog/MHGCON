@@ -27,7 +27,7 @@ export const TaskList = memo(function TaskList({
   language,
 }: TaskListProps) {
   const canManage = useMemo(() =>
-    currentRole === 'Project Manager' || currentRole === 'Developer',
+    currentRole === 'Project Manager' || currentRole === 'Developer' || currentRole === 'Admin',
     [currentRole]
   );
 

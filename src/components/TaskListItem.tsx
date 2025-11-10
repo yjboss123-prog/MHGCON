@@ -42,7 +42,7 @@ export const TaskListItem = memo(function TaskListItem({
   );
 
   const canUpdate = useMemo(() =>
-    task.owner_roles.includes(currentRole),
+    task.owner_roles.includes(currentRole) || currentRole === 'Admin' || currentRole === 'Project Manager',
     [task.owner_roles, currentRole]
   );
 
