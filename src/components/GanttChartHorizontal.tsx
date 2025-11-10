@@ -51,7 +51,7 @@ export function GanttChartHorizontal({
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-hidden">
       <div className="p-3 bg-slate-50 border-b border-slate-200">
-        <h3 className="text-sm font-semibold text-slate-700">{t.ganttChart} - {language === 'fr' ? 'Vue Horizontale' : 'Horizontal View'}</h3>
+        <h3 className="text-sm font-semibold text-slate-700">{t.ganttChart} - {t.horizontalView}</h3>
       </div>
 
       <div className="p-4 space-y-4 max-h-[calc(100vh-300px)] overflow-y-auto smooth-scroll">

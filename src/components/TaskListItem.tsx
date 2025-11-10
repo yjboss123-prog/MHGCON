@@ -159,7 +159,7 @@ export const TaskListItem = memo(function TaskListItem({
             <button
               onClick={() => onDelete(task)}
               className="flex-1 lg:flex-none px-4 py-2 bg-red-50 text-red-700 font-medium rounded-xl border border-red-200 hover:bg-red-100 hover:border-red-300 transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center gap-1.5 text-sm"
-              title={language === 'fr' ? 'Supprimer la tâche' : 'Delete Task'}
+              title={t.deleteTask}
             >
               <Trash2 className="w-4 h-4" />
               <span className="hidden lg:inline">{t.delete}</span>

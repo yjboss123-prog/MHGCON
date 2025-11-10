@@ -97,7 +97,7 @@ export const Header = memo(function Header({ currentRole, onRoleChange, onAddTas
                 <button
                   onClick={onInvite}
                   className="hidden md:flex btn-secondary px-4 py-2 text-sm items-center gap-2"
-                  title={language === 'fr' ? 'Inviter des entrepreneurs' : 'Invite Contractors'}
+                  title={t.inviteContractors}
                 >
                   <UserPlus className="w-4 h-4" />
                   <span>{language === 'fr' ? 'Inviter' : 'Invite'}</span>
@@ -106,7 +106,7 @@ export const Header = memo(function Header({ currentRole, onRoleChange, onAddTas
                 <button
                   onClick={onRebaseline}
                   className="hidden lg:flex btn-secondary px-4 py-2 text-sm items-center gap-2"
-                  title={language === 'fr' ? 'Recalibrer le projet' : 'Rebaseline Project'}
+                  title={t.rebaselineProject}
                 >
                   <RefreshCw className="w-4 h-4" />
                   <span>{language === 'fr' ? 'Recalibrer' : 'Rebaseline'}</span>

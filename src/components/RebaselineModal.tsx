@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import { Language } from '../lib/i18n';
+import { Language, useTranslation } from '../lib/i18n';
 
 interface RebaselineModalProps {
   isOpen: boolean;
@@ -10,6 +10,7 @@ interface RebaselineModalProps {
 }
 
 export function RebaselineModal({ isOpen, onClose, onConfirm, language }: RebaselineModalProps) {
+  const t = useTranslation(language);
   const [newBaselineStart, setNewBaselineStart] = useState<string>('');
   const [resetStatuses, setResetStatuses] = useState<boolean>(true);
   const [clearDelayReasons, setClearDelayReasons] = useState<boolean>(true);
@@ -53,7 +54,7 @@ export function RebaselineModal({ isOpen, onClose, onConfirm, language }: Rebase
         <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full">
           <div className="border-b border-slate-200 px-6 py-4 flex items-center justify-between">
             <h2 className="text-xl font-semibold text-slate-900">
-              {language === 'fr' ? 'Recalibrer le projet' : 'Rebaseline Project'}
+              {t.rebaselineProject}
             </h2>
             <button
               onClick={onClose}
@@ -74,7 +75,7 @@ export function RebaselineModal({ isOpen, onClose, onConfirm, language }: Rebase
 
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
-                {language === 'fr' ? 'Nouvelle date de début' : 'New Baseline Start Date'}
+                {t.newBaselineStartDate}
               </label>
               <input
                 type="date"

@@ -131,7 +131,7 @@ export function ProjectSettingsModal({
 
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
-                {language === 'fr' ? 'Entrepreneurs personnalisés' : 'Custom Contractors'}
+                {t.customContractors}
               </label>
               <div className="space-y-2">
                 <div className="flex gap-2">
@@ -190,7 +190,7 @@ export function ProjectSettingsModal({
                     style={{ minHeight: '44px' }}
                   >
                     <UserPlus className="w-4 h-4" />
-                    <span>{language === 'fr' ? 'Inviter des entrepreneurs' : 'Invite Contractors'}</span>
+                    <span>{t.inviteContractors}</span>
                   </button>
                 </div>
               </div>

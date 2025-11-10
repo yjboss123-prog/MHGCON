@@ -25,7 +25,7 @@ type ViewMode = 'gantt' | 'list';
 
 function App() {
   const [currentRole, setCurrentRole] = useState<Role>('Project Manager');
-  const [language, setLanguage] = useState<Language>('en');
+  const [language, setLanguage] = useState<Language>('fr');
   const [viewMode, setViewMode] = useState<ViewMode>('gantt');
   const [isLandscape, setIsLandscape] = useState(false);
   const t = useTranslation(language);
