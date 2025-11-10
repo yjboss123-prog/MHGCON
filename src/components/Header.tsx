@@ -3,6 +3,7 @@ import { Settings, RefreshCw, UserPlus, LogOut, User as UserIcon } from 'lucide-
 import { Language, useTranslation } from '../lib/i18n';
 import InstallPrompt from './InstallPrompt';
 import { UserProfile } from '../lib/auth';
+import { isManagerRole } from '../lib/utils';
 
 interface HeaderProps {
   currentRole: string;
@@ -22,7 +23,7 @@ interface HeaderProps {
 
 export const Header = memo(function Header({ currentRole, onRoleChange, onAddTask, onRebaseline, onProjectSettings, onInvite, language, onLanguageChange, projectName, projectDescription, allRoles, userProfile, onSignOut }: HeaderProps) {
   const t = useTranslation(language);
-  const canManage = currentRole === 'Project Manager' || currentRole === 'Developer';
+  const canManage = isManagerRole(currentRole);
   return (
     <header className="glass-effect border-b border-slate-200/50 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

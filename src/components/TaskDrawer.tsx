@@ -7,6 +7,7 @@ import {
   getStatusBadgeColor,
   getRoleBadgeColor,
   compressImage,
+  isManagerRole,
 } from '../lib/utils';
 import { getComments, getProgressUpdates, createComment, createProgressUpdate, deleteComment, deleteProgressUpdate } from '../lib/api';
 
@@ -173,7 +174,7 @@ export const TaskDrawer = memo(function TaskDrawer({
 
   if (!task) return null;
 
-  const canUpdate = task.owner_roles.includes(currentRole) || currentRole === 'Admin' || currentRole === 'Project Manager';
+  const canUpdate = task.owner_roles.includes(currentRole) || isManagerRole(currentRole);
   const needsDelayReason = (status === 'Delayed' || status === 'Blocked') && percentDone < 100;
 
   if (!isOpen) return null;

@@ -1,3 +1,7 @@
+export function isManagerRole(role: string): boolean {
+  return role === 'Project Manager' || role === 'Developer' || role === 'Admin';
+}
+
 export function formatRelativeTime(dateString: string): string {
   const date = new Date(dateString);
   const now = new Date();

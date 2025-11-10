@@ -8,6 +8,7 @@ import {
   getStatusBadgeColor,
   getRoleBadgeColor,
   calculateGanttPosition,
+  isManagerRole,
 } from '../lib/utils';
 import { Language, useTranslation, translateRole, translateStatus } from '../lib/i18n';
 
@@ -42,14 +43,11 @@ export const TaskListItem = memo(function TaskListItem({
   );
 
   const canUpdate = useMemo(() =>
-    task.owner_roles.includes(currentRole) || currentRole === 'Admin' || currentRole === 'Project Manager',
+    task.owner_roles.includes(currentRole) || isManagerRole(currentRole),
     [task.owner_roles, currentRole]
   );
 
-  const canManage = useMemo(() =>
-    currentRole === 'Project Manager' || currentRole === 'Developer',
-    [currentRole]
-  );
+  const canManage = useMemo(() => isManagerRole(currentRole), [currentRole]);
 
   const position = useMemo(() => calculateGanttPosition(
     task.start_date,

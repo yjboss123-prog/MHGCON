@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { X, Upload, Trash2 } from 'lucide-react';
 import { Task } from '../types';
 import { getWeekWork, saveWeekWork } from '../lib/api';
-import { compressImage } from '../lib/utils';
+import { compressImage, isManagerRole } from '../lib/utils';
 import { Language, useTranslation } from '../lib/i18n';
 
 interface WeekDetailsModalProps {
@@ -92,7 +92,7 @@ export function WeekDetailsModal({
     setPhotos((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const canEdit = task?.owner_roles.includes(currentRole) || currentRole === 'Project Manager' || currentRole === 'Admin';
+  const canEdit = task?.owner_roles.includes(currentRole) || isManagerRole(currentRole);
 
   if (!isOpen || !task) return null;
 

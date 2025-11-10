@@ -29,6 +29,7 @@ export function ProjectSettingsModal({
   const [newContractor, setNewContractor] = useState('');
   const [currentDate, setCurrentDate] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [activeTab, setActiveTab] = useState<'basic' | 'contractors'>('basic');
 
   useEffect(() => {
     if (isOpen && project) {
@@ -81,119 +82,150 @@ export function ProjectSettingsModal({
             </button>
           </div>
 
+          <div className="border-b border-slate-200 flex">
+            <button
+              onClick={() => setActiveTab('basic')}
+              className={`flex-1 px-6 py-3 text-sm font-medium transition-colors ${
+                activeTab === 'basic'
+                  ? 'text-slate-900 border-b-2 border-slate-900'
+                  : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              {language === 'fr' ? 'Informations de base' : 'Basic Information'}
+            </button>
+            <button
+              onClick={() => setActiveTab('contractors')}
+              className={`flex-1 px-6 py-3 text-sm font-medium transition-colors ${
+                activeTab === 'contractors'
+                  ? 'text-slate-900 border-b-2 border-slate-900'
+                  : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              {language === 'fr' ? 'Gestion des entrepreneurs' : 'Contractor Management'}
+            </button>
+          </div>
+
           <div className="px-6 py-4 space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                {t.projectName}
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent"
-                placeholder={language === 'fr' ? 'Entrez le nom du projet' : 'Enter project name'}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                {t.projectDescription}
-              </label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={3}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent"
-                placeholder={
-                  language === 'fr'
-                    ? 'Entrez la description du projet'
-                    : 'Enter project description'
-                }
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                {t.currentDate}
-              </label>
-              <input
-                type="date"
-                value={currentDate}
-                onChange={(e) => setCurrentDate(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent"
-              />
-              <p className="text-xs text-slate-500 mt-1">
-                {language === 'fr'
-                  ? 'Marque où nous sommes dans le calendrier du projet'
-                  : 'Marks where we are in the project timeline'}
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                {t.customContractors}
-              </label>
-              <div className="space-y-2">
-                <div className="flex gap-2">
+            {activeTab === 'basic' && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    {t.projectName}
+                  </label>
                   <input
                     type="text"
-                    value={newContractor}
-                    onChange={(e) => setNewContractor(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleAddContractor()}
-                    className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent text-sm"
-                    placeholder={language === 'fr' ? 'Ajouter un entrepreneur' : 'Add contractor'}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+                    placeholder={language === 'fr' ? 'Entrez le nom du projet' : 'Enter project name'}
                   />
-                  <button
-                    type="button"
-                    onClick={handleAddContractor}
-                    className="px-3 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800 transition-colors"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
                 </div>
-                {customContractors.length > 0 && (
-                  <div className="space-y-1.5">
-                    {customContractors.map((contractor) => (
-                      <div
-                        key={contractor}
-                        className="flex items-center justify-between px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg"
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    {t.projectDescription}
+                  </label>
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={3}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+                    placeholder={
+                      language === 'fr'
+                        ? 'Entrez la description du projet'
+                        : 'Enter project description'
+                    }
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    {t.currentDate}
+                  </label>
+                  <input
+                    type="date"
+                    value={currentDate}
+                    onChange={(e) => setCurrentDate(e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+                  />
+                  <p className="text-xs text-slate-500 mt-1">
+                    {language === 'fr'
+                      ? 'Marque où nous sommes dans le calendrier du projet'
+                      : 'Marks where we are in the project timeline'}
+                  </p>
+                </div>
+              </>
+            )}
+
+            {activeTab === 'contractors' && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    {t.customContractors}
+                  </label>
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={newContractor}
+                        onChange={(e) => setNewContractor(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && handleAddContractor()}
+                        className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent text-sm"
+                        placeholder={language === 'fr' ? 'Ajouter un entrepreneur' : 'Add contractor'}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddContractor}
+                        className="px-3 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800 transition-colors"
                       >
-                        <span className="text-sm text-slate-700">{contractor}</span>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveContractor(contractor)}
-                          className="text-red-600 hover:text-red-700 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+                    {customContractors.length > 0 && (
+                      <div className="space-y-1.5">
+                        {customContractors.map((contractor) => (
+                          <div
+                            key={contractor}
+                            className="flex items-center justify-between px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg"
+                          >
+                            <span className="text-sm text-slate-700">{contractor}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveContractor(contractor)}
+                              className="text-red-600 hover:text-red-700 transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    )}
+                    <p className="text-xs text-slate-500">
+                      {language === 'fr'
+                        ? 'Ces entrepreneurs apparaîtront en plus des rôles par défaut'
+                        : 'These contractors will appear in addition to default roles'}
+                    </p>
+                  </div>
+                </div>
+
+                {canManage && onInvite && (
+                  <div className="pt-2">
+                    <div className="border-t border-slate-200 pt-4">
+                      <button
+                        onClick={() => {
+                          onClose();
+                          onInvite();
+                        }}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-slate-700 text-white font-medium rounded-lg hover:bg-slate-800 active:bg-slate-900 transition-colors"
+                        style={{ minHeight: '44px' }}
+                      >
+                        <UserPlus className="w-4 h-4" />
+                        <span>{t.inviteContractors}</span>
+                      </button>
+                    </div>
                   </div>
                 )}
-                <p className="text-xs text-slate-500">
-                  {language === 'fr'
-                    ? 'Ces entrepreneurs apparaîtront en plus des rôles par défaut'
-                    : 'These contractors will appear in addition to default roles'}
-                </p>
-              </div>
-            </div>
-
-            {canManage && onInvite && (
-              <div className="md:hidden pt-2">
-                <div className="border-t border-slate-200 pt-4">
-                  <button
-                    onClick={() => {
-                      onClose();
-                      onInvite();
-                    }}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-slate-700 text-white font-medium rounded-lg hover:bg-slate-800 active:bg-slate-900 transition-colors"
-                    style={{ minHeight: '44px' }}
-                  >
-                    <UserPlus className="w-4 h-4" />
-                    <span>{t.inviteContractors}</span>
-                  </button>
-                </div>
-              </div>
+              </>
             )}
           </div>
 

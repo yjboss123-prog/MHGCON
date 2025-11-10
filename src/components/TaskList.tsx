@@ -2,6 +2,7 @@ import { memo, useMemo } from 'react';
 import { Task } from '../types';
 import { TaskListItem } from './TaskListItem';
 import { Language } from '../lib/i18n';
+import { isManagerRole } from '../lib/utils';
 
 interface TaskListProps {
   tasks: Task[];
@@ -26,10 +27,7 @@ export const TaskList = memo(function TaskList({
   onTaskDelete,
   language,
 }: TaskListProps) {
-  const canManage = useMemo(() =>
-    currentRole === 'Project Manager' || currentRole === 'Developer' || currentRole === 'Admin',
-    [currentRole]
-  );
+  const canManage = useMemo(() => isManagerRole(currentRole), [currentRole]);
 
   const filteredTasks = useMemo(() =>
     canManage ? tasks : tasks.filter(task => task.owner_roles.includes(currentRole)),
