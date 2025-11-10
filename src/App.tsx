@@ -102,7 +102,7 @@ function App() {
   }, [projects]);
 
   useEffect(() => {
-    if (activeProjectId) {
+    if (activeProjectId && session) {
       loadProject();
       loadTasks();
 
@@ -111,7 +111,7 @@ function App() {
       const newUrl = `${window.location.pathname}?${params.toString()}`;
       window.history.replaceState({}, '', newUrl);
     }
-  }, [activeProjectId]);
+  }, [activeProjectId, session]);
 
   useEffect(() => {
     const checkOrientation = () => {
@@ -133,7 +133,6 @@ function App() {
     if (storedSession) {
       setSession(storedSession);
       loadProjects();
-      loadTasks();
     }
   };
 
