@@ -167,7 +167,7 @@ export const GanttChart = memo(function GanttChart({ tasks, projectStart, projec
 
             return (
               <div key={task.id} className={`flex border-b border-slate-200 hover:bg-slate-50 ${task.was_shifted ? 'bg-blue-50/30' : ''}`}>
-                <div className="w-40 sm:w-64 flex-shrink-0 border-r border-slate-300 px-2 sm:px-4 py-2 sm:py-3">
+                <div className="w-40 sm:w-64 flex-shrink-0 border-r border-slate-300 px-2 sm:px-4 py-2 sm:py-3" style={{ touchAction: 'pan-y' }}>
                   <div className="flex items-center gap-1 sm:gap-2">
                     <div className="text-xs sm:text-sm font-medium text-slate-900 truncate" title={task.name}>{task.name}</div>
                     {task.was_shifted && (
@@ -193,12 +193,12 @@ export const GanttChart = memo(function GanttChart({ tasks, projectStart, projec
                     return (
                       <div
                         key={idx}
-                        className="border-r border-slate-200 p-1 flex items-center justify-center flex-1 cursor-pointer relative"
-                        style={{ minWidth: '40px' }}
+                        className="border-r border-slate-200 p-1 flex items-center justify-center flex-1 sm:cursor-pointer relative"
+                        style={{ minWidth: '40px', touchAction: 'pan-y' }}
                         onMouseEnter={() => setHoveredCell(cellKey)}
                         onMouseLeave={() => setHoveredCell(null)}
-                        onClick={() => {
-                          if (weekCell.isInTaskRange) {
+                        onClick={(e) => {
+                          if (weekCell.isInTaskRange && window.innerWidth >= 640) {
                             onWeekClick(task, weekCell.year, weekCell.week);
                           }
                         }}
