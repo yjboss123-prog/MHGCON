@@ -644,6 +644,7 @@ function App() {
         mode={drawerMode}
         onClose={handleDrawerClose}
         onTaskUpdated={handleTaskUpdated}
+        isAdmin={isAdmin}
       />
 
       <Suspense fallback={null}>

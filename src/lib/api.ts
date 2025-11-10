@@ -103,6 +103,15 @@ export async function createComment(taskId: string, authorRole: Role, message: s
   return data;
 }
 
+export async function deleteComment(commentId: string) {
+  const { error } = await supabase
+    .from('comments')
+    .delete()
+    .eq('id', commentId);
+
+  if (error) throw error;
+}
+
 export async function getProgressUpdates(taskId: string): Promise<ProgressUpdate[]> {
   const { data, error } = await supabase
     .from('progress_updates')
@@ -148,6 +157,15 @@ export async function createProgressUpdate(
   });
 
   return data;
+}
+
+export async function deleteProgressUpdate(updateId: string) {
+  const { error } = await supabase
+    .from('progress_updates')
+    .delete()
+    .eq('id', updateId);
+
+  if (error) throw error;
 }
 
 export async function getWeekWork(

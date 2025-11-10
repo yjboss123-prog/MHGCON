@@ -1,6 +1,6 @@
 import { useState, useEffect, memo, useCallback } from 'react';
 import { Task, Comment, ProgressUpdate, TaskStatus, TASK_STATUSES } from '../types';
-import { X, Upload, Send, AlertCircle, ArrowRight } from 'lucide-react';
+import { X, Upload, Send, AlertCircle, ArrowRight, Trash2 } from 'lucide-react';
 import {
   formatRelativeTime,
   formatDateTime,
@@ -8,7 +8,7 @@ import {
   getRoleBadgeColor,
   compressImage,
 } from '../lib/utils';
-import { getComments, getProgressUpdates, createComment, createProgressUpdate } from '../lib/api';
+import { getComments, getProgressUpdates, createComment, createProgressUpdate, deleteComment, deleteProgressUpdate } from '../lib/api';
 
 interface TaskDrawerProps {
   task: Task | null;
@@ -17,6 +17,7 @@ interface TaskDrawerProps {
   mode: 'view' | 'update';
   onClose: () => void;
   onTaskUpdated: () => void;
+  isAdmin?: boolean;
 }
 
 export const TaskDrawer = memo(function TaskDrawer({
@@ -26,6 +27,7 @@ export const TaskDrawer = memo(function TaskDrawer({
   mode,
   onClose,
   onTaskUpdated,
+  isAdmin = false,
 }: TaskDrawerProps) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [updates, setUpdates] = useState<ProgressUpdate[]>([]);
@@ -141,6 +143,31 @@ export const TaskDrawer = memo(function TaskDrawer({
       console.error('Failed to post comment:', err);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    if (!confirm('Delete this comment?')) return;
+
+    try {
+      await deleteComment(commentId);
+      await loadTaskData();
+    } catch (err) {
+      console.error('Failed to delete comment:', err);
+      setError('Failed to delete comment');
+    }
+  };
+
+  const handleDeleteUpdate = async (updateId: string) => {
+    if (!confirm('Delete this update?')) return;
+
+    try {
+      await deleteProgressUpdate(updateId);
+      await loadTaskData();
+      onTaskUpdated();
+    } catch (err) {
+      console.error('Failed to delete update:', err);
+      setError('Failed to delete update');
     }
   };
 
@@ -331,12 +358,23 @@ export const TaskDrawer = memo(function TaskDrawer({
                     <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getRoleBadgeColor(update.author_role)}`}>
                       {update.author_role}
                     </span>
-                    <span
-                      className="text-xs text-slate-500 cursor-help"
-                      title={formatDateTime(update.created_at)}
-                    >
-                      {formatRelativeTime(update.created_at)}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="text-xs text-slate-500 cursor-help"
+                        title={formatDateTime(update.created_at)}
+                      >
+                        {formatRelativeTime(update.created_at)}
+                      </span>
+                      {isAdmin && (
+                        <button
+                          onClick={() => handleDeleteUpdate(update.id)}
+                          className="p-1 hover:bg-red-50 rounded transition-colors"
+                          title="Delete update"
+                        >
+                          <Trash2 className="w-3 h-3 text-red-600" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <div className="text-sm text-slate-900">
                     Updated to <span className="font-semibold">{update.percent_done}%</span> -{' '}
@@ -366,12 +404,23 @@ export const TaskDrawer = memo(function TaskDrawer({
                     <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getRoleBadgeColor(comment.author_role)}`}>
                       {comment.author_role}
                     </span>
-                    <span
-                      className="text-xs text-slate-500 cursor-help"
-                      title={formatDateTime(comment.created_at)}
-                    >
-                      {formatRelativeTime(comment.created_at)}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="text-xs text-slate-500 cursor-help"
+                        title={formatDateTime(comment.created_at)}
+                      >
+                        {formatRelativeTime(comment.created_at)}
+                      </span>
+                      {isAdmin && (
+                        <button
+                          onClick={() => handleDeleteComment(comment.id)}
+                          className="p-1 hover:bg-red-50 rounded transition-colors"
+                          title="Delete comment"
+                        >
+                          <Trash2 className="w-3 h-3 text-red-600" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <p className="text-sm text-slate-600">{comment.message}</p>
                 </div>
