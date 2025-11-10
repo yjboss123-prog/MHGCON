@@ -120,7 +120,7 @@ export const GanttChart = memo(function GanttChart({ tasks, projectStart, projec
 
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-hidden landscape:h-full">
-      <div className="overflow-x-auto overscroll-x-contain touch-pan-x landscape:h-full smooth-scroll">
+      <div className="overflow-x-auto overscroll-x-contain landscape:h-full smooth-scroll" style={{ touchAction: 'pan-x pan-y' }}>
         <div className="inline-block min-w-full landscape:h-full" style={{ minWidth: '900px' }}>
           {/* Month Headers */}
           <div className="flex border-b-2 border-slate-300">
