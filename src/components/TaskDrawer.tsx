@@ -1,7 +1,7 @@
 import { useState, useEffect, memo, useCallback } from 'react';
 import { Task, Comment, ProgressUpdate, TaskStatus, TASK_STATUSES, User } from '../types';
 import { Session } from '../lib/session';
-import { X, Upload, Send, AlertCircle, ArrowRight, Trash2, UserPlus } from 'lucide-react';
+import { X, Upload, Send, AlertCircle, ArrowRight, Trash2, UserPlus, Check } from 'lucide-react';
 import {
   formatRelativeTime,
   formatDateTime,
@@ -10,7 +10,7 @@ import {
   compressImage,
   isManagerRole,
 } from '../lib/utils';
-import { getComments, getProgressUpdates, createComment, createProgressUpdate, deleteComment, deleteProgressUpdate, getUsers, assignTaskToUser } from '../lib/api';
+import { getComments, getProgressUpdates, createComment, createProgressUpdate, deleteComment, deleteProgressUpdate, getUsers, assignTaskToUser, updateTask } from '../lib/api';
 
 interface TaskDrawerProps {
   task: Task | null;
@@ -21,6 +21,7 @@ interface TaskDrawerProps {
   onTaskUpdated: () => void;
   isAdmin?: boolean;
   session: Session | null;
+  allRoles: string[];
 }
 
 export const TaskDrawer = memo(function TaskDrawer({
@@ -32,6 +33,7 @@ export const TaskDrawer = memo(function TaskDrawer({
   onTaskUpdated,
   isAdmin = false,
   session,
+  allRoles,
 }: TaskDrawerProps) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [updates, setUpdates] = useState<ProgressUpdate[]>([]);
@@ -46,6 +48,8 @@ export const TaskDrawer = memo(function TaskDrawer({
   const [error, setError] = useState<string | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [isAssigning, setIsAssigning] = useState(false);
+  const [editingRoles, setEditingRoles] = useState(false);
+  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
 
   const loadTaskData = useCallback(async () => {
     if (!task) return;
@@ -69,6 +73,8 @@ export const TaskDrawer = memo(function TaskDrawer({
       setPercentDone(task.percent_done);
       setStatus(task.status);
       setDelayReason(task.delay_reason || '');
+      setSelectedRoles(task.owner_roles);
+      setEditingRoles(false);
     }
   }, [task, isOpen, loadTaskData]);
 
@@ -247,6 +253,84 @@ export const TaskDrawer = memo(function TaskDrawer({
               {new Date(task.end_date).toLocaleDateString()}
             </div>
           </div>
+
+          {isManagerRole(currentRole) && (
+            <div className="bg-slate-50 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-medium text-slate-900 flex items-center gap-2">
+                  <UserPlus className="w-4 h-4" />
+                  Assigned Roles
+                </h4>
+                {!editingRoles && (
+                  <button
+                    onClick={() => setEditingRoles(true)}
+                    className="text-sm text-slate-600 hover:text-slate-900 font-medium"
+                  >
+                    Edit
+                  </button>
+                )}
+              </div>
+
+              {editingRoles ? (
+                <>
+                  <div className="space-y-2 max-h-48 overflow-y-auto border border-slate-300 rounded-lg p-3 bg-white mb-3">
+                    {allRoles.map((role) => (
+                      <label key={role} className="flex items-center gap-2 cursor-pointer hover:bg-slate-50 active:bg-slate-100 p-2 rounded">
+                        <input
+                          type="checkbox"
+                          checked={selectedRoles.includes(role)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedRoles([...selectedRoles, role]);
+                            } else {
+                              setSelectedRoles(selectedRoles.filter((r) => r !== role));
+                            }
+                          }}
+                          className="w-4 h-4 text-slate-600 rounded focus:ring-2 focus:ring-slate-400"
+                        />
+                        <span className="text-sm text-slate-700">{role}</span>
+                        {selectedRoles.includes(role) && <Check className="w-4 h-4 text-slate-600 ml-auto" />}
+                      </label>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={async () => {
+                        if (selectedRoles.length === 0) {
+                          setError('At least one role must be assigned');
+                          return;
+                        }
+                        try {
+                          await updateTask(task.id, { owner_roles: selectedRoles });
+                          setEditingRoles(false);
+                          onTaskUpdated();
+                        } catch (err) {
+                          setError('Failed to update roles');
+                          console.error(err);
+                        }
+                      }}
+                      className="flex-1 px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors text-sm font-medium"
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSelectedRoles(task.owner_roles);
+                        setEditingRoles(false);
+                      }}
+                      className="flex-1 px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors text-sm font-medium"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-slate-600">
+                  {task.owner_roles.length} {task.owner_roles.length === 1 ? 'role' : 'roles'} assigned
+                </p>
+              )}
+            </div>
+          )}
 
           {(session?.role === 'admin' || session?.role === 'project_manager') && (
             <div className="bg-slate-50 rounded-lg p-4">

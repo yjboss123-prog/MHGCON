@@ -659,6 +659,7 @@ function App() {
         onTaskUpdated={handleTaskUpdated}
         isAdmin={userIsAdmin}
         session={session}
+        allRoles={allRoles}
       />
 
       <Suspense fallback={null}>
