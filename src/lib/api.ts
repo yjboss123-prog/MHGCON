@@ -92,6 +92,32 @@ export async function deleteTask(id: string) {
   if (error) throw error;
 }
 
+export async function assignTaskToUser(taskId: string, userToken: string | null, displayName: string | null) {
+  const { data, error } = await supabase
+    .from('tasks')
+    .update({
+      assigned_user_token: userToken,
+      assigned_display_name: displayName,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', taskId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function getUsers() {
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .order('display_name', { ascending: true });
+
+  if (error) throw error;
+  return data || [];
+}
+
 export async function getComments(taskId: string): Promise<Comment[]> {
   const { data, error } = await supabase
     .from('comments')

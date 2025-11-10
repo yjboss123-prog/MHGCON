@@ -1,6 +1,6 @@
 import { memo, useMemo } from 'react';
 import { Task } from '../types';
-import { Calendar, Trash2, ArrowRight } from 'lucide-react';
+import { Calendar, Trash2, ArrowRight, User } from 'lucide-react';
 import {
   formatDate,
   getDaysRemaining,
@@ -117,6 +117,12 @@ export const TaskListItem = memo(function TaskListItem({
             {daysRemaining < 0 && (
               <span className="text-red-600 font-medium">
                 {Math.abs(daysRemaining)} {Math.abs(daysRemaining) !== 1 ? t.daysOverdue : t.dayOverdue}
+              </span>
+            )}
+            {task.assigned_display_name && (
+              <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-md font-medium">
+                <User className="w-3 h-3" />
+                {task.assigned_display_name}
               </span>
             )}
           </div>

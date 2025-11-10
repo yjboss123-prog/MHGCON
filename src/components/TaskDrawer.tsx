@@ -1,7 +1,7 @@
 import { useState, useEffect, memo, useCallback } from 'react';
-import { Task, Comment, ProgressUpdate, TaskStatus, TASK_STATUSES } from '../types';
+import { Task, Comment, ProgressUpdate, TaskStatus, TASK_STATUSES, User } from '../types';
 import { Session } from '../lib/session';
-import { X, Upload, Send, AlertCircle, ArrowRight, Trash2 } from 'lucide-react';
+import { X, Upload, Send, AlertCircle, ArrowRight, Trash2, UserPlus } from 'lucide-react';
 import {
   formatRelativeTime,
   formatDateTime,
@@ -10,7 +10,7 @@ import {
   compressImage,
   isManagerRole,
 } from '../lib/utils';
-import { getComments, getProgressUpdates, createComment, createProgressUpdate, deleteComment, deleteProgressUpdate } from '../lib/api';
+import { getComments, getProgressUpdates, createComment, createProgressUpdate, deleteComment, deleteProgressUpdate, getUsers, assignTaskToUser } from '../lib/api';
 
 interface TaskDrawerProps {
   task: Task | null;
@@ -44,16 +44,20 @@ export const TaskDrawer = memo(function TaskDrawer({
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
+  const [isAssigning, setIsAssigning] = useState(false);
 
   const loadTaskData = useCallback(async () => {
     if (!task) return;
     try {
-      const [commentsData, updatesData] = await Promise.all([
+      const [commentsData, updatesData, usersData] = await Promise.all([
         getComments(task.id),
         getProgressUpdates(task.id),
+        getUsers(),
       ]);
       setComments(commentsData);
       setUpdates(updatesData);
+      setUsers(usersData);
     } catch (err) {
       console.error('Error loading task data:', err);
     }
@@ -243,6 +247,67 @@ export const TaskDrawer = memo(function TaskDrawer({
               {new Date(task.end_date).toLocaleDateString()}
             </div>
           </div>
+
+          {(session?.role === 'admin' || session?.role === 'project_manager') && (
+            <div className="bg-slate-50 rounded-lg p-4">
+              <h4 className="font-medium text-slate-900 mb-3 flex items-center gap-2">
+                <UserPlus className="w-4 h-4" />
+                Assign to User
+              </h4>
+              {task.assigned_display_name && (
+                <div className="mb-3 text-sm text-slate-700">
+                  Currently assigned to: <span className="font-semibold">{task.assigned_display_name}</span>
+                </div>
+              )}
+              <div className="flex gap-2">
+                <select
+                  onChange={async (e) => {
+                    const value = e.target.value;
+                    if (value) {
+                      setIsAssigning(true);
+                      try {
+                        const selectedUser = users.find(u => u.user_token === value);
+                        await assignTaskToUser(task.id, value, selectedUser?.display_name || null);
+                        onTaskUpdated();
+                      } catch (err) {
+                        console.error('Error assigning task:', err);
+                      } finally {
+                        setIsAssigning(false);
+                      }
+                    }
+                  }}
+                  className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-400 disabled:opacity-50"
+                  disabled={isAssigning}
+                >
+                  <option value="">Select a user...</option>
+                  {users.map((user) => (
+                    <option key={user.user_token} value={user.user_token}>
+                      {user.display_name} ({user.role.replace('_', ' ')})
+                    </option>
+                  ))}
+                </select>
+                {task.assigned_user_token && (
+                  <button
+                    onClick={async () => {
+                      setIsAssigning(true);
+                      try {
+                        await assignTaskToUser(task.id, null, null);
+                        onTaskUpdated();
+                      } catch (err) {
+                        console.error('Error unassigning task:', err);
+                      } finally {
+                        setIsAssigning(false);
+                      }
+                    }}
+                    className="px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium disabled:opacity-50"
+                    disabled={isAssigning}
+                  >
+                    Unassign
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
 
           {mode === 'update' && canUpdate && (
             <div className="bg-slate-50 rounded-lg p-4 space-y-4">
