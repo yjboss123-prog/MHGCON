@@ -160,65 +160,52 @@ export function ProjectSettingsModal({
             {activeTab === 'contractors' && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-3">
-                    {language === 'fr' ? 'Ajouter un entrepreneur' : 'Add Contractor'}
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    {t.customContractors}
                   </label>
-                  <div className="flex gap-2 mb-4">
-                    <input
-                      type="text"
-                      value={newContractor}
-                      onChange={(e) => setNewContractor(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleAddContractor()}
-                      className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent text-sm"
-                      placeholder={language === 'fr' ? 'Nom de l\'entrepreneur' : 'Contractor name'}
-                    />
-                    <button
-                      type="button"
-                      onClick={handleAddContractor}
-                      className="px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800 transition-colors flex items-center gap-2"
-                    >
-                      <Plus className="w-4 h-4" />
-                      <span className="text-sm">{language === 'fr' ? 'Ajouter' : 'Add'}</span>
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-3">
-                    {language === 'fr' ? 'Entrepreneurs personnalisés' : 'Custom Contractors'}
-                  </label>
-                  {customContractors.length > 0 ? (
-                    <div className="space-y-2">
-                      {customContractors.map((contractor) => (
-                        <div
-                          key={contractor}
-                          className="flex items-center justify-between px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors"
-                        >
-                          <span className="text-sm font-medium text-slate-700">{contractor}</span>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveContractor(contractor)}
-                            className="flex items-center gap-2 px-3 py-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
-                            title={language === 'fr' ? 'Supprimer' : 'Remove'}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                            <span className="text-sm">{language === 'fr' ? 'Supprimer' : 'Remove'}</span>
-                          </button>
-                        </div>
-                      ))}
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={newContractor}
+                        onChange={(e) => setNewContractor(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && handleAddContractor()}
+                        className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent text-sm"
+                        placeholder={language === 'fr' ? 'Ajouter un entrepreneur' : 'Add contractor'}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddContractor}
+                        className="px-3 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800 transition-colors"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
                     </div>
-                  ) : (
-                    <p className="text-sm text-slate-500 py-4 px-4 bg-slate-50 rounded-lg border border-slate-200">
+                    {customContractors.length > 0 && (
+                      <div className="space-y-1.5">
+                        {customContractors.map((contractor) => (
+                          <div
+                            key={contractor}
+                            className="flex items-center justify-between px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg"
+                          >
+                            <span className="text-sm text-slate-700">{contractor}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveContractor(contractor)}
+                              className="text-red-600 hover:text-red-700 transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <p className="text-xs text-slate-500">
                       {language === 'fr'
-                        ? 'Aucun entrepreneur personnalisé ajouté'
-                        : 'No custom contractors added'}
+                        ? 'Ces entrepreneurs apparaîtront en plus des rôles par défaut'
+                        : 'These contractors will appear in addition to default roles'}
                     </p>
-                  )}
-                  <p className="text-xs text-slate-500 mt-3">
-                    {language === 'fr'
-                      ? 'Ces entrepreneurs apparaîtront en plus des rôles par défaut dans les listes déroulantes'
-                      : 'These contractors will appear in addition to default roles in dropdowns'}
-                  </p>
+                  </div>
                 </div>
 
                 {canManage && onInvite && (

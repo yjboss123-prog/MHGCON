@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { X, Mail, Copy, Check, AlertCircle, UserPlus, Trash2 } from 'lucide-react';
+import { X, Mail, Copy, Check, AlertCircle, UserPlus } from 'lucide-react';
 import { Invitation } from '../types';
-import { getInvitations, createInvitation, deleteInvitation } from '../lib/api';
+import { getInvitations, createInvitation } from '../lib/api';
 import { formatRelativeTime } from '../lib/utils';
 
 interface InvitationManagerProps {
@@ -17,7 +17,6 @@ export function InvitationManager({ isOpen, onClose, allRoles }: InvitationManag
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -70,23 +69,6 @@ export function InvitationManager({ isOpen, onClose, allRoles }: InvitationManag
       setTimeout(() => setCopiedCode(null), 2000);
     } catch (err) {
       console.error('Failed to copy:', err);
-    }
-  };
-
-  const handleDelete = async (invitationId: string) => {
-    if (!confirm('Are you sure you want to delete this invitation?')) {
-      return;
-    }
-
-    setDeletingId(invitationId);
-    try {
-      await deleteInvitation(invitationId);
-      await loadInvitations();
-    } catch (err) {
-      console.error('Failed to delete invitation:', err);
-      setError('Failed to delete invitation');
-    } finally {
-      setDeletingId(null);
     }
   };
 
@@ -195,34 +177,23 @@ export function InvitationManager({ isOpen, onClose, allRoles }: InvitationManag
                           </span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 ml-3">
-                        <button
-                          onClick={() => copyToClipboard(inv.invitation_code)}
-                          className="px-3 py-2.5 text-xs font-medium text-slate-700 bg-white border border-slate-300 rounded hover:bg-slate-50 active:bg-slate-100 transition-colors flex items-center gap-1.5"
-                          style={{ minHeight: '44px' }}
-                        >
-                          {copiedCode === inv.invitation_code ? (
-                            <>
-                              <Check className="w-3.5 h-3.5" />
-                              Copied
-                            </>
-                          ) : (
-                            <>
-                              <Copy className="w-3.5 h-3.5" />
-                              Copy Link
-                            </>
-                          )}
-                        </button>
-                        <button
-                          onClick={() => handleDelete(inv.id)}
-                          disabled={deletingId === inv.id}
-                          className="px-3 py-2.5 text-xs font-medium text-red-600 bg-white border border-red-300 rounded hover:bg-red-50 active:bg-red-100 transition-colors flex items-center gap-1.5 disabled:opacity-50"
-                          style={{ minHeight: '44px' }}
-                          title="Delete invitation"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
+                      <button
+                        onClick={() => copyToClipboard(inv.invitation_code)}
+                        className="ml-3 px-3 py-2.5 text-xs font-medium text-slate-700 bg-white border border-slate-300 rounded hover:bg-slate-50 active:bg-slate-100 transition-colors flex items-center gap-1.5"
+                        style={{ minHeight: '44px' }}
+                      >
+                        {copiedCode === inv.invitation_code ? (
+                          <>
+                            <Check className="w-3.5 h-3.5" />
+                            Copied
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5" />
+                            Copy Link
+                          </>
+                        )}
+                      </button>
                     </div>
                   ))}
                 </div>
