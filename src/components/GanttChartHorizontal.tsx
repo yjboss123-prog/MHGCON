@@ -54,7 +54,7 @@ export function GanttChartHorizontal({
         <h3 className="text-sm font-semibold text-slate-700">{t.ganttChart} - {language === 'fr' ? 'Vue Horizontale' : 'Horizontal View'}</h3>
       </div>
 
-      <div className="p-4 space-y-4 max-h-[calc(100vh-300px)] overflow-y-auto">
+      <div className="p-4 space-y-4 max-h-[calc(100vh-300px)] overflow-y-auto smooth-scroll">
         {tasks.map((task) => {
           const position = getTaskPosition(task);
 

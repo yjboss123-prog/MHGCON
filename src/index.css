@@ -3,9 +3,21 @@
 @tailwind utilities;
 
 @layer base {
+  * {
+    -webkit-overflow-scrolling: touch;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply bg-gradient-to-br from-slate-50 via-blue-50 to-slate-50;
     @apply min-h-screen;
+    overscroll-behavior-y: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   input, select, textarea, button {
@@ -85,6 +97,12 @@
 
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+
+  .smooth-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    overscroll-behavior-y: contain;
   }
 }
 

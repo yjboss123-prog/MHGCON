@@ -186,7 +186,7 @@ export const TaskDrawer = memo(function TaskDrawer({
         style={{ isolation: 'isolate' }}
       />
       <div
-        className="fixed inset-y-0 right-0 w-full sm:w-[600px] bg-white shadow-xl z-50 overflow-y-auto"
+        className="fixed inset-y-0 right-0 w-full sm:w-[600px] bg-white shadow-xl z-50 overflow-y-auto smooth-scroll"
         style={{
           transform: 'translateZ(0)',
           willChange: 'transform',
