@@ -8,6 +8,8 @@ import { ProjectTabs } from './components/ProjectTabs';
 import { Task, Role, TaskStatus, DEFAULT_ROLES, Project } from './types';
 import { getTasks, initializeData, shiftSchedule, deleteTask, rebaselineProject, getProject, updateProject, getAllProjects, createProject, duplicateProject, archiveProject, unarchiveProject, deleteProject } from './lib/api';
 import { Language, useTranslation } from './lib/i18n';
+import { getCurrentUserProfile, signOut, onAuthStateChange, UserProfile } from './lib/auth';
+import { AuthModal } from './components/AuthModal';
 
 const AddTaskModal = lazy(() => import('./components/AddTaskModal').then(m => ({ default: m.AddTaskModal })));
 const WeekDetailsModal = lazy(() => import('./components/WeekDetailsModal').then(m => ({ default: m.WeekDetailsModal })));
@@ -48,6 +50,9 @@ function App() {
   const [projectModalMode, setProjectModalMode] = useState<'create' | 'rename'>('create');
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [projectToRename, setProjectToRename] = useState<string | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [invitationCode, setInvitationCode] = useState<string | null>(null);
 
   const allRoles = useMemo(() => {
     if (!project) return DEFAULT_ROLES;
@@ -58,6 +63,36 @@ function App() {
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [selectedMonths, setSelectedMonths] = useState<string[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    if (code) {
+      setInvitationCode(code);
+      setIsAuthModalOpen(true);
+    }
+
+    loadUserProfile();
+
+    const { data: { subscription } } = onAuthStateChange((session) => {
+      if (session) {
+        loadUserProfile();
+      } else {
+        setUserProfile(null);
+        setCurrentRole('Project Manager');
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (userProfile) {
+      setCurrentRole(userProfile.role as Role);
+    }
+  }, [userProfile]);
 
   useEffect(() => {
     loadProjects();
@@ -100,6 +135,15 @@ function App() {
       window.removeEventListener('orientationchange', checkOrientation);
     };
   }, []);
+
+  const loadUserProfile = async () => {
+    try {
+      const profile = await getCurrentUserProfile();
+      setUserProfile(profile);
+    } catch (error) {
+      console.error('Error loading user profile:', error);
+    }
+  };
 
   const loadProjects = async () => {
     try {
@@ -442,6 +486,26 @@ function App() {
     }
   };
 
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      setUserProfile(null);
+      setCurrentRole('Project Manager');
+      setToast('Signed out successfully');
+      setTimeout(() => setToast(null), 3000);
+    } catch (error) {
+      console.error('Error signing out:', error);
+      setToast('Error signing out');
+      setTimeout(() => setToast(null), 3000);
+    }
+  };
+
+  const handleAuthSuccess = async () => {
+    await loadUserProfile();
+    setToast('Welcome! You are now signed in');
+    setTimeout(() => setToast(null), 3000);
+  };
+
   const canManage = currentRole === 'Project Manager' || currentRole === 'Developer';
 
   return (
@@ -459,6 +523,9 @@ function App() {
           projectName={project?.name || 'MHG Tracker'}
           projectDescription={project?.description || ''}
           allRoles={allRoles}
+          userProfile={userProfile}
+          onSignOut={handleSignOut}
+          onSignIn={() => setIsAuthModalOpen(true)}
         />
       )}
 
@@ -654,6 +721,16 @@ function App() {
           }}
         />
       </Suspense>
+
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => {
+          setIsAuthModalOpen(false);
+          setInvitationCode(null);
+        }}
+        onSuccess={handleAuthSuccess}
+        invitationCode={invitationCode}
+      />
     </div>
   );
 }
