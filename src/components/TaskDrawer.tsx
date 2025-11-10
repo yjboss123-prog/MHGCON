@@ -365,7 +365,7 @@ export const TaskDrawer = memo(function TaskDrawer({
                       >
                         {formatRelativeTime(update.created_at)}
                       </span>
-                      {isAdmin && (
+                      {(isAdmin || update.author_role === currentRole) && (
                         <button
                           onClick={() => handleDeleteUpdate(update.id)}
                           className="p-1 hover:bg-red-50 rounded transition-colors"
@@ -411,7 +411,7 @@ export const TaskDrawer = memo(function TaskDrawer({
                       >
                         {formatRelativeTime(comment.created_at)}
                       </span>
-                      {isAdmin && (
+                      {(isAdmin || comment.author_role === currentRole) && (
                         <button
                           onClick={() => handleDeleteComment(comment.id)}
                           className="p-1 hover:bg-red-50 rounded transition-colors"
