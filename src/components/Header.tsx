@@ -94,10 +94,10 @@ export const Header = memo(function Header({ currentRole, onRoleChange, onAddTas
                 </select>
                 <button
                   onClick={onSignIn}
-                  className="btn-secondary px-4 py-2 text-sm"
-                  style={{ minHeight: '44px' }}
+                  className="btn-primary px-4 py-2 text-sm flex items-center gap-2"
                 >
-                  Sign In
+                  <UserIcon className="w-4 h-4" />
+                  <span className="hidden sm:inline">Sign In</span>
                 </button>
               </>
             )}
