@@ -9,7 +9,6 @@ import { Task, Role, TaskStatus, DEFAULT_ROLES, Project } from './types';
 import { getTasks, initializeData, shiftSchedule, deleteTask, rebaselineProject, getProject, updateProject, getAllProjects, createProject, duplicateProject, archiveProject, unarchiveProject, deleteProject } from './lib/api';
 import { Language, useTranslation } from './lib/i18n';
 import { getCurrentUserProfile, signOut, onAuthStateChange, UserProfile } from './lib/auth';
-import { AuthModal } from './components/AuthModal';
 
 const AddTaskModal = lazy(() => import('./components/AddTaskModal').then(m => ({ default: m.AddTaskModal })));
 const WeekDetailsModal = lazy(() => import('./components/WeekDetailsModal').then(m => ({ default: m.WeekDetailsModal })));
@@ -51,7 +50,6 @@ function App() {
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [projectToRename, setProjectToRename] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [invitationCode, setInvitationCode] = useState<string | null>(null);
 
   const allRoles = useMemo(() => {
@@ -69,7 +67,7 @@ function App() {
     const code = params.get('code');
     if (code) {
       setInvitationCode(code);
-      setIsAuthModalOpen(true);
+      window.location.href = `${window.location.origin}${window.location.pathname}`;
     }
 
     loadUserProfile();
@@ -79,7 +77,6 @@ function App() {
         loadUserProfile();
       } else {
         setUserProfile(null);
-        setCurrentRole('Project Manager');
       }
     });
 
@@ -500,13 +497,8 @@ function App() {
     }
   };
 
-  const handleAuthSuccess = async () => {
-    await loadUserProfile();
-    setToast('Welcome! You are now signed in');
-    setTimeout(() => setToast(null), 3000);
-  };
-
-  const canManage = currentRole === 'Project Manager' || currentRole === 'Developer';
+  const isAdmin = userProfile?.role === 'Admin';
+  const canManage = isAdmin;
 
   return (
     <div className={`min-h-screen bg-slate-50 ${isLandscape ? 'landscape-mode' : ''}`}>
@@ -525,7 +517,6 @@ function App() {
           allRoles={allRoles}
           userProfile={userProfile}
           onSignOut={handleSignOut}
-          onSignIn={() => setIsAuthModalOpen(true)}
         />
       )}
 
@@ -721,16 +712,6 @@ function App() {
           }}
         />
       </Suspense>
-
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => {
-          setIsAuthModalOpen(false);
-          setInvitationCode(null);
-        }}
-        onSuccess={handleAuthSuccess}
-        invitationCode={invitationCode}
-      />
     </div>
   );
 }

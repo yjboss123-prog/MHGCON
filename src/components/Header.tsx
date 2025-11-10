@@ -18,10 +18,9 @@ interface HeaderProps {
   allRoles: string[];
   userProfile: UserProfile | null;
   onSignOut: () => void;
-  onSignIn: () => void;
 }
 
-export const Header = memo(function Header({ currentRole, onRoleChange, onAddTask, onRebaseline, onProjectSettings, onInvite, language, onLanguageChange, projectName, projectDescription, allRoles, userProfile, onSignOut, onSignIn }: HeaderProps) {
+export const Header = memo(function Header({ currentRole, onRoleChange, onAddTask, onRebaseline, onProjectSettings, onInvite, language, onLanguageChange, projectName, projectDescription, allRoles, userProfile, onSignOut }: HeaderProps) {
   const t = useTranslation(language);
   const canManage = currentRole === 'Project Manager' || currentRole === 'Developer';
   return (
@@ -80,26 +79,17 @@ export const Header = memo(function Header({ currentRole, onRoleChange, onAddTas
                 </button>
               </>
             ) : (
-              <>
-                <select
-                  value={currentRole}
-                  onChange={(e) => onRoleChange(e.target.value)}
-                  className="hidden sm:block input-modern text-sm font-medium py-2 px-3 max-w-[160px]"
-                >
-                  {allRoles.map((role) => (
-                    <option key={role} value={role}>
-                      {role}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  onClick={onSignIn}
-                  className="btn-primary px-4 py-2 text-sm flex items-center gap-2"
-                >
-                  <UserIcon className="w-4 h-4" />
-                  <span className="hidden sm:inline">Sign In</span>
-                </button>
-              </>
+              <select
+                value={currentRole}
+                onChange={(e) => onRoleChange(e.target.value)}
+                className="hidden sm:block input-modern text-sm font-medium py-2 px-3 max-w-[160px]"
+              >
+                {allRoles.map((role) => (
+                  <option key={role} value={role}>
+                    {role}
+                  </option>
+                ))}
+              </select>
             )}
 
             {canManage && (
