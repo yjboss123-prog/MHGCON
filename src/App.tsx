@@ -5,10 +5,11 @@ import { GanttChart } from './components/GanttChart';
 import { TaskList } from './components/TaskList';
 import { TaskDrawer } from './components/TaskDrawer';
 import { ProjectTabs } from './components/ProjectTabs';
+import { AccessCodeEntry } from './components/AccessCodeEntry';
 import { Task, Role, TaskStatus, DEFAULT_ROLES, Project } from './types';
 import { getTasks, initializeData, shiftSchedule, deleteTask, rebaselineProject, getProject, updateProject, getAllProjects, createProject, duplicateProject, archiveProject, unarchiveProject, deleteProject } from './lib/api';
 import { Language, useTranslation } from './lib/i18n';
-import { getCurrentUserProfile, signOut, onAuthStateChange, UserProfile } from './lib/auth';
+import { getSession, validateSession, signOut, Session, isAdmin, canManageTasks, canDeleteTasks } from './lib/session';
 
 const AddTaskModal = lazy(() => import('./components/AddTaskModal').then(m => ({ default: m.AddTaskModal })));
 const WeekDetailsModal = lazy(() => import('./components/WeekDetailsModal').then(m => ({ default: m.WeekDetailsModal })));
@@ -17,6 +18,7 @@ const RebaselineModal = lazy(() => import('./components/RebaselineModal').then(m
 const ProjectSettingsModal = lazy(() => import('./components/ProjectSettingsModal').then(m => ({ default: m.ProjectSettingsModal })));
 const InvitationManager = lazy(() => import('./components/InvitationManager').then(m => ({ default: m.InvitationManager })));
 const ProjectOperationsModal = lazy(() => import('./components/ProjectOperationsModal').then(m => ({ default: m.ProjectOperationsModal })));
+const AdminPanel = lazy(() => import('./components/AdminPanel').then(m => ({ default: m.AdminPanel })));
 
 const PROJECT_START = '2026-01-06';
 const PROJECT_END = '2026-12-31';
@@ -49,8 +51,9 @@ function App() {
   const [projectModalMode, setProjectModalMode] = useState<'create' | 'rename'>('create');
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [projectToRename, setProjectToRename] = useState<string | null>(null);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [invitationCode, setInvitationCode] = useState<string | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
+  const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
 
   const allRoles = useMemo(() => {
     if (!project) return DEFAULT_ROLES;
@@ -63,33 +66,25 @@ function App() {
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get('code');
-    if (code) {
-      setInvitationCode(code);
-      window.location.href = `${window.location.origin}${window.location.pathname}`;
-    }
-
-    loadUserProfile();
-
-    const { data: { subscription } } = onAuthStateChange((session) => {
-      if (session) {
-        loadUserProfile();
-      } else {
-        setUserProfile(null);
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
+    checkSession();
   }, []);
 
-  useEffect(() => {
-    if (userProfile) {
-      setCurrentRole(userProfile.role as Role);
+  const checkSession = async () => {
+    const storedSession = getSession();
+    if (storedSession) {
+      const validSession = await validateSession(storedSession.session_token);
+      if (validSession) {
+        setSession(validSession);
+      }
     }
-  }, [userProfile]);
+    setIsCheckingSession(false);
+  };
+
+  useEffect(() => {
+    if (session) {
+      setCurrentRole(session.display_name as Role);
+    }
+  }, [session]);
 
   useEffect(() => {
     loadProjects();
@@ -133,12 +128,12 @@ function App() {
     };
   }, []);
 
-  const loadUserProfile = async () => {
-    try {
-      const profile = await getCurrentUserProfile();
-      setUserProfile(profile);
-    } catch (error) {
-      console.error('Error loading user profile:', error);
+  const handleSessionSuccess = () => {
+    const storedSession = getSession();
+    if (storedSession) {
+      setSession(storedSession);
+      loadProjects();
+      loadTasks();
     }
   };
 
@@ -158,7 +153,7 @@ function App() {
     setLoadError(null);
     try {
       await initializeData();
-      const data = await getTasks(activeProjectId);
+      const data = await getTasks(activeProjectId, session);
       setTasks(data);
     } catch (error) {
       console.error('Error loading tasks:', error);
@@ -258,7 +253,7 @@ function App() {
 
   const handleTaskUpdated = async () => {
     if (selectedTask) {
-      const data = await getTasks();
+      const data = await getTasks(activeProjectId, session);
       const updatedTask = data.find((t) => t.id === selectedTask.id);
       if (updatedTask) {
         setSelectedTask(updatedTask);
@@ -486,8 +481,9 @@ function App() {
   const handleSignOut = async () => {
     try {
       await signOut();
-      setUserProfile(null);
-      setCurrentRole('Project Manager');
+      setSession(null);
+      setTasks([]);
+      setProjects([]);
       setToast('Signed out successfully');
       setTimeout(() => setToast(null), 3000);
     } catch (error) {
@@ -497,8 +493,24 @@ function App() {
     }
   };
 
-  const isAdmin = userProfile?.role === 'Admin';
-  const canManage = currentRole === 'Project Manager' || currentRole === 'Developer' || isAdmin;
+  const userIsAdmin = isAdmin(session);
+  const canManage = canManageTasks(session);
+  const canDelete = canDeleteTasks(session);
+
+  if (isCheckingSession) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-slate-300 border-t-slate-900 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return <AccessCodeEntry onSuccess={handleSessionSuccess} />;
+  }
 
   return (
     <div className={`min-h-screen bg-slate-50 ${isLandscape ? 'landscape-mode' : ''}`}>
@@ -510,12 +522,13 @@ function App() {
           onRebaseline={() => setIsRebaselineModalOpen(true)}
           onProjectSettings={() => setIsProjectSettingsOpen(true)}
           onInvite={() => setIsInviteModalOpen(true)}
+          onAdminPanel={() => setIsAdminPanelOpen(true)}
           language={language}
           onLanguageChange={setLanguage}
           projectName={project?.name || 'MHG Tracker'}
           projectDescription={project?.description || ''}
           allRoles={allRoles}
-          userProfile={userProfile}
+          userSession={session}
           onSignOut={handleSignOut}
         />
       )}
@@ -644,7 +657,8 @@ function App() {
         mode={drawerMode}
         onClose={handleDrawerClose}
         onTaskUpdated={handleTaskUpdated}
-        isAdmin={isAdmin}
+        isAdmin={userIsAdmin}
+        session={session}
       />
 
       <Suspense fallback={null}>
@@ -694,6 +708,11 @@ function App() {
           isOpen={isInviteModalOpen}
           onClose={() => setIsInviteModalOpen(false)}
           allRoles={allRoles}
+        />
+
+        <AdminPanel
+          isOpen={isAdminPanelOpen}
+          onClose={() => setIsAdminPanelOpen(false)}
         />
       </Suspense>
 

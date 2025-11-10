@@ -1,8 +1,8 @@
 import { memo } from 'react';
-import { Settings, RefreshCw, UserPlus, LogOut, User as UserIcon } from 'lucide-react';
+import { Settings, RefreshCw, UserPlus, LogOut, User as UserIcon, Shield } from 'lucide-react';
 import { Language, useTranslation } from '../lib/i18n';
 import InstallPrompt from './InstallPrompt';
-import { UserProfile } from '../lib/auth';
+import { Session } from '../lib/session';
 import { isManagerRole } from '../lib/utils';
 
 interface HeaderProps {
@@ -12,16 +12,17 @@ interface HeaderProps {
   onRebaseline: () => void;
   onProjectSettings: () => void;
   onInvite: () => void;
+  onAdminPanel?: () => void;
   language: Language;
   onLanguageChange: (language: Language) => void;
   projectName: string;
   projectDescription: string;
   allRoles: string[];
-  userProfile: UserProfile | null;
+  userSession: Session | null;
   onSignOut: () => void;
 }
 
-export const Header = memo(function Header({ currentRole, onRoleChange, onAddTask, onRebaseline, onProjectSettings, onInvite, language, onLanguageChange, projectName, projectDescription, allRoles, userProfile, onSignOut }: HeaderProps) {
+export const Header = memo(function Header({ currentRole, onRoleChange, onAddTask, onRebaseline, onProjectSettings, onInvite, onAdminPanel, language, onLanguageChange, projectName, projectDescription, allRoles, userSession, onSignOut }: HeaderProps) {
   const t = useTranslation(language);
   const canManage = isManagerRole(currentRole);
   return (
@@ -61,13 +62,13 @@ export const Header = memo(function Header({ currentRole, onRoleChange, onAddTas
               <option value="fr">FR</option>
             </select>
 
-            {userProfile ? (
+            {userSession && (
               <>
                 <div className="hidden sm:flex items-center gap-2 px-3 py-2 bg-white rounded-lg border border-slate-200">
                   <UserIcon className="w-4 h-4 text-slate-600" />
                   <div className="flex flex-col">
-                    <span className="text-xs font-medium text-slate-900">{userProfile.full_name}</span>
-                    <span className="text-xs text-slate-600">{userProfile.role}</span>
+                    <span className="text-xs font-medium text-slate-900">{userSession.display_name}</span>
+                    <span className="text-xs text-slate-600 capitalize">{userSession.role.replace('_', ' ')}</span>
                   </div>
                 </div>
                 <button
@@ -79,18 +80,17 @@ export const Header = memo(function Header({ currentRole, onRoleChange, onAddTas
                   <LogOut className="w-4 h-4" />
                 </button>
               </>
-            ) : (
-              <select
-                value={currentRole}
-                onChange={(e) => onRoleChange(e.target.value)}
-                className="hidden sm:block input-modern text-sm font-medium py-2 px-3 max-w-[160px]"
+            )}
+
+            {userSession?.role === 'admin' && onAdminPanel && (
+              <button
+                onClick={onAdminPanel}
+                className="btn-secondary px-3 py-2 text-sm"
+                title="Admin Panel"
+                style={{ minHeight: '44px' }}
               >
-                {allRoles.map((role) => (
-                  <option key={role} value={role}>
-                    {role}
-                  </option>
-                ))}
-              </select>
+                <Shield className="w-4 h-4" />
+              </button>
             )}
 
             {canManage && (

@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 import { Task, Comment, ProgressUpdate, Role, TaskStatus } from '../types';
 import { seedTasks } from './seedData';
+import { Session } from './session';
 
 let isInitialized = false;
 
@@ -30,7 +31,7 @@ export async function initializeData() {
   }
 }
 
-export async function getTasks(projectId?: string): Promise<Task[]> {
+export async function getTasks(projectId?: string, session?: Session | null): Promise<Task[]> {
   let query = supabase
     .from('tasks')
     .select('*')
@@ -46,7 +47,17 @@ export async function getTasks(projectId?: string): Promise<Task[]> {
     console.error('Error fetching tasks:', error);
     throw new Error(`Failed to fetch tasks: ${error.message}`);
   }
-  return data || [];
+
+  let tasks = data || [];
+
+  if (session && session.role === 'contractor') {
+    tasks = tasks.filter(task =>
+      task.assigned_user_token === session.user_token ||
+      task.owner_roles.includes('contractor')
+    );
+  }
+
+  return tasks;
 }
 
 export async function createTask(task: Omit<Task, 'id' | 'created_at' | 'updated_at'>) {

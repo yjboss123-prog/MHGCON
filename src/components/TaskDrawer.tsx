@@ -1,5 +1,6 @@
 import { useState, useEffect, memo, useCallback } from 'react';
 import { Task, Comment, ProgressUpdate, TaskStatus, TASK_STATUSES } from '../types';
+import { Session } from '../lib/session';
 import { X, Upload, Send, AlertCircle, ArrowRight, Trash2 } from 'lucide-react';
 import {
   formatRelativeTime,
@@ -19,6 +20,7 @@ interface TaskDrawerProps {
   onClose: () => void;
   onTaskUpdated: () => void;
   isAdmin?: boolean;
+  session: Session | null;
 }
 
 export const TaskDrawer = memo(function TaskDrawer({
@@ -29,6 +31,7 @@ export const TaskDrawer = memo(function TaskDrawer({
   onClose,
   onTaskUpdated,
   isAdmin = false,
+  session,
 }: TaskDrawerProps) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [updates, setUpdates] = useState<ProgressUpdate[]>([]);

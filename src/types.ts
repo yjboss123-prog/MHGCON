@@ -20,8 +20,13 @@ export type Task = {
   delay_reason?: string;
   was_shifted?: boolean;
   last_shift_date?: string;
+  assigned_user_token?: string;
+  assigned_display_name?: string;
+  created_by_token?: string;
+  created_by_role?: string;
   created_at: string;
   updated_at: string;
+  project_id?: string;
 };
 
 export type Comment = {
@@ -87,5 +92,22 @@ export type Invitation = {
   invited_by?: string;
   accepted: boolean;
   expires_at: string;
+  created_at: string;
+};
+
+export type User = {
+  user_token: string;
+  display_name: string;
+  role: 'contractor' | 'admin' | 'developer' | 'project_manager';
+  created_at: string;
+  last_active_at: string;
+};
+
+export type AuditLog = {
+  id: string;
+  user_token: string;
+  action: string;
+  details: Record<string, any>;
+  ip_address?: string;
   created_at: string;
 };
