@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { Settings, RefreshCw, UserPlus } from 'lucide-react';
 import { Language, useTranslation } from '../lib/i18n';
+import InstallPrompt from './InstallPrompt';
 
 interface HeaderProps {
   currentRole: string;
@@ -44,6 +45,8 @@ export const Header = memo(function Header({ currentRole, onRoleChange, onAddTas
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            <InstallPrompt />
+
             <select
               value={language}
               onChange={(e) => onLanguageChange(e.target.value as Language)}
