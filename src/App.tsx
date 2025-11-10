@@ -364,9 +364,9 @@ function App() {
     }
   };
 
-  const handleCreateProject = async (name: string, description: string, startDate?: string, endDate?: string) => {
+  const handleCreateProject = async (name: string, description: string) => {
     try {
-      const newProject = await createProject(name, description, startDate, endDate);
+      const newProject = await createProject(name, description);
       await loadProjects();
       setActiveProjectId(newProject.id);
       setToast('Project created successfully');
@@ -706,9 +706,9 @@ function App() {
           }}
           mode={projectModalMode}
           currentName={projectToRename ? projects.find(p => p.id === projectToRename)?.name : ''}
-          onSubmit={(name, description, startDate, endDate) => {
+          onSubmit={(name, description) => {
             if (projectModalMode === 'create') {
-              handleCreateProject(name, description, startDate, endDate);
+              handleCreateProject(name, description);
             } else {
               handleRenameProject(name);
             }

@@ -1,61 +1,130 @@
-function calculateEndDate(startDate: string, weeks: number): string {
-  const date = new Date(startDate);
-  date.setDate(date.getDate() + weeks * 7);
-  return date.toISOString().slice(0, 10);
-}
-
-export function generateProjectTasks(projectStartDate: string, projectEndDate: string, projectId: string) {
-  const taskDefinitions = [
-    { name: 'INSTALATION DE CHANTIER', weeks: 4, owner_roles: ['Project Manager'] },
-    { name: 'TERRASEMENT', weeks: 6, owner_roles: ['Construction Contractor'] },
-    { name: 'FONDATIONS PRODUCTION', weeks: 12, owner_roles: ['Construction Contractor'] },
-    { name: 'CHARPENTE METALLIQUE', weeks: 12, owner_roles: ['Construction Contractor'] },
-    { name: 'COUVERTURE ET BARDAGE', weeks: 9, owner_roles: ['Construction Contractor'] },
-    { name: 'DALLAGE', weeks: 3, owner_roles: ['Construction Contractor'] },
-    { name: 'ELEVATION', weeks: 9, owner_roles: ['Construction Contractor'] },
-    { name: 'PLANCHER', weeks: 6, owner_roles: ['Construction Contractor'] },
-    { name: 'EQUIPEMENTS INDUSTRIELS', weeks: 3, owner_roles: ['Project Manager'] },
-    { name: 'LOTS ARCHITECTUREAUX', weeks: 12, owner_roles: ['Architect'] },
-    { name: 'LOTS TECHNIQUES', weeks: 6, owner_roles: ['Chief of Electronics', 'Chief of Plumbing'] },
-    { name: 'AMENAGEMENT EXTERIEUR', weeks: 6, owner_roles: ['Construction Contractor'] },
-  ];
-
-  const tasks = [];
-  let currentStartDate = projectStartDate;
-
-  for (const taskDef of taskDefinitions) {
-    const endDate = calculateEndDate(currentStartDate, taskDef.weeks);
-    tasks.push({
-      name: taskDef.name,
-      owner_roles: taskDef.owner_roles,
-      start_date: currentStartDate,
-      end_date: endDate,
-      percent_done: 0,
-      status: 'On Track' as const,
-      project_id: projectId,
-      was_shifted: false,
-      last_shift_date: null,
-    });
-    currentStartDate = endDate;
-  }
-
-  tasks.push({
-    name: 'RECEPTION',
+export const seedTasks = [
+  {
+    name: 'Installation de chantier',
     owner_roles: ['Project Manager'],
-    start_date: currentStartDate,
-    end_date: projectEndDate,
+    start_date: '2026-01-06',
+    end_date: '2026-01-20',
     percent_done: 0,
     status: 'On Track' as const,
-    project_id: projectId,
-    was_shifted: false,
-    last_shift_date: null,
-  });
-
-  return tasks;
-}
-
-export const seedTasks = generateProjectTasks(
-  '2026-01-06',
-  '2026-12-31',
-  '00000000-0000-0000-0000-000000000001'
-);
+  },
+  {
+    name: 'Terrassement',
+    owner_roles: ['Construction Contractor'],
+    start_date: '2026-01-15',
+    end_date: '2026-02-25',
+    percent_done: 0,
+    status: 'On Track' as const,
+  },
+  {
+    name: 'Fondations production',
+    owner_roles: ['Construction Contractor'],
+    start_date: '2026-02-20',
+    end_date: '2026-04-23',
+    percent_done: 0,
+    status: 'On Track' as const,
+  },
+  {
+    name: 'Charpente métallique',
+    owner_roles: ['Construction Contractor'],
+    start_date: '2026-04-08',
+    end_date: '2026-06-21',
+    percent_done: 0,
+    status: 'On Track' as const,
+  },
+  {
+    name: 'Couverture & bardage',
+    owner_roles: ['Construction Contractor'],
+    start_date: '2026-05-20',
+    end_date: '2026-08-05',
+    percent_done: 0,
+    status: 'On Track' as const,
+  },
+  {
+    name: 'Dallage',
+    owner_roles: ['Construction Contractor'],
+    start_date: '2026-06-06',
+    end_date: '2026-07-21',
+    percent_done: 0,
+    status: 'On Track' as const,
+  },
+  {
+    name: 'Fondations administration/social',
+    owner_roles: ['Construction Contractor'],
+    start_date: '2026-05-06',
+    end_date: '2026-07-06',
+    percent_done: 0,
+    status: 'On Track' as const,
+  },
+  {
+    name: 'Élévation',
+    owner_roles: ['Construction Contractor'],
+    start_date: '2026-06-21',
+    end_date: '2026-09-05',
+    percent_done: 0,
+    status: 'On Track' as const,
+  },
+  {
+    name: 'Plancher',
+    owner_roles: ['Construction Contractor'],
+    start_date: '2026-07-21',
+    end_date: '2026-09-19',
+    percent_done: 0,
+    status: 'On Track' as const,
+  },
+  {
+    name: 'Équipements industriels',
+    owner_roles: ['Project Manager'],
+    start_date: '2026-08-07',
+    end_date: '2026-10-21',
+    percent_done: 0,
+    status: 'On Track' as const,
+  },
+  {
+    name: 'Lots architecturaux',
+    owner_roles: ['Architect'],
+    start_date: '2026-08-21',
+    end_date: '2026-11-04',
+    percent_done: 0,
+    status: 'On Track' as const,
+  },
+  {
+    name: 'Lots techniques - Électronique',
+    owner_roles: ['Chief of Electronics'],
+    start_date: '2026-09-06',
+    end_date: '2026-11-20',
+    percent_done: 0,
+    status: 'On Track' as const,
+  },
+  {
+    name: 'Lots techniques - Plomberie',
+    owner_roles: ['Chief of Plumbing'],
+    start_date: '2026-09-06',
+    end_date: '2026-11-20',
+    percent_done: 0,
+    status: 'On Track' as const,
+  },
+  {
+    name: 'Aménagement extérieur',
+    owner_roles: ['Construction Contractor'],
+    start_date: '2026-10-07',
+    end_date: '2026-11-25',
+    percent_done: 0,
+    status: 'On Track' as const,
+  },
+  {
+    name: 'Réception EXT 01',
+    owner_roles: ['Project Manager'],
+    start_date: '2026-11-20',
+    end_date: '2026-11-30',
+    percent_done: 0,
+    status: 'On Track' as const,
+  },
+  {
+    name: 'Réception EXT 02',
+    owner_roles: ['Project Manager'],
+    start_date: '2026-11-25',
+    end_date: '2026-12-05',
+    percent_done: 0,
+    status: 'On Track' as const,
+  },
+];

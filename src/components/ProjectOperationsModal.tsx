@@ -7,7 +7,7 @@ interface ProjectOperationsModalProps {
   onClose: () => void;
   mode: 'create' | 'rename';
   currentName?: string;
-  onSubmit: (name: string, description: string, startDate?: string, endDate?: string) => void;
+  onSubmit: (name: string, description: string) => void;
 }
 
 export function ProjectOperationsModal({
@@ -19,16 +19,12 @@ export function ProjectOperationsModal({
 }: ProjectOperationsModalProps) {
   const [name, setName] = useState(currentName);
   const [description, setDescription] = useState('');
-  const [startDate, setStartDate] = useState('2026-01-06');
-  const [endDate, setEndDate] = useState('2026-12-31');
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
       setName(currentName);
       setDescription('');
-      setStartDate('2026-01-06');
-      setEndDate('2026-12-31');
       setError(null);
     }
   }, [isOpen, currentName]);
@@ -42,24 +38,15 @@ export function ProjectOperationsModal({
       return;
     }
 
-    if (mode === 'create' && new Date(startDate) >= new Date(endDate)) {
-      setError('End date must be after start date');
-      return;
-    }
-
-    onSubmit(name.trim(), description.trim(), mode === 'create' ? startDate : undefined, mode === 'create' ? endDate : undefined);
+    onSubmit(name.trim(), description.trim());
     setName('');
     setDescription('');
-    setStartDate('2026-01-06');
-    setEndDate('2026-12-31');
     onClose();
   };
 
   const handleClose = () => {
     setName('');
     setDescription('');
-    setStartDate('2026-01-06');
-    setEndDate('2026-12-31');
     setError(null);
     onClose();
   };
@@ -114,46 +101,18 @@ export function ProjectOperationsModal({
             </div>
 
             {mode === 'create' && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Description
-                  </label>
-                  <textarea
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Optional project description"
-                    rows={3}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Project Start Date *
-                    </label>
-                    <input
-                      type="date"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Reception Date *
-                    </label>
-                    <input
-                      type="date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    />
-                  </div>
-                </div>
-              </>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Description
+                </label>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Optional project description"
+                  rows={3}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+                />
+              </div>
             )}
 
             <div className="flex gap-3 pt-2">
