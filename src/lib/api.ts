@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
 import { Task, Comment, ProgressUpdate, Role, TaskStatus } from '../types';
-import { seedTasks } from './seedData';
+import { seedTasks, generateProjectTasks } from './seedData';
 
 let isInitialized = false;
 
@@ -498,22 +498,39 @@ export async function getAllProjects(includeArchived: boolean = false) {
   return data || [];
 }
 
-export async function createProject(name: string, description: string) {
+export async function createProject(
+  name: string,
+  description: string,
+  startDate?: string,
+  endDate?: string
+) {
+  const projectStartDate = startDate || '2026-01-06';
+  const projectEndDate = endDate || '2026-12-31';
+
   const { data, error } = await supabase
     .from('projects')
     .insert([{
       name,
       description,
-      start_date: '2026-01-06',
-      end_date: '2026-12-31',
+      start_date: projectStartDate,
+      end_date: projectEndDate,
       custom_contractors: [],
       archived: false,
-      project_current_date: '2026-01-06'
+      project_current_date: projectStartDate
     }])
     .select()
     .single();
 
   if (error) throw error;
+
+  const baseTasks = generateProjectTasks(projectStartDate, projectEndDate, data.id);
+  const { error: tasksError } = await supabase.from('tasks').insert(baseTasks);
+
+  if (tasksError) {
+    console.error('Error creating base tasks:', tasksError);
+    throw tasksError;
+  }
+
   return data;
 }
 
