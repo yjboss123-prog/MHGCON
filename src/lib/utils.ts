@@ -1,5 +1,22 @@
 export function isManagerRole(role: string): boolean {
-  return role === 'Project Manager' || role === 'Developer' || role === 'Admin';
+  const normalizedRole = role.toLowerCase().replace(' ', '_');
+  return normalizedRole === 'project_manager' || normalizedRole === 'developer' || normalizedRole === 'admin' ||
+         role === 'Project Manager' || role === 'Developer' || role === 'Admin';
+}
+
+export function roleToDisplayName(role: 'admin' | 'developer' | 'project_manager' | 'contractor'): string {
+  switch (role) {
+    case 'admin':
+      return 'Admin';
+    case 'developer':
+      return 'Developer';
+    case 'project_manager':
+      return 'Project Manager';
+    case 'contractor':
+      return 'Construction Contractor';
+    default:
+      return role;
+  }
 }
 
 export function formatRelativeTime(dateString: string): string {

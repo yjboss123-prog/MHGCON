@@ -10,6 +10,7 @@ import { Task, Role, TaskStatus, DEFAULT_ROLES, Project } from './types';
 import { getTasks, initializeData, shiftSchedule, deleteTask, rebaselineProject, getProject, updateProject, getAllProjects, createProject, duplicateProject, archiveProject, unarchiveProject, deleteProject } from './lib/api';
 import { Language, useTranslation } from './lib/i18n';
 import { getSession, validateSession, signOut, Session, isAdmin, canManageTasks, canDeleteTasks } from './lib/session';
+import { roleToDisplayName } from './lib/utils';
 
 const AddTaskModal = lazy(() => import('./components/AddTaskModal').then(m => ({ default: m.AddTaskModal })));
 const WeekDetailsModal = lazy(() => import('./components/WeekDetailsModal').then(m => ({ default: m.WeekDetailsModal })));
@@ -82,7 +83,7 @@ function App() {
 
   useEffect(() => {
     if (session) {
-      setCurrentRole(session.display_name as Role);
+      setCurrentRole(roleToDisplayName(session.role) as Role);
     }
   }, [session]);
 
