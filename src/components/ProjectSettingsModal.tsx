@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Plus, Trash2 } from 'lucide-react';
+import { X, Plus, Trash2, UserPlus } from 'lucide-react';
 import { Language, useTranslation } from '../lib/i18n';
 import { Project } from '../types';
 
@@ -9,6 +9,8 @@ interface ProjectSettingsModalProps {
   project: Project | null;
   onSave: (name: string, description: string, customContractors: string[], currentDate: string) => void;
   language: Language;
+  onInvite?: () => void;
+  canManage?: boolean;
 }
 
 export function ProjectSettingsModal({
@@ -17,6 +19,8 @@ export function ProjectSettingsModal({
   project,
   onSave,
   language,
+  onInvite,
+  canManage = false,
 }: ProjectSettingsModalProps) {
   const t = useTranslation(language);
   const [name, setName] = useState('');
@@ -173,6 +177,22 @@ export function ProjectSettingsModal({
                 </p>
               </div>
             </div>
+
+            {canManage && onInvite && (
+              <div className="md:hidden">
+                <button
+                  onClick={() => {
+                    onClose();
+                    onInvite();
+                  }}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-slate-700 text-white font-medium rounded-lg hover:bg-slate-800 transition-colors"
+                  style={{ minHeight: '44px' }}
+                >
+                  <UserPlus className="w-4 h-4" />
+                  <span>{language === 'fr' ? 'Inviter des entrepreneurs' : 'Invite Contractors'}</span>
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="border-t border-slate-200 px-6 py-4 flex items-center justify-end gap-3">

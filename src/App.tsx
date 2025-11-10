@@ -686,6 +686,8 @@ function App() {
           project={project}
           onSave={handleProjectSettingsSave}
           language={language}
+          onInvite={() => setIsInviteModalOpen(true)}
+          canManage={canManage}
         />
 
         <InvitationManager
