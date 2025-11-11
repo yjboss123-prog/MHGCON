@@ -1,9 +1,11 @@
 import { memo } from 'react';
-import { Settings, RefreshCw, UserPlus, LogOut, User as UserIcon, Shield, Lock } from 'lucide-react';
+import { Settings, RefreshCw, UserPlus, LogOut, User as UserIcon, Shield, Lock, List, BarChart3 } from 'lucide-react';
 import { Language, useTranslation } from '../lib/i18n';
 import InstallPrompt from './InstallPrompt';
 import { Session } from '../lib/session';
 import { isManagerRole } from '../lib/utils';
+
+type ViewMode = 'list' | 'gantt';
 
 interface HeaderProps {
   currentRole: string;
@@ -21,9 +23,11 @@ interface HeaderProps {
   userSession: Session | null;
   onSignOut: () => void;
   onSwitchCode: () => void;
+  viewMode?: ViewMode;
+  onViewModeChange?: (mode: ViewMode) => void;
 }
 
-export const Header = memo(function Header({ currentRole, onRoleChange, onAddTask, onRebaseline, onProjectSettings, onInvite, onAdminPanel, language, onLanguageChange, projectName, projectDescription, allRoles, userSession, onSignOut, onSwitchCode }: HeaderProps) {
+export const Header = memo(function Header({ currentRole, onRoleChange, onAddTask, onRebaseline, onProjectSettings, onInvite, onAdminPanel, language, onLanguageChange, projectName, projectDescription, allRoles, userSession, onSignOut, onSwitchCode, viewMode = 'list', onViewModeChange }: HeaderProps) {
   const t = useTranslation(language);
   const canManage = isManagerRole(currentRole);
   return (
@@ -57,6 +61,33 @@ export const Header = memo(function Header({ currentRole, onRoleChange, onAddTas
 
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
             <InstallPrompt />
+
+            {onViewModeChange && (
+              <div className="flex gap-1 bg-slate-100 p-1 rounded-lg">
+                <button
+                  onClick={() => onViewModeChange('list')}
+                  className={`px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-all ${
+                    viewMode === 'list'
+                      ? 'bg-white text-slate-900 shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                  style={{ minHeight: '40px' }}
+                >
+                  <List className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => onViewModeChange('gantt')}
+                  className={`px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-all ${
+                    viewMode === 'gantt'
+                      ? 'bg-white text-slate-900 shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                  style={{ minHeight: '40px' }}
+                >
+                  <BarChart3 className="w-4 h-4" />
+                </button>
+              </div>
+            )}
 
             <select
               value={language}

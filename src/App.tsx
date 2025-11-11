@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, lazy, Suspense, useCallback } from 'react';
 import { Header } from './components/Header';
 import { TaskList } from './components/TaskList';
+import { GanttView } from './components/GanttView';
 import { TaskDrawer } from './components/TaskDrawer';
 import { ProjectTabs } from './components/ProjectTabs';
 import { AccessCodeEntry } from './components/AccessCodeEntry';
@@ -30,7 +31,7 @@ function calculateProjectEnd(startDate: string, durationMonths: number): string 
   return end.toISOString().split('T')[0];
 }
 
-type ViewMode = 'list' | 'my-day';
+type ViewMode = 'list' | 'gantt';
 type MobileView = 'my-day' | 'all-tasks' | 'profile';
 
 function App() {
@@ -563,6 +564,8 @@ function App() {
           userSession={session}
           onSignOut={handleSignOut}
           onSwitchCode={handleSwitchCode}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
         />
       )}
 
@@ -597,6 +600,14 @@ function App() {
               tasks={filteredTasks}
               onTaskClick={handleTaskView}
               onStatusUpdate={handleQuickStatusUpdate}
+              language={language}
+            />
+          ) : viewMode === 'gantt' ? (
+            <GanttView
+              tasks={filteredTasks}
+              onTaskUpdate={handleTaskUpdate}
+              userRole={session?.role}
+              userToken={session?.user_token}
               language={language}
             />
           ) : (
