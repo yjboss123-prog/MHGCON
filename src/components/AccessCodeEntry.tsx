@@ -2,15 +2,17 @@ import { useState, useEffect } from 'react';
 import { Lock, User, Shield, Briefcase, Key } from 'lucide-react';
 import { saveSession } from '../lib/session';
 import { getProject } from '../lib/api';
+import { Language } from '../lib/i18n';
 
 interface AccessCodeEntryProps {
   onSuccess: () => void;
+  language: Language;
 }
 
 const ELEVATED_ROLES = [
-  { value: 'admin', label: 'Admin' },
-  { value: 'developer', label: 'Developer' },
-  { value: 'project_manager', label: 'Project Manager' },
+  { value: 'admin', labelFr: 'Administrateur', labelEn: 'Admin' },
+  { value: 'developer', labelFr: 'Développeur', labelEn: 'Developer' },
+  { value: 'project_manager', labelFr: 'Chef de projet', labelEn: 'Project Manager' },
 ];
 
 const CONTRACTOR_ROLES = [
@@ -20,7 +22,15 @@ const CONTRACTOR_ROLES = [
   'Chief of Electronics',
 ];
 
-export function AccessCodeEntry({ onSuccess }: AccessCodeEntryProps) {
+const CONTRACTOR_ROLES_FR: Record<string, string> = {
+  'Construction Contractor': 'Entrepreneur en construction',
+  'Architect': 'Architecte',
+  'Chief of Plumbing': 'Chef de plomberie',
+  'Chief of Electronics': 'Chef d\'électronique',
+};
+
+export function AccessCodeEntry({ onSuccess, language }: AccessCodeEntryProps) {
+  const isFr = language === 'fr';
   const [displayName, setDisplayName] = useState('');
   const [password, setPassword] = useState('');
   const [selectedContractorRole, setSelectedContractorRole] = useState('Construction Contractor');
@@ -50,17 +60,17 @@ export function AccessCodeEntry({ onSuccess }: AccessCodeEntryProps) {
     e.preventDefault();
 
     if (!displayName.trim()) {
-      setError('Please enter your display name');
+      setError(isFr ? 'Veuillez entrer votre nom d\'affichage' : 'Please enter your display name');
       return;
     }
 
     if (!password) {
-      setError('Please enter a password');
+      setError(isFr ? 'Veuillez entrer un mot de passe' : 'Please enter a password');
       return;
     }
 
     if (password.length < 4) {
-      setError('Password must be at least 4 characters');
+      setError(isFr ? 'Le mot de passe doit contenir au moins 4 caractères' : 'Password must be at least 4 characters');
       return;
     }
 
@@ -94,17 +104,17 @@ export function AccessCodeEntry({ onSuccess }: AccessCodeEntryProps) {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Authentication failed');
+        throw new Error(data.error || (isFr ? 'Échec de l\'authentification' : 'Authentication failed'));
       }
 
       if (data.success && data.session) {
         saveSession(data.session);
         onSuccess();
       } else {
-        throw new Error('Invalid response from server');
+        throw new Error(isFr ? 'Échec de l\'authentification' : 'Invalid response from server');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Authentication failed');
+      setError(err instanceof Error ? err.message : (isFr ? 'Échec de l\'authentification' : 'Authentication failed'));
     } finally {
       setLoading(false);
     }
@@ -122,14 +132,14 @@ export function AccessCodeEntry({ onSuccess }: AccessCodeEntryProps) {
               MHG Tracker
             </h1>
             <p className="text-slate-600">
-              Enter your credentials to continue
+              {isFr ? 'Authentification sécurisée par mot de passe' : 'Secure password-based authentication'}
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="displayName" className="block text-sm font-medium text-slate-700 mb-2">
-                Display Name
+                {isFr ? 'Nom d\'affichage' : 'Display Name'}
               </label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
@@ -139,7 +149,7 @@ export function AccessCodeEntry({ onSuccess }: AccessCodeEntryProps) {
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   className="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all text-slate-900"
-                  placeholder="Your name"
+                  placeholder={isFr ? 'Votre nom' : 'Your name'}
                   autoFocus
                   autoComplete="name"
                 />
@@ -148,7 +158,7 @@ export function AccessCodeEntry({ onSuccess }: AccessCodeEntryProps) {
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-2">
-                Password
+                {isFr ? 'Mot de passe' : 'Password'}
               </label>
               <div className="relative">
                 <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
@@ -158,18 +168,18 @@ export function AccessCodeEntry({ onSuccess }: AccessCodeEntryProps) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all text-slate-900"
-                  placeholder="Enter password"
+                  placeholder={isFr ? 'Entrez votre mot de passe' : 'Enter password'}
                   autoComplete="current-password"
                 />
               </div>
               <p className="mt-1 text-xs text-slate-500">
-                Minimum 4 characters
+                {isFr ? 'Minimum 4 caractères' : 'Minimum 4 characters'}
               </p>
             </div>
 
             <div>
               <label htmlFor="contractorRole" className="block text-sm font-medium text-slate-700 mb-2">
-                Your Role
+                {isFr ? 'Votre rôle' : 'Your Role'}
               </label>
               <div className="relative">
                 <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
@@ -179,17 +189,17 @@ export function AccessCodeEntry({ onSuccess }: AccessCodeEntryProps) {
                   onChange={(e) => setSelectedContractorRole(e.target.value)}
                   className="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all appearance-none bg-white text-slate-900"
                 >
-                  <optgroup label="Contractors">
+                  <optgroup label={isFr ? 'Entrepreneurs' : 'Contractors'}>
                     {availableRoles.map((role) => (
                       <option key={role} value={role}>
-                        {role}
+                        {isFr ? (CONTRACTOR_ROLES_FR[role] || role) : role}
                       </option>
                     ))}
                   </optgroup>
-                  <optgroup label="Management">
+                  <optgroup label={isFr ? 'Gestion' : 'Management'}>
                     {ELEVATED_ROLES.map((role) => (
                       <option key={role.value} value={role.value}>
-                        {role.label}
+                        {isFr ? role.labelFr : role.labelEn}
                       </option>
                     ))}
                   </optgroup>
@@ -208,17 +218,17 @@ export function AccessCodeEntry({ onSuccess }: AccessCodeEntryProps) {
               className="w-full bg-slate-900 text-white py-3 rounded-lg font-medium hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               disabled={loading}
             >
-              {loading ? 'Processing...' : 'Continue'}
+              {loading ? (isFr ? 'Veuillez patienter...' : 'Processing...') : (isFr ? 'Continuer' : 'Continue')}
               <Lock className="w-4 h-4" />
             </button>
           </form>
 
           <div className="mt-6 pt-6 border-t border-slate-200">
             <p className="text-xs text-slate-500 text-center">
-              First time? Your account will be created automatically.
+              {isFr ? 'Première fois ? Votre compte sera créé automatiquement.' : 'First time? Your account will be created automatically.'}
             </p>
             <p className="text-xs text-slate-400 text-center mt-1">
-              Returning? Use the same name, role, and password.
+              {isFr ? 'Déjà inscrit ? Utilisez le même nom, rôle et mot de passe.' : 'Returning? Use the same name, role, and password.'}
             </p>
           </div>
         </div>

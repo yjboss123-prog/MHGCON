@@ -2,16 +2,18 @@ import { useState, useEffect } from 'react';
 import { X, Users, Activity, Key, Plus, Trash2, User as UserIcon } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { AuditLog, User } from '../types';
+import { Language } from '../lib/i18n';
 
 interface AdminPanelProps {
   isOpen: boolean;
   onClose: () => void;
+  language: Language;
 }
 
 const ELEVATED_ROLES = [
-  { value: 'admin', label: 'Admin' },
-  { value: 'developer', label: 'Developer' },
-  { value: 'project_manager', label: 'Project Manager' },
+  { value: 'admin', labelFr: 'Administrateur', labelEn: 'Admin' },
+  { value: 'developer', labelFr: 'Développeur', labelEn: 'Developer' },
+  { value: 'project_manager', labelFr: 'Chef de projet', labelEn: 'Project Manager' },
 ];
 
 const CONTRACTOR_ROLES = [
@@ -21,7 +23,15 @@ const CONTRACTOR_ROLES = [
   'Chief of Electronics',
 ];
 
-export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
+const CONTRACTOR_ROLES_FR: Record<string, string> = {
+  'Construction Contractor': 'Entrepreneur en construction',
+  'Architect': 'Architecte',
+  'Chief of Plumbing': 'Chef de plomberie',
+  'Chief of Electronics': 'Chef d\'électronique',
+};
+
+export function AdminPanel({ isOpen, onClose, language }: AdminPanelProps) {
+  const isFr = language === 'fr';
   const [activeTab, setActiveTab] = useState<'audit' | 'users' | 'codes'>('users');
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [users, setUsers] = useState<User[]>([]);
@@ -70,12 +80,12 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
     setError('');
 
     if (!newUser.displayName.trim()) {
-      setError('Please enter a display name');
+      setError(isFr ? 'Veuillez entrer un nom d\'affichage' : 'Please enter a display name');
       return;
     }
 
     if (!newUser.password || newUser.password.length < 4) {
-      setError('Password must be at least 4 characters');
+      setError(isFr ? 'Le mot de passe doit contenir au moins 4 caractères' : 'Password must be at least 4 characters');
       return;
     }
 
@@ -108,21 +118,21 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to create user');
+        throw new Error(data.error || (isFr ? 'Échec de la création de l\'utilisateur' : 'Failed to create user'));
       }
 
       setNewUser({ displayName: '', password: '', role: 'Construction Contractor' });
       setShowAddUser(false);
       loadData();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create user');
+      setError(err instanceof Error ? err.message : (isFr ? 'Échec de la création de l\'utilisateur' : 'Failed to create user'));
     } finally {
       setAddingUser(false);
     }
   };
 
   const handleDeleteUser = async (userToken: string, displayName: string) => {
-    if (!confirm(`Are you sure you want to delete user "${displayName}"?`)) {
+    if (!confirm(isFr ? `Êtes-vous sûr de vouloir supprimer l'utilisateur "${displayName}" ?` : `Are you sure you want to delete user "${displayName}"?`)) {
       return;
     }
 
@@ -137,7 +147,7 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
       loadData();
     } catch (error) {
       console.error('Error deleting user:', error);
-      alert('Failed to delete user');
+      alert(isFr ? 'Échec de la suppression de l\'utilisateur' : 'Failed to delete user');
     }
   };
 
@@ -153,7 +163,7 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
         <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white px-6 py-4 flex items-center justify-between">
           <h2 className="text-xl font-bold flex items-center gap-2">
             <Key className="w-6 h-6" />
-            Admin Panel
+            {isFr ? 'Panneau Admin' : 'Admin Panel'}
           </h2>
           <button
             onClick={onClose}
@@ -173,7 +183,7 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
             }`}
           >
             <Users className="w-4 h-4 inline mr-2" />
-            Users
+            {isFr ? 'Utilisateurs' : 'Users'}
           </button>
           <button
             onClick={() => setActiveTab('audit')}
@@ -184,7 +194,7 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
             }`}
           >
             <Activity className="w-4 h-4 inline mr-2" />
-            Audit Logs
+            {isFr ? 'Journaux d\'audit' : 'Audit Logs'}
           </button>
           <button
             onClick={() => setActiveTab('codes')}
@@ -195,7 +205,7 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
             }`}
           >
             <Key className="w-4 h-4 inline mr-2" />
-            Info
+            {isFr ? 'Info' : 'Info'}
           </button>
         </div>
 
@@ -207,67 +217,67 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
           ) : activeTab === 'users' ? (
             <div className="space-y-4">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-slate-900">Manage Users</h3>
+                <h3 className="text-lg font-semibold text-slate-900">{isFr ? 'Gérer les utilisateurs' : 'Manage Users'}</h3>
                 <button
                   onClick={() => setShowAddUser(!showAddUser)}
                   className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors"
                 >
                   <Plus className="w-4 h-4" />
-                  Add User
+                  {isFr ? 'Ajouter un utilisateur' : 'Add User'}
                 </button>
               </div>
 
               {showAddUser && (
                 <div className="bg-slate-50 rounded-lg p-4 border-2 border-slate-900 mb-4">
-                  <h4 className="font-medium text-slate-900 mb-4">Create New User</h4>
+                  <h4 className="font-medium text-slate-900 mb-4">{isFr ? 'Créer un nouvel utilisateur' : 'Create New User'}</h4>
                   <form onSubmit={handleAddUser} className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
-                        Display Name
+                        {isFr ? 'Nom d\'affichage' : 'Display Name'}
                       </label>
                       <input
                         type="text"
                         value={newUser.displayName}
                         onChange={(e) => setNewUser({ ...newUser, displayName: e.target.value })}
                         className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-transparent"
-                        placeholder="John Doe"
+                        placeholder={isFr ? 'Jean Dupont' : 'John Doe'}
                         autoFocus
                       />
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
-                        Password
+                        {isFr ? 'Mot de passe' : 'Password'}
                       </label>
                       <input
                         type="password"
                         value={newUser.password}
                         onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
                         className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-transparent"
-                        placeholder="Min 4 characters"
+                        placeholder={isFr ? 'Min 4 caractères' : 'Min 4 characters'}
                       />
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
-                        Role
+                        {isFr ? 'Rôle' : 'Role'}
                       </label>
                       <select
                         value={newUser.role}
                         onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
                         className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-transparent appearance-none bg-white"
                       >
-                        <optgroup label="Contractors">
+                        <optgroup label={isFr ? 'Entrepreneurs' : 'Contractors'}>
                           {CONTRACTOR_ROLES.map((role) => (
                             <option key={role} value={role}>
-                              {role}
+                              {isFr ? (CONTRACTOR_ROLES_FR[role] || role) : role}
                             </option>
                           ))}
                         </optgroup>
-                        <optgroup label="Management">
+                        <optgroup label={isFr ? 'Gestion' : 'Management'}>
                           {ELEVATED_ROLES.map((role) => (
                             <option key={role.value} value={role.value}>
-                              {role.label}
+                              {isFr ? role.labelFr : role.labelEn}
                             </option>
                           ))}
                         </optgroup>
@@ -291,14 +301,14 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                         className="flex-1 px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors"
                         disabled={addingUser}
                       >
-                        Cancel
+                        {isFr ? 'Annuler' : 'Cancel'}
                       </button>
                       <button
                         type="submit"
                         className="flex-1 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors disabled:opacity-50"
                         disabled={addingUser}
                       >
-                        {addingUser ? 'Creating...' : 'Create User'}
+                        {addingUser ? (isFr ? 'Création...' : 'Creating...') : (isFr ? 'Créer l\'utilisateur' : 'Create User')}
                       </button>
                     </div>
                   </form>
@@ -307,7 +317,7 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
 
               <div className="space-y-3">
                 {users.length === 0 ? (
-                  <p className="text-slate-500 text-center py-8">No users yet</p>
+                  <p className="text-slate-500 text-center py-8">{isFr ? 'Aucun utilisateur pour le moment' : 'No users yet'}</p>
                 ) : (
                   users.map((user) => (
                     <div
@@ -326,7 +336,7 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                             </p>
                             {user.last_seen && (
                               <p className="text-xs text-slate-500 mt-1">
-                                Last seen: {new Date(user.last_seen).toLocaleString()}
+                                {isFr ? 'Dernière visite' : 'Last seen'}: {new Date(user.last_seen).toLocaleString(isFr ? 'fr-FR' : 'en-US')}
                               </p>
                             )}
                           </div>
@@ -350,7 +360,7 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
           ) : activeTab === 'audit' ? (
             <div className="space-y-3">
               {auditLogs.length === 0 ? (
-                <p className="text-slate-500 text-center py-8">No audit logs yet</p>
+                <p className="text-slate-500 text-center py-8">{isFr ? 'Aucun journal d\'audit pour le moment' : 'No audit logs yet'}</p>
               ) : (
                 auditLogs.map((log) => (
                   <div
@@ -382,37 +392,35 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
               <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg p-6 border border-slate-200">
                 <h3 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
                   <Users className="w-5 h-5" />
-                  Password-Based Authentication
+                  {isFr ? 'Authentification par mot de passe' : 'Password-Based Authentication'}
                 </h3>
                 <p className="text-sm text-slate-700 mb-4">
-                  Users can register and log in with:
+                  {isFr ? 'Les utilisateurs peuvent s\'inscrire et se connecter avec :' : 'Users can register and log in with:'}
                 </p>
                 <ul className="text-sm text-slate-600 space-y-2 ml-4">
                   <li className="flex items-start gap-2">
                     <span className="text-slate-400">•</span>
-                    <span>Display Name</span>
+                    <span>{isFr ? 'Nom d\'affichage' : 'Display Name'}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-slate-400">•</span>
-                    <span>Password (min 4 characters)</span>
+                    <span>{isFr ? 'Mot de passe (min 4 caractères)' : 'Password (min 4 characters)'}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-slate-400">•</span>
-                    <span>Their role (contractor or management)</span>
+                    <span>{isFr ? 'Leur rôle (entrepreneur ou gestion)' : 'Their role (contractor or management)'}</span>
                   </li>
                 </ul>
                 <div className="bg-white rounded-lg p-4 mt-4 border border-slate-200">
                   <p className="text-sm text-slate-700">
-                    <strong>How it works:</strong> First-time users create an account automatically.
-                    Returning users log in with the same credentials. No duplicate accounts allowed.
+                    <strong>{isFr ? 'Comment ça marche :' : 'How it works:'}</strong> {isFr ? 'Les nouveaux utilisateurs créent un compte automatiquement. Les utilisateurs existants se connectent avec les mêmes identifiants. Aucun compte en double autorisé.' : 'First-time users create an account automatically. Returning users log in with the same credentials. No duplicate accounts allowed.'}
                   </p>
                 </div>
               </div>
 
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
                 <p className="text-sm text-amber-800">
-                  <strong>Admin Note:</strong> You can pre-create user accounts in the Users tab
-                  with specific passwords, then share those credentials with your team members.
+                  <strong>{isFr ? 'Note admin :' : 'Admin Note:'}</strong> {isFr ? 'Vous pouvez pré-créer des comptes utilisateurs dans l\'onglet Utilisateurs avec des mots de passe spécifiques, puis partager ces identifiants avec les membres de votre équipe.' : 'You can pre-create user accounts in the Users tab with specific passwords, then share those credentials with your team members.'}
                 </p>
               </div>
             </div>

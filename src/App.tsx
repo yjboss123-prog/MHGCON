@@ -596,7 +596,7 @@ function App() {
   }
 
   if (!session) {
-    return <AccessCodeEntry onSuccess={handleSessionSuccess} />;
+    return <AccessCodeEntry onSuccess={handleSessionSuccess} language={language} />;
   }
 
   return (
@@ -827,6 +827,7 @@ function App() {
         <AdminPanel
           isOpen={isAdminPanelOpen}
           onClose={() => setIsAdminPanelOpen(false)}
+          language={language}
         />
       </Suspense>
 
