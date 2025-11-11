@@ -106,10 +106,11 @@ function App() {
     if (session) {
       if (session.contractor_role) {
         setCurrentRole(session.contractor_role as Role);
+        setSelectedRoles([session.contractor_role]);
       } else {
         setCurrentRole(roleToDisplayName(session.role) as Role);
+        setSelectedRoles([]);
       }
-      setSelectedRoles([]);
     }
   }, [session]);
 
@@ -240,40 +241,6 @@ function App() {
       return true;
     });
   }, [tasks, selectedStatuses, selectedRoles, selectedMonths]);
-
-  const listViewTasks = useMemo(() => {
-    return tasks.filter((task) => {
-      if (session?.role === 'contractor') {
-        const isAssignedByToken = task.assigned_user_token === session.user_token;
-        const isAssignedByRole = session.contractor_role && task.owner_roles.includes(session.contractor_role);
-        if (!isAssignedByToken && !isAssignedByRole) {
-          return false;
-        }
-      }
-
-      if (selectedStatuses.length > 0 && !selectedStatuses.includes(task.status)) {
-        return false;
-      }
-
-      if (selectedRoles.length > 0 && !task.owner_roles.some(role => selectedRoles.includes(role))) {
-        return false;
-      }
-
-      if (selectedMonths.length > 0) {
-        const taskMonth = new Date(task.start_date).toLocaleDateString('en-US', {
-          month: 'short',
-          year: 'numeric',
-        });
-        if (!selectedMonths.includes(taskMonth)) {
-          return false;
-        }
-      }
-
-      return true;
-    });
-  }, [tasks, selectedStatuses, selectedRoles, selectedMonths, session]);
-
-  const ganttTasks = tasks;
 
   const handleStatusToggle = (status: TaskStatus) => {
     setSelectedStatuses((prev) =>
@@ -640,8 +607,6 @@ function App() {
           projectName={project?.name || 'MHG Tracker'}
           onSettings={() => setIsProjectSettingsOpen(true)}
           onSignOut={handleSignOut}
-          language={language}
-          onLanguageChange={setLanguage}
         />
       )}
 
@@ -672,6 +637,46 @@ function App() {
             ? 'px-4 py-4 pb-24'
             : 'max-w-[1600px] px-2 sm:px-4 lg:px-8 py-4 sm:py-6 pb-20'
       }`}>
+        {!isLandscape && !(isMobile && session?.role === 'contractor' && mobileView === 'my-day') && (
+          <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
+            <FilterPanel
+              selectedStatuses={selectedStatuses}
+              selectedRoles={selectedRoles}
+              selectedMonths={selectedMonths}
+              availableMonths={availableMonths}
+              onStatusToggle={handleStatusToggle}
+              onRoleToggle={handleRoleToggle}
+              onMonthToggle={handleMonthToggle}
+              onClearFilters={handleClearFilters}
+              language={language}
+              allRoles={allRoles}
+              isContractor={session?.role === 'contractor'}
+            />
+
+            <div className="flex bg-white rounded-lg shadow-sm p-1 self-center sm:self-auto">
+              <button
+                onClick={() => setViewMode('gantt')}
+                className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors ${
+                  viewMode === 'gantt'
+                    ? 'bg-slate-900 text-white'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                {t.ganttChart}
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors ${
+                viewMode === 'list'
+                  ? 'bg-slate-900 text-white'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              {t.listView}
+            </button>
+          </div>
+          </div>
+        )}
 
         <main>
           {loadError ? (
@@ -693,14 +698,14 @@ function App() {
             </div>
           ) : isMobile && session?.role === 'contractor' && mobileView === 'my-day' ? (
             <MyDayView
-              tasks={listViewTasks}
+              tasks={filteredTasks}
               onTaskClick={handleTaskView}
               onStatusUpdate={handleQuickStatusUpdate}
               language={language}
             />
-          ) : viewMode === 'gantt' || isLandscape ? (
+          ) : (viewMode === 'gantt' || isLandscape) ? (
             <GanttChart
-              tasks={ganttTasks}
+              tasks={filteredTasks}
               projectStart={projectDates.start}
               projectEnd={projectDates.end}
               currentDate={project?.project_current_date}
@@ -708,12 +713,10 @@ function App() {
               language={language}
               isReadOnly={session?.role === 'contractor'}
               highlightRole={session?.contractor_role || undefined}
-              onViewChange={setViewMode}
-              currentView={viewMode}
             />
           ) : (
             <TaskList
-              tasks={listViewTasks}
+              tasks={filteredTasks}
               currentRole={currentRole}
               projectStart={projectDates.start}
               projectEnd={projectDates.end}

@@ -1,26 +1,24 @@
 import { memo } from 'react';
 import { LogOut, Settings } from 'lucide-react';
 import { Session } from '../lib/session';
-import { Language } from '../lib/i18n';
 
 interface MobileHeaderProps {
   session: Session;
   projectName: string;
   onSettings: () => void;
   onSignOut: () => void;
-  language: Language;
-  onLanguageChange: (language: Language) => void;
 }
 
-export const MobileHeader = memo(function MobileHeader({ session, projectName, onSettings, onSignOut, language, onLanguageChange }: MobileHeaderProps) {
+export const MobileHeader = memo(function MobileHeader({ session, projectName, onSettings, onSignOut }: MobileHeaderProps) {
   const today = new Date();
   const dayName = today.toLocaleDateString('en-US', { weekday: 'long' });
   const dateStr = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
   return (
-    <header className="bg-gradient-to-br from-slate-900 to-slate-800 text-white px-4">
-      <div style={{ height: 'max(env(safe-area-inset-top), constant(safe-area-inset-top))' }} />
-      <div className="py-6">
+    <header
+      className="bg-gradient-to-br from-slate-900 to-slate-800 text-white px-4 py-6"
+      style={{ paddingTop: 'calc(1.5rem + max(env(safe-area-inset-top), constant(safe-area-inset-top)))' }}
+    >
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1 min-w-0">
           <div className="text-sm font-medium text-slate-300 mb-1">
@@ -35,15 +33,6 @@ export const MobileHeader = memo(function MobileHeader({ session, projectName, o
         </div>
 
         <div className="flex items-center gap-2 flex-shrink-0">
-          <select
-            value={language}
-            onChange={(e) => onLanguageChange(e.target.value as Language)}
-            className="px-3 py-2.5 rounded-xl bg-white/10 text-white text-sm font-medium border border-white/20 active:bg-white/20 transition-all"
-            style={{ minWidth: '44px', minHeight: '44px' }}
-          >
-            <option value="en" className="bg-slate-800">EN</option>
-            <option value="fr" className="bg-slate-800">FR</option>
-          </select>
           <button
             onClick={onSettings}
             className="p-2.5 rounded-xl bg-white/10 active:bg-white/20 transition-all"
@@ -67,7 +56,6 @@ export const MobileHeader = memo(function MobileHeader({ session, projectName, o
           <div className="text-xs text-slate-300">Logged in as</div>
           <div className="font-semibold text-sm">{session.contractor_role || session.display_name}</div>
         </div>
-      </div>
       </div>
     </header>
   );

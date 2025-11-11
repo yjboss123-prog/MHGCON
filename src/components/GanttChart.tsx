@@ -1,7 +1,8 @@
-import { useState, useMemo, memo } from 'react';
+import { useState, useMemo, memo, useCallback } from 'react';
 import { Task } from '../types';
+import { getWeeksInRange } from '../lib/utils';
 import { Language, useTranslation } from '../lib/i18n';
-import { BarChart3, List } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 interface GanttChartProps {
   tasks: Task[];
@@ -12,248 +13,248 @@ interface GanttChartProps {
   language: Language;
   isReadOnly?: boolean;
   highlightRole?: string;
-  onViewChange?: (view: 'gantt' | 'list') => void;
-  currentView?: 'gantt' | 'list';
 }
 
-interface MonthColumn {
-  label: string;
-  weeks: WeekColumn[];
-}
-
-interface WeekColumn {
-  weekNumber: number;
+interface WeekCell {
+  year: number;
+  week: number;
   date: Date;
-  isCurrentWeek: boolean;
+  isInTaskRange: boolean;
+  monthLabel?: string;
 }
 
 const getStatusColor = (status: string) => {
   switch (status) {
     case 'Done':
-      return 'bg-gray-500';
+      return 'bg-emerald-500';
     case 'On Track':
-      return 'bg-gray-400';
+      return 'bg-slate-400';
     case 'Delayed':
-      return 'bg-gray-400';
+      return 'bg-amber-500';
     case 'Blocked':
-      return 'bg-gray-500';
+      return 'bg-red-500';
     default:
-      return 'bg-gray-400';
+      return 'bg-slate-300';
   }
 };
 
-export const GanttChart = memo(function GanttChart({
-  tasks,
-  projectStart,
-  projectEnd,
-  currentDate,
-  onWeekClick,
-  language,
-  isReadOnly = false,
-  highlightRole,
-  onViewChange,
-  currentView = 'gantt'
-}: GanttChartProps) {
+export const GanttChart = memo(function GanttChart({ tasks, projectStart, projectEnd, currentDate, onWeekClick, language, isReadOnly = false, highlightRole }: GanttChartProps) {
   const [hoveredCell, setHoveredCell] = useState<string | null>(null);
   const t = useTranslation(language);
 
-  const { monthColumns, allWeeks } = useMemo(() => {
+  const { months, weeks, totalWeeks, currentWeekIndex } = useMemo(() => {
     const start = new Date(projectStart);
     const end = new Date(projectEnd);
+    const weeksData = getWeeksInRange(start, end);
 
-    const months: MonthColumn[] = [];
-    const weeks: WeekColumn[] = [];
+    const monthsMap = new Map<string, { label: string; span: number }>();
+    const weeksWithMonthNumbers: any[] = [];
 
-    const current = new Date(start);
-    current.setDate(1);
+    let currentMonthKey = '';
+    let weekInMonth = 0;
 
-    let currentWeekDate: Date | null = null;
-    if (currentDate) {
-      currentWeekDate = new Date(currentDate);
-    }
+    weeksData.forEach((week) => {
+      const monthKey = `${week.year}-${week.date.getMonth()}`;
+      const monthLabel = week.date.toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { month: 'short' }).toUpperCase();
 
-    while (current <= end) {
-      const monthLabel = current.toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', {
-        month: 'long'
-      }).toUpperCase();
+      if (monthKey !== currentMonthKey) {
+        currentMonthKey = monthKey;
+        weekInMonth = 1;
 
-      const monthWeeks: WeekColumn[] = [];
-      const monthEnd = new Date(current.getFullYear(), current.getMonth() + 1, 0);
-      const daysInMonth = monthEnd.getDate();
-
-      for (let week = 1; week <= 4; week++) {
-        const weekStartDay = (week - 1) * 7 + 1;
-        if (weekStartDay <= daysInMonth) {
-          const weekDate = new Date(current.getFullYear(), current.getMonth(), weekStartDay);
-
-          let isCurrentWeek = false;
-          if (currentWeekDate) {
-            const weekEnd = new Date(weekDate);
-            weekEnd.setDate(weekEnd.getDate() + 6);
-            isCurrentWeek = currentWeekDate >= weekDate && currentWeekDate <= weekEnd;
-          }
-
-          const weekCol: WeekColumn = {
-            weekNumber: week,
-            date: weekDate,
-            isCurrentWeek
-          };
-
-          monthWeeks.push(weekCol);
-          weeks.push(weekCol);
+        if (!monthsMap.has(monthKey)) {
+          monthsMap.set(monthKey, { label: monthLabel, span: 0 });
+        }
+      } else {
+        weekInMonth++;
+        if (weekInMonth > 4) {
+          weekInMonth = 4;
         }
       }
 
-      months.push({
-        label: monthLabel,
-        weeks: monthWeeks
-      });
+      const monthData = monthsMap.get(monthKey)!;
+      monthData.span += 1;
 
-      current.setMonth(current.getMonth() + 1);
+      weeksWithMonthNumbers.push({
+        ...week,
+        weekInMonth
+      });
+    });
+
+    let currentIdx = -1;
+    if (currentDate) {
+      const current = new Date(currentDate);
+      currentIdx = weeksWithMonthNumbers.findIndex((w) => {
+        const weekStart = new Date(w.date);
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekEnd.getDate() + 6);
+        return current >= weekStart && current <= weekEnd;
+      });
     }
 
-    return { monthColumns: months, allWeeks: weeks };
-  }, [projectStart, projectEnd, currentDate, language]);
+    return {
+      months: Array.from(monthsMap.values()),
+      weeks: weeksWithMonthNumbers,
+      totalWeeks: weeksData.length,
+      currentWeekIndex: currentIdx,
+    };
+  }, [projectStart, projectEnd, currentDate]);
 
-  const isTaskInWeek = (task: Task, weekDate: Date): boolean => {
+  const getTaskWeekCells = useCallback((task: Task): WeekCell[] => {
     const taskStart = new Date(task.start_date);
     const taskEnd = new Date(task.end_date);
-    const weekEnd = new Date(weekDate);
-    weekEnd.setDate(weekEnd.getDate() + 6);
 
-    return weekDate <= taskEnd && weekEnd >= taskStart;
-  };
+    return weeks.map((week) => {
+      const weekStart = new Date(week.date);
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekEnd.getDate() + 6);
+
+      const isInTaskRange = weekStart <= taskEnd && weekEnd >= taskStart;
+
+      return {
+        year: week.year,
+        week: week.week,
+        date: week.date,
+        isInTaskRange,
+      };
+    });
+  }, [weeks]);
+
 
   return (
-    <div className="bg-white rounded-lg shadow-sm overflow-hidden" style={{ position: 'relative' }}>
-      <div className="overflow-x-auto" style={{ position: 'relative' }}>
-        <table className="w-full border-collapse" style={{ minWidth: '1200px', position: 'relative' }}>
-          <thead>
-            {/* Month Headers */}
-            <tr>
-              <th className="border border-gray-400 bg-white p-3 text-left font-bold text-sm w-64">
-                <div className="flex items-center justify-between">
-                  <span>TASKS</span>
-                  {onViewChange && (
-                    <div className="flex gap-1" style={{ position: 'relative', zIndex: 60 }}>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          console.log('toggle -> gantt');
-                          onViewChange('gantt');
-                        }}
-                        className={`p-1.5 rounded transition-colors ${
-                          currentView === 'gantt'
-                            ? 'bg-gray-900 text-white'
-                            : 'text-gray-600 hover:bg-gray-100'
-                        }`}
-                        title={t.ganttChart}
-                        style={{ minHeight: '44px', minWidth: '44px' }}
-                      >
-                        <BarChart3 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          console.log('toggle -> list');
-                          onViewChange('list');
-                        }}
-                        className={`p-1.5 rounded transition-colors ${
-                          currentView === 'list'
-                            ? 'bg-gray-900 text-white'
-                            : 'text-gray-600 hover:bg-gray-100'
-                        }`}
-                        title={t.listView}
-                        style={{ minHeight: '44px', minWidth: '44px' }}
-                      >
-                        <List className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </th>
-              {monthColumns.map((month, idx) => (
-                <th
+    <div className="bg-white rounded-lg shadow-sm overflow-hidden landscape:h-full">
+      <div className="overflow-x-auto overscroll-x-contain landscape:h-full smooth-scroll" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div className="inline-block min-w-full landscape:h-full" style={{ minWidth: '900px' }}>
+          {/* Month Headers */}
+          <div className="flex border-b-2 border-slate-300">
+            <div className="w-40 sm:w-64 flex-shrink-0 bg-slate-50 border-r border-slate-300 px-2 sm:px-4 py-2 sm:py-3">
+              <span className="text-xs sm:text-sm font-semibold text-slate-700">{t.tasks}</span>
+            </div>
+            <div className="flex flex-1">
+              {months.map((month, idx) => (
+                <div
                   key={idx}
-                  colSpan={month.weeks.length}
-                  className="border border-gray-400 bg-white p-3 text-center font-bold text-sm"
+                  className="border-r border-slate-300 bg-slate-50 px-1 sm:px-2 py-2 sm:py-3 text-center"
+                  style={{ width: `${(month.span / totalWeeks) * 100}%` }}
                 >
-                  {month.label}
-                </th>
+                  <span className="text-xs sm:text-sm font-semibold text-slate-700">{month.label}</span>
+                </div>
               ))}
-            </tr>
+            </div>
+          </div>
 
-            {/* Week Numbers */}
-            <tr>
-              <th className="border border-gray-400 bg-white"></th>
-              {allWeeks.map((week, idx) => (
-                <th
+          {/* Week Numbers */}
+          <div className="flex border-b border-slate-300">
+            <div className="w-40 sm:w-64 flex-shrink-0 bg-slate-50 border-r border-slate-300"></div>
+            <div className="flex flex-1">
+              {weeks.map((week, idx) => (
+                <div
                   key={idx}
-                  className={`border border-gray-400 bg-white p-2 text-center text-xs font-semibold ${
-                    week.isCurrentWeek ? 'bg-blue-100' : ''
+                  className={`border-r border-slate-200 bg-slate-50 px-1 py-2 text-center flex-1 relative ${
+                    idx === currentWeekIndex ? 'bg-blue-100' : ''
                   }`}
                   style={{ minWidth: '40px' }}
                 >
-                  {week.weekNumber}
-                </th>
+                  <span className="text-xs text-slate-600">{week.weekInMonth}</span>
+                  {idx === currentWeekIndex && (
+                    <div className="absolute top-0 left-0 w-full h-0.5 bg-blue-600"></div>
+                  )}
+                </div>
               ))}
-            </tr>
-          </thead>
+            </div>
+          </div>
 
-          <tbody>
-            {tasks.map((task) => {
-              const isMyTask = highlightRole && task.owner_roles.includes(highlightRole);
+          {/* Task Rows */}
+          {tasks.map((task) => {
+            const taskWeeks = getTaskWeekCells(task);
+            const isMyTask = highlightRole && task.owner_roles.includes(highlightRole);
 
-              return (
-                <tr
-                  key={task.id}
-                  className={`hover:bg-gray-50 ${
-                    isMyTask ? 'border-l-4 border-l-sky-400 bg-blue-50/20' : ''
-                  }`}
-                >
-                  <td className="border border-gray-400 p-3 text-left">
-                    <div className={`text-sm font-medium ${
-                      isMyTask ? 'text-blue-900 font-semibold' : 'text-gray-900'
-                    }`}>
-                      {task.name}
-                    </div>
-                  </td>
-
-                  {allWeeks.map((week, weekIdx) => {
-                    const isInRange = isTaskInWeek(task, week.date);
-                    const cellKey = `${task.id}-${weekIdx}`;
+            return (
+              <div key={task.id} className={`flex border-b border-slate-200 hover:bg-slate-50 ${
+                task.was_shifted ? 'bg-blue-50/30' : ''
+              } ${
+                isMyTask ? 'ring-2 ring-inset ring-blue-500 bg-blue-50/50' : ''
+              }`}>
+                <div className="w-40 sm:w-64 flex-shrink-0 border-r border-slate-300 px-2 sm:px-4 py-2 sm:py-3 pointer-events-none sm:pointer-events-auto">
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    <div className={`text-xs sm:text-sm font-medium truncate ${
+                      isMyTask ? 'text-blue-900 font-semibold' : 'text-slate-900'
+                    }`} title={task.name}>{task.name}</div>
+                    {task.was_shifted && (
+                      <span
+                        className="inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-xs font-bold bg-blue-600 text-white shadow-sm flex-shrink-0 animate-pulse"
+                        title={language === 'fr' ? 'Planning décalé' : 'Schedule shifted'}
+                      >
+                        <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                        <span className="hidden sm:inline">{language === 'fr' ? 'DÉCALÉ' : 'SHIFTED'}</span>
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-xs text-slate-500 mt-0.5 sm:mt-1 truncate" title={task.owner_roles.join(', ')}>
+                    {task.owner_roles.join(', ')}
+                  </div>
+                </div>
+                <div className="flex flex-1">
+                  {taskWeeks.map((weekCell, idx) => {
+                    const cellKey = `${task.id}-${weekCell.year}-${weekCell.week}`;
                     const isHovered = hoveredCell === cellKey;
+                    const isTodayWeek = idx === currentWeekIndex;
 
                     return (
-                      <td
-                        key={weekIdx}
-                        className={`border border-gray-400 p-1 text-center ${
-                          !isReadOnly && isInRange ? 'cursor-pointer' : ''
-                        } ${week.isCurrentWeek ? 'bg-blue-50' : ''}`}
-                        style={{ position: 'relative' }}
-                        onMouseEnter={() => !isReadOnly && isInRange && setHoveredCell(cellKey)}
+                      <div
+                        key={idx}
+                        className={`border-r border-slate-200 p-1 flex items-center justify-center flex-1 relative pointer-events-none ${
+                          !isReadOnly ? 'sm:cursor-pointer sm:pointer-events-auto' : ''
+                        }`}
+                        style={{ minWidth: '40px' }}
+                        onMouseEnter={() => !isReadOnly && setHoveredCell(cellKey)}
                         onMouseLeave={() => !isReadOnly && setHoveredCell(null)}
-                        onClick={() => {
-                          if (!isReadOnly && isInRange) {
-                            onWeekClick(task, week.date.getFullYear(), weekIdx + 1);
+                        onClick={(e) => {
+                          if (!isReadOnly && weekCell.isInTaskRange && window.innerWidth >= 640) {
+                            onWeekClick(task, weekCell.year, weekCell.week);
                           }
                         }}
                       >
-                        {isInRange && (
+                        {weekCell.isInTaskRange && (
                           <div
-                            className={`h-8 rounded ${getStatusColor(task.status)} ${
-                              isHovered ? 'opacity-80' : 'opacity-100'
-                            } transition-opacity`}
+                            className={`w-full h-8 rounded ${getStatusColor(task.status)} ${
+                              isHovered && !isReadOnly ? 'opacity-80 ring-2 ring-slate-900' : 'opacity-90'
+                            } ${
+                              isMyTask ? 'ring-2 ring-blue-600' : ''
+                            } transition-all`}
                           />
                         )}
-                      </td>
+                        {isTodayWeek && (
+                          <div className="absolute inset-y-0 left-0 w-1 bg-blue-600 z-10"></div>
+                        )}
+                      </div>
                     );
                   })}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Legend */}
+      <div className="border-t border-slate-200 px-4 py-3 bg-slate-50 flex items-center gap-6 text-xs">
+        <span className="font-semibold text-slate-700">{t.status.toUpperCase()}:</span>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded bg-slate-400"></div>
+          <span className="text-slate-600">{t.onTrack}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded bg-amber-500"></div>
+          <span className="text-slate-600">{t.delayed}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded bg-red-500"></div>
+          <span className="text-slate-600">{t.blocked}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded bg-emerald-500"></div>
+          <span className="text-slate-600">{t.done}</span>
+        </div>
       </div>
     </div>
   );
