@@ -15,7 +15,10 @@ export const MobileHeader = memo(function MobileHeader({ session, projectName, o
   const dateStr = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
   return (
-    <header className="bg-gradient-to-br from-slate-900 to-slate-800 text-white px-4 py-6 safe-area-inset-top">
+    <header
+      className="bg-gradient-to-br from-slate-900 to-slate-800 text-white px-4 py-6"
+      style={{ paddingTop: 'calc(1.5rem + max(env(safe-area-inset-top), constant(safe-area-inset-top)))' }}
+    >
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1 min-w-0">
           <div className="text-sm font-medium text-slate-300 mb-1">

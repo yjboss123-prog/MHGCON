@@ -16,8 +16,11 @@ export const MobileNav = memo(function MobileNav({ currentView, onViewChange, la
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-slate-200 safe-area-inset-bottom z-50 md:hidden">
-      <div className="flex items-center justify-around px-2 pb-safe">
+    <nav
+      className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-slate-200 z-50 md:hidden"
+      style={{ paddingBottom: 'max(env(safe-area-inset-bottom), constant(safe-area-inset-bottom))' }}
+    >
+      <div className="flex items-center justify-around px-2">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = currentView === item.id;

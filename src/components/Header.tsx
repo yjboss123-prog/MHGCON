@@ -27,9 +27,13 @@ export const Header = memo(function Header({ currentRole, onRoleChange, onAddTas
   const t = useTranslation(language);
   const canManage = isManagerRole(currentRole);
   return (
-    <header className="glass-effect border-b border-slate-200/50 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 sm:h-20 gap-3">
+    <>
+      <header
+        className="glass-effect border-b border-slate-200/50 fixed top-0 left-0 right-0 z-50"
+        style={{ paddingTop: 'max(env(safe-area-inset-top), constant(safe-area-inset-top))' }}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16 sm:h-20 gap-3">
           <div className="flex items-center gap-3 sm:gap-6 min-w-0 flex-1">
             <button
               onClick={onProjectSettings}
@@ -139,6 +143,9 @@ export const Header = memo(function Header({ currentRole, onRoleChange, onAddTas
           </div>
         </div>
       </div>
-    </header>
+      </header>
+      <div style={{ height: 'calc(4rem + max(env(safe-area-inset-top), constant(safe-area-inset-top)))' }} className="sm:hidden" />
+      <div style={{ height: 'calc(5rem + max(env(safe-area-inset-top), constant(safe-area-inset-top)))' }} className="hidden sm:block" />
+    </>
   );
 });
