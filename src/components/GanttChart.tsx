@@ -46,7 +46,7 @@ export const GanttChart = memo(function GanttChart({ tasks, projectStart, projec
   const { months, weeks, totalWeeks, currentWeekIndex } = useMemo(() => {
     const start = new Date(projectStart);
     const end = new Date(projectEnd);
-    const weeksData = getWeeksInRange(start, end);
+    const weeksData = getWeeksInRange(start, end).filter(week => week.date <= end);
 
     const monthsMap = new Map<string, { label: string; span: number }>();
     const weeksWithMonthNumbers: any[] = [];
