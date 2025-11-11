@@ -257,7 +257,7 @@ export const TaskDrawer = memo(function TaskDrawer({
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-slate-100 rounded-lg transition-colors flex-shrink-0"
+              className="hidden sm:flex p-2 hover:bg-slate-100 rounded-lg transition-colors flex-shrink-0"
               style={{ minHeight: '44px', minWidth: '44px' }}
               aria-label="Close"
             >
@@ -266,7 +266,15 @@ export const TaskDrawer = memo(function TaskDrawer({
           </div>
         </div>
 
-        <div className="p-4 space-y-6 pb-32">
+        <button
+          onClick={onClose}
+          aria-label="Close"
+          className="sm:hidden fixed left-1/2 -translate-x-1/2 bottom-[calc(16px+env(safe-area-inset-bottom))] z-[3000] h-12 w-12 rounded-full bg-white shadow-lg flex items-center justify-center active:scale-95 transition-transform"
+        >
+          <X className="w-5 h-5 text-slate-700" />
+        </button>
+
+        <div className="p-4 space-y-6 pb-[calc(96px+env(safe-area-inset-bottom))] sm:pb-32">
           {task.was_shifted && (
             <div className="bg-blue-600 text-white px-4 py-3 rounded-lg flex items-center gap-3">
               <AlertCircle className="w-5 h-5 flex-shrink-0" />

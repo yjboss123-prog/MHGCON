@@ -76,18 +76,27 @@ export function AddTaskModal({ isOpen, onClose, onTaskAdded, allRoles }: AddTask
         onClick={onClose}
       />
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+        <div className="bg-white rounded-lg shadow-xl w-full max-w-md relative">
           <div className="flex items-center justify-between p-6 border-b border-slate-200">
             <h2 className="text-lg font-semibold text-slate-900">Add New Task</h2>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+              className="hidden sm:flex p-2 hover:bg-slate-100 rounded-lg transition-colors"
+              aria-label="Close"
             >
               <X className="w-5 h-5 text-slate-500" />
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="sm:hidden fixed left-1/2 -translate-x-1/2 bottom-[calc(16px+env(safe-area-inset-bottom))] z-[3000] h-12 w-12 rounded-full bg-white shadow-lg flex items-center justify-center active:scale-95 transition-transform"
+          >
+            <X className="w-5 h-5 text-slate-700" />
+          </button>
+
+          <form onSubmit={handleSubmit} className="p-6 space-y-4 pb-[calc(96px+env(safe-area-inset-bottom))] sm:pb-6">
             {error && (
               <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
                 <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
