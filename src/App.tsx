@@ -561,7 +561,7 @@ function App() {
           onViewModeChange={setViewMode}
           projects={projects}
           activeProjectId={activeProjectId}
-          onProjectChange={handleProjectSwitch}
+          onProjectChange={setActiveProjectId}
         />
       )}
 
