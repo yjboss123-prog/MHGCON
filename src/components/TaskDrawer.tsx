@@ -272,7 +272,7 @@ export const TaskDrawer = memo(function TaskDrawer({
         <button
           onClick={onClose}
           aria-label="Close"
-          className="sm:hidden fixed left-1/2 -translate-x-1/2 bottom-[calc(16px+env(safe-area-inset-bottom))] z-[3000] h-12 w-12 rounded-full bg-white shadow-lg flex items-center justify-center active:scale-95 transition-transform"
+          className="sm:hidden fixed left-1/2 -translate-x-1/2 bottom-[calc(80px+env(safe-area-inset-bottom))] z-[3000] h-12 w-12 rounded-full bg-white shadow-lg flex items-center justify-center active:scale-95 transition-transform"
         >
           <X className="w-5 h-5 text-slate-700" />
         </button>
