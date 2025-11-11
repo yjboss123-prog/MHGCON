@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, lazy, Suspense, useCallback } from 'react';
-import { Header } from './components/Header';
+import { HeaderNew } from './components/HeaderNew';
+import { SettingsModal } from './components/SettingsModal';
 import { TaskList } from './components/TaskList';
 import { GanttView } from './components/GanttView';
 import { TaskDrawer } from './components/TaskDrawer';
@@ -65,6 +66,7 @@ function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const allRoles = useMemo(() => {
     if (!project) return DEFAULT_ROLES;
@@ -548,24 +550,18 @@ function App() {
       )}
 
       {!isLandscape && !(isMobile && session?.role === 'contractor') && (
-        <Header
-          currentRole={currentRole}
-          onRoleChange={setCurrentRole}
+        <HeaderNew
           onAddTask={() => setIsAddModalOpen(true)}
-          onRebaseline={() => setIsRebaselineModalOpen(true)}
-          onProjectSettings={() => setIsProjectSettingsOpen(true)}
-          onInvite={() => setIsInviteModalOpen(true)}
-          onAdminPanel={() => setIsAdminPanelOpen(true)}
+          onSettings={() => setIsSettingsOpen(true)}
           language={language}
-          onLanguageChange={setLanguage}
           projectName={project?.name || 'MHG Tracker'}
-          projectDescription={project?.description || ''}
-          allRoles={allRoles}
           userSession={session}
-          onSignOut={handleSignOut}
           onSwitchCode={handleSwitchCode}
           viewMode={viewMode}
           onViewModeChange={setViewMode}
+          projects={projects}
+          activeProjectId={activeProjectId}
+          onProjectChange={handleProjectSwitch}
         />
       )}
 
@@ -574,7 +570,7 @@ function App() {
           ? 'px-2 py-2'
           : isMobile && session?.role === 'contractor' && mobileView === 'my-day'
             ? 'px-4 py-4 pb-24'
-            : 'max-w-[1600px] px-2 sm:px-4 lg:px-8 pt-32 pb-20'
+            : 'max-w-[1600px] px-2 sm:px-4 lg:px-8 pt-24 pb-20'
       }`}>
 
         <main>
@@ -745,6 +741,20 @@ function App() {
           }}
         />
       </Suspense>
+
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        language={language}
+        onLanguageChange={setLanguage}
+        project={project}
+        session={session}
+        onProjectSettings={() => setIsProjectSettingsOpen(true)}
+        onInvite={() => setIsInviteModalOpen(true)}
+        onRebaseline={() => setIsRebaselineModalOpen(true)}
+        onAdminPanel={() => setIsAdminPanelOpen(true)}
+        onSignOut={handleSignOut}
+      />
 
       {isMobile && session?.role === 'contractor' && (
         <MobileNav
