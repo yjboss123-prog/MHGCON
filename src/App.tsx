@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo, lazy, Suspense, useCallback } from 'react';
 import { Header } from './components/Header';
-import { FilterPanel } from './components/FilterPanel';
 import { TaskList } from './components/TaskList';
 import { TaskDrawer } from './components/TaskDrawer';
 import { ProjectTabs } from './components/ProjectTabs';
@@ -81,9 +80,6 @@ function App() {
     return { start, end };
   }, [project]);
 
-  const [selectedStatuses, setSelectedStatuses] = useState<TaskStatus[]>([]);
-  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
-  const [selectedMonths, setSelectedMonths] = useState<string[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -105,10 +101,8 @@ function App() {
     if (session) {
       if (session.contractor_role) {
         setCurrentRole(session.contractor_role as Role);
-        setSelectedRoles([session.contractor_role]);
       } else {
         setCurrentRole(roleToDisplayName(session.role) as Role);
-        setSelectedRoles([]);
       }
     }
   }, [session]);
@@ -207,63 +201,8 @@ function App() {
     }
   };
 
-  const availableMonths = useMemo(() => {
-    const months = new Set<string>();
-    tasks.forEach((task) => {
-      const date = new Date(task.start_date);
-      const monthYear = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-      months.add(monthYear);
-    });
-    return Array.from(months).sort();
-  }, [tasks]);
+  const filteredTasks = tasks;
 
-  const filteredTasks = useMemo(() => {
-    return tasks.filter((task) => {
-      if (selectedStatuses.length > 0 && !selectedStatuses.includes(task.status)) {
-        return false;
-      }
-
-      if (selectedRoles.length > 0 && !task.owner_roles.some(role => selectedRoles.includes(role))) {
-        return false;
-      }
-
-      if (selectedMonths.length > 0) {
-        const taskMonth = new Date(task.start_date).toLocaleDateString('en-US', {
-          month: 'short',
-          year: 'numeric',
-        });
-        if (!selectedMonths.includes(taskMonth)) {
-          return false;
-        }
-      }
-
-      return true;
-    });
-  }, [tasks, selectedStatuses, selectedRoles, selectedMonths]);
-
-  const handleStatusToggle = (status: TaskStatus) => {
-    setSelectedStatuses((prev) =>
-      prev.includes(status) ? prev.filter((s) => s !== status) : [...prev, status]
-    );
-  };
-
-  const handleRoleToggle = (role: Role) => {
-    setSelectedRoles((prev) =>
-      prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role]
-    );
-  };
-
-  const handleMonthToggle = (month: string) => {
-    setSelectedMonths((prev) =>
-      prev.includes(month) ? prev.filter((m) => m !== month) : [...prev, month]
-    );
-  };
-
-  const handleClearFilters = () => {
-    setSelectedStatuses([]);
-    setSelectedRoles([]);
-    setSelectedMonths([]);
-  };
 
   const handleTaskView = useCallback((task: Task) => {
     setSelectedTask(task);
@@ -634,24 +573,6 @@ function App() {
             ? 'px-4 py-4 pb-24'
             : 'max-w-[1600px] px-2 sm:px-4 lg:px-8 py-4 sm:py-6 pb-20'
       }`}>
-        {!isLandscape && !(isMobile && session?.role === 'contractor' && mobileView === 'my-day') && (
-          <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
-            <FilterPanel
-              selectedStatuses={selectedStatuses}
-              selectedRoles={selectedRoles}
-              selectedMonths={selectedMonths}
-              availableMonths={availableMonths}
-              onStatusToggle={handleStatusToggle}
-              onRoleToggle={handleRoleToggle}
-              onMonthToggle={handleMonthToggle}
-              onClearFilters={handleClearFilters}
-              language={language}
-              allRoles={allRoles}
-              isContractor={session?.role === 'contractor'}
-            />
-
-          </div>
-        )}
 
         <main>
           {loadError ? (
