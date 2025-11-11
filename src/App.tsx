@@ -243,8 +243,10 @@ function App() {
 
   const listViewTasks = useMemo(() => {
     return tasks.filter((task) => {
-      if (session?.role === 'contractor' && session?.contractor_role) {
-        if (!task.owner_roles.includes(session.contractor_role)) {
+      if (session?.role === 'contractor') {
+        const isAssignedByToken = task.assigned_user_token === session.user_token;
+        const isAssignedByRole = session.contractor_role && task.owner_roles.includes(session.contractor_role);
+        if (!isAssignedByToken && !isAssignedByRole) {
           return false;
         }
       }

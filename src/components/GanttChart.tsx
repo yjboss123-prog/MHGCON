@@ -13,6 +13,7 @@ interface GanttChartProps {
   language: Language;
   isReadOnly?: boolean;
   highlightRole?: string;
+  showOnlyFourthWeek?: boolean;
 }
 
 interface WeekCell {
@@ -38,7 +39,7 @@ const getStatusColor = (status: string) => {
   }
 };
 
-export const GanttChart = memo(function GanttChart({ tasks, projectStart, projectEnd, currentDate, onWeekClick, language, isReadOnly = false, highlightRole }: GanttChartProps) {
+export const GanttChart = memo(function GanttChart({ tasks, projectStart, projectEnd, currentDate, onWeekClick, language, isReadOnly = false, highlightRole, showOnlyFourthWeek = false }: GanttChartProps) {
   const [hoveredCell, setHoveredCell] = useState<string | null>(null);
   const t = useTranslation(language);
 
@@ -54,7 +55,7 @@ export const GanttChart = memo(function GanttChart({ tasks, projectStart, projec
     let weekInMonth = 0;
 
     weeksData.forEach((week) => {
-      const monthKey = `${week.year}-${week.date.getMonth()}`;
+      const monthKey = `${week.date.getFullYear()}-${String(week.date.getMonth()).padStart(2, '0')}`;
       const monthLabel = week.date.toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { month: 'short' }).toUpperCase();
 
       if (monthKey !== currentMonthKey) {
@@ -71,13 +72,17 @@ export const GanttChart = memo(function GanttChart({ tasks, projectStart, projec
         }
       }
 
-      const monthData = monthsMap.get(monthKey)!;
-      monthData.span += 1;
+      const shouldInclude = !showOnlyFourthWeek || weekInMonth === 4;
 
-      weeksWithMonthNumbers.push({
-        ...week,
-        weekInMonth
-      });
+      if (shouldInclude) {
+        const monthData = monthsMap.get(monthKey)!;
+        monthData.span += 1;
+
+        weeksWithMonthNumbers.push({
+          ...week,
+          weekInMonth
+        });
+      }
     });
 
     let currentIdx = -1;
@@ -132,7 +137,7 @@ export const GanttChart = memo(function GanttChart({ tasks, projectStart, projec
             <div className="flex flex-1">
               {months.map((month, idx) => (
                 <div
-                  key={idx}
+                  key={`month-${idx}`}
                   className="border-r border-slate-300 bg-slate-50 px-1 sm:px-2 py-2 sm:py-3 text-center"
                   style={{ width: `${(month.span / totalWeeks) * 100}%` }}
                 >
@@ -172,7 +177,7 @@ export const GanttChart = memo(function GanttChart({ tasks, projectStart, projec
               <div key={task.id} className={`flex border-b border-slate-200 hover:bg-slate-50 ${
                 task.was_shifted ? 'bg-blue-50/30' : ''
               } ${
-                isMyTask ? 'ring-2 ring-inset ring-blue-500 bg-blue-50/50' : ''
+                isMyTask ? 'border-l-4 border-l-sky-400 bg-blue-50/20' : ''
               }`}>
                 <div className="w-40 sm:w-64 flex-shrink-0 border-r border-slate-300 px-2 sm:px-4 py-2 sm:py-3 pointer-events-none sm:pointer-events-auto">
                   <div className="flex items-center gap-1 sm:gap-2">
