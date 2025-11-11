@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, lazy, Suspense, useCallback } from 'react';
 import { Header } from './components/Header';
-import { FilterPanel } from './components/FilterPanel';
+import { FilterPanel, MonthOption } from './components/FilterPanel';
 import { GanttChart } from './components/GanttChart';
 import { TaskList } from './components/TaskList';
 import { TaskDrawer } from './components/TaskDrawer';
@@ -31,6 +31,17 @@ function calculateProjectEnd(startDate: string, durationMonths: number): string 
   end.setDate(end.getDate() - 1);
   return end.toISOString().split('T')[0];
 }
+
+const formatMonthKey = (date: Date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+
+const getMonthKeyFromString = (value: string) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+  return formatMonthKey(date);
+};
 
 type ViewMode = 'gantt' | 'list' | 'my-day';
 type MobileView = 'my-day' | 'all-tasks' | 'gantt' | 'profile';
@@ -207,15 +218,33 @@ function App() {
     }
   };
 
-  const availableMonths = useMemo(() => {
-    const months = new Set<string>();
+  const availableMonths = useMemo<MonthOption[]>(() => {
+    const monthFormatter = new Intl.DateTimeFormat(language === 'fr' ? 'fr-FR' : 'en-US', {
+      month: 'short',
+      year: 'numeric',
+    });
+
+    const monthMap = new Map<string, MonthOption>();
+
     tasks.forEach((task) => {
       const date = new Date(task.start_date);
-      const monthYear = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-      months.add(monthYear);
+      if (Number.isNaN(date.getTime())) {
+        return;
+      }
+
+      const firstOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+      const key = formatMonthKey(firstOfMonth);
+
+      if (!monthMap.has(key)) {
+        monthMap.set(key, {
+          key,
+          label: monthFormatter.format(firstOfMonth),
+        });
+      }
     });
-    return Array.from(months).sort();
-  }, [tasks]);
+
+    return Array.from(monthMap.values()).sort((a, b) => a.key.localeCompare(b.key));
+  }, [tasks, language]);
 
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
@@ -228,11 +257,8 @@ function App() {
       }
 
       if (selectedMonths.length > 0) {
-        const taskMonth = new Date(task.start_date).toLocaleDateString('en-US', {
-          month: 'short',
-          year: 'numeric',
-        });
-        if (!selectedMonths.includes(taskMonth)) {
+        const taskMonthKey = getMonthKeyFromString(task.start_date);
+        if (!taskMonthKey || !selectedMonths.includes(taskMonthKey)) {
           return false;
         }
       }
@@ -258,11 +284,8 @@ function App() {
       }
 
       if (selectedMonths.length > 0) {
-        const taskMonth = new Date(task.start_date).toLocaleDateString('en-US', {
-          month: 'short',
-          year: 'numeric',
-        });
-        if (!selectedMonths.includes(taskMonth)) {
+        const taskMonthKey = getMonthKeyFromString(task.start_date);
+        if (!taskMonthKey || !selectedMonths.includes(taskMonthKey)) {
           return false;
         }
       }
@@ -614,6 +637,70 @@ function App() {
   const userIsAdmin = isAdmin(session);
   const canManage = canManageTasks(session);
   const canDelete = canDeleteTasks(session);
+  const isMyDayView = isMobile && session?.role === 'contractor' && mobileView === 'my-day';
+
+  let mainContent: JSX.Element;
+
+  if (loadError) {
+    mainContent = (
+      <div className="bg-white rounded-lg shadow-sm p-8">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold text-red-600 mb-2">Error Loading Application</h3>
+          <p className="text-slate-700 mb-4">{loadError}</p>
+          <button
+            onClick={loadTasks}
+            className="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  } else if (isLoading) {
+    mainContent = (
+      <div className="bg-white rounded-lg shadow-sm p-8 text-center">
+        <p className="text-slate-500">{t.loadingTasks}</p>
+      </div>
+    );
+  } else if (isMyDayView) {
+    mainContent = (
+      <MyDayView
+        tasks={listViewTasks}
+        onTaskClick={handleTaskView}
+        onStatusUpdate={handleQuickStatusUpdate}
+        language={language}
+      />
+    );
+  } else if (viewMode === 'gantt' || isLandscape) {
+    mainContent = (
+      <GanttChart
+        tasks={ganttTasks}
+        projectStart={projectDates.start}
+        projectEnd={projectDates.end}
+        currentDate={project?.project_current_date}
+        onWeekClick={handleWeekClick}
+        language={language}
+        isReadOnly={session?.role === 'contractor'}
+        highlightRole={session?.contractor_role || undefined}
+      />
+    );
+  } else {
+    mainContent = (
+      <TaskList
+        tasks={listViewTasks}
+        currentRole={currentRole}
+        projectStart={projectDates.start}
+        projectEnd={projectDates.end}
+        onTaskView={handleTaskView}
+        onTaskUpdate={handleTaskUpdate}
+        onTaskShift={handleShiftTask}
+        onTaskDelete={handleDeleteTask}
+        language={language}
+      />
+    );
+  }
+
+  const showFilters = !loadError && !isLoading && !isMyDayView;
 
   if (isCheckingSession) {
     return (
@@ -697,55 +784,29 @@ function App() {
           </div>
         )}
 
-        <main>
-          {loadError ? (
-            <div className="bg-white rounded-lg shadow-sm p-8">
-              <div className="text-center">
-                <h3 className="text-lg font-semibold text-red-600 mb-2">Error Loading Application</h3>
-                <p className="text-slate-700 mb-4">{loadError}</p>
-                <button
-                  onClick={loadTasks}
-                  className="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors"
-                >
-                  Retry
-                </button>
-              </div>
-            </div>
-          ) : isLoading ? (
-            <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-              <p className="text-slate-500">{t.loadingTasks}</p>
-            </div>
-          ) : isMobile && session?.role === 'contractor' && mobileView === 'my-day' ? (
-            <MyDayView
-              tasks={listViewTasks}
-              onTaskClick={handleTaskView}
-              onStatusUpdate={handleQuickStatusUpdate}
+        <main
+          className={`flex flex-col gap-4 ${
+            showFilters && !isLandscape && !isMobile
+              ? 'lg:grid lg:grid-cols-[minmax(260px,320px),1fr] lg:gap-6 lg:items-start'
+              : ''
+          }`}
+        >
+          {showFilters && (
+            <FilterPanel
+              selectedStatuses={selectedStatuses}
+              selectedRoles={selectedRoles}
+              selectedMonths={selectedMonths}
+              availableMonths={availableMonths}
+              onStatusToggle={handleStatusToggle}
+              onRoleToggle={handleRoleToggle}
+              onMonthToggle={handleMonthToggle}
+              onClearFilters={handleClearFilters}
               language={language}
-            />
-          ) : (viewMode === 'gantt' || isLandscape) ? (
-            <GanttChart
-              tasks={ganttTasks}
-              projectStart={projectDates.start}
-              projectEnd={projectDates.end}
-              currentDate={project?.project_current_date}
-              onWeekClick={handleWeekClick}
-              language={language}
-              isReadOnly={session?.role === 'contractor'}
-              highlightRole={session?.contractor_role || undefined}
-            />
-          ) : (
-            <TaskList
-              tasks={listViewTasks}
-              currentRole={currentRole}
-              projectStart={projectDates.start}
-              projectEnd={projectDates.end}
-              onTaskView={handleTaskView}
-              onTaskUpdate={handleTaskUpdate}
-              onTaskShift={handleShiftTask}
-              onTaskDelete={handleDeleteTask}
-              language={language}
+              allRoles={allRoles}
+              isContractor={session?.role === 'contractor'}
             />
           )}
+          <div className="flex-1 min-w-0">{mainContent}</div>
         </main>
       </div>
 
