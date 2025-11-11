@@ -125,9 +125,9 @@ export const GanttChart = memo(function GanttChart({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse" style={{ minWidth: '1200px' }}>
+    <div className="bg-white rounded-lg shadow-sm overflow-hidden" style={{ position: 'relative' }}>
+      <div className="overflow-x-auto" style={{ position: 'relative' }}>
+        <table className="w-full border-collapse" style={{ minWidth: '1200px', position: 'relative' }}>
           <thead>
             {/* Month Headers */}
             <tr>
@@ -135,26 +135,36 @@ export const GanttChart = memo(function GanttChart({
                 <div className="flex items-center justify-between">
                   <span>TASKS</span>
                   {onViewChange && (
-                    <div className="flex gap-1">
+                    <div className="flex gap-1" style={{ position: 'relative', zIndex: 60 }}>
                       <button
-                        onClick={() => onViewChange('gantt')}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          console.log('toggle -> gantt');
+                          onViewChange('gantt');
+                        }}
                         className={`p-1.5 rounded transition-colors ${
                           currentView === 'gantt'
                             ? 'bg-gray-900 text-white'
                             : 'text-gray-600 hover:bg-gray-100'
                         }`}
                         title={t.ganttChart}
+                        style={{ minHeight: '44px', minWidth: '44px' }}
                       >
                         <BarChart3 className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => onViewChange('list')}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          console.log('toggle -> list');
+                          onViewChange('list');
+                        }}
                         className={`p-1.5 rounded transition-colors ${
                           currentView === 'list'
                             ? 'bg-gray-900 text-white'
                             : 'text-gray-600 hover:bg-gray-100'
                         }`}
                         title={t.listView}
+                        style={{ minHeight: '44px', minWidth: '44px' }}
                       >
                         <List className="w-4 h-4" />
                       </button>
@@ -220,6 +230,7 @@ export const GanttChart = memo(function GanttChart({
                         className={`border border-gray-400 p-1 text-center ${
                           !isReadOnly && isInRange ? 'cursor-pointer' : ''
                         } ${week.isCurrentWeek ? 'bg-blue-50' : ''}`}
+                        style={{ position: 'relative' }}
                         onMouseEnter={() => !isReadOnly && isInRange && setHoveredCell(cellKey)}
                         onMouseLeave={() => !isReadOnly && setHoveredCell(null)}
                         onClick={() => {
