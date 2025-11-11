@@ -3,6 +3,7 @@ import { X, Users, Activity, Key, Plus, Trash2, User as UserIcon } from 'lucide-
 import { supabase } from '../lib/supabase';
 import { AuditLog, User } from '../types';
 import { Language } from '../lib/i18n';
+import { getProject } from '../lib/api';
 
 interface AdminPanelProps {
   isOpen: boolean;
@@ -44,12 +45,25 @@ export function AdminPanel({ isOpen, onClose, language }: AdminPanelProps) {
   });
   const [addingUser, setAddingUser] = useState(false);
   const [error, setError] = useState('');
+  const [availableRoles, setAvailableRoles] = useState<string[]>(CONTRACTOR_ROLES);
 
   useEffect(() => {
     if (isOpen) {
       loadData();
+      loadCustomContractors();
     }
   }, [isOpen, activeTab]);
+
+  const loadCustomContractors = async () => {
+    try {
+      const project = await getProject();
+      if (project && project.custom_contractors) {
+        setAvailableRoles([...CONTRACTOR_ROLES, ...project.custom_contractors]);
+      }
+    } catch (err) {
+      console.error('Error loading custom contractors:', err);
+    }
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -268,7 +282,7 @@ export function AdminPanel({ isOpen, onClose, language }: AdminPanelProps) {
                         className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-transparent appearance-none bg-white"
                       >
                         <optgroup label={isFr ? 'Entrepreneurs' : 'Contractors'}>
-                          {CONTRACTOR_ROLES.map((role) => (
+                          {availableRoles.map((role) => (
                             <option key={role} value={role}>
                               {isFr ? (CONTRACTOR_ROLES_FR[role] || role) : role}
                             </option>
