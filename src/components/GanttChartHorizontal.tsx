@@ -1,136 +1,197 @@
+import { useMemo, memo } from 'react';
 import { Task } from '../types';
 import { Language, useTranslation } from '../lib/i18n';
-import { ArrowRight } from 'lucide-react';
 
 interface GanttChartHorizontalProps {
   tasks: Task[];
   projectStart: string;
   projectEnd: string;
+  currentDate?: string;
+  onTaskClick: (task: Task) => void;
   language: Language;
+  highlightRole?: string;
 }
 
-export function GanttChartHorizontal({
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'Done':
+      return 'bg-emerald-500';
+    case 'On Track':
+      return 'bg-slate-400';
+    case 'Delayed':
+      return 'bg-amber-500';
+    case 'Blocked':
+      return 'bg-red-500';
+    default:
+      return 'bg-slate-300';
+  }
+};
+
+function calculatePosition(
+  taskStart: string,
+  taskEnd: string,
+  projectStart: string,
+  projectEnd: string
+): { left: number; width: number } {
+  const pStart = new Date(projectStart).getTime();
+  const pEnd = new Date(projectEnd).getTime();
+  const tStart = new Date(taskStart).getTime();
+  const tEnd = new Date(taskEnd).getTime();
+
+  const totalDuration = pEnd - pStart;
+  const left = ((tStart - pStart) / totalDuration) * 100;
+  const width = ((tEnd - tStart) / totalDuration) * 100;
+
+  return {
+    left: Math.max(0, left),
+    width: Math.max(1, width)
+  };
+}
+
+export const GanttChartHorizontal = memo(function GanttChartHorizontal({
   tasks,
   projectStart,
   projectEnd,
+  currentDate,
+  onTaskClick,
   language,
+  highlightRole
 }: GanttChartHorizontalProps) {
   const t = useTranslation(language);
 
-  const getTaskPosition = (task: Task) => {
-    const projectStartDate = new Date(projectStart);
-    const projectEndDate = new Date(projectEnd);
-    const taskStartDate = new Date(task.start_date);
-    const taskEndDate = new Date(task.end_date);
+  const months = useMemo(() => {
+    const start = new Date(projectStart);
+    const end = new Date(projectEnd);
+    const monthsList: { label: string; position: number; width: number }[] = [];
 
-    const totalDuration = projectEndDate.getTime() - projectStartDate.getTime();
-    const taskStart = taskStartDate.getTime() - projectStartDate.getTime();
-    const taskDuration = taskEndDate.getTime() - taskStartDate.getTime();
+    const currentMonth = new Date(start.getFullYear(), start.getMonth(), 1);
+    const projectStartTime = start.getTime();
+    const totalDuration = end.getTime() - projectStartTime;
 
-    const left = (taskStart / totalDuration) * 100;
-    const width = (taskDuration / totalDuration) * 100;
+    while (currentMonth <= end) {
+      const monthStart = new Date(currentMonth);
+      const monthEnd = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
 
-    return { left: `${Math.max(0, left)}%`, width: `${Math.min(100 - left, width)}%` };
-  };
+      const effectiveStart = monthStart < start ? start : monthStart;
+      const effectiveEnd = monthEnd > end ? end : monthEnd;
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'On Track':
-        return 'bg-emerald-500';
-      case 'Delayed':
-        return 'bg-amber-500';
-      case 'At Risk':
-        return 'bg-orange-500';
-      case 'Done':
-        return 'bg-slate-400';
-      default:
-        return 'bg-slate-300';
+      const position = ((effectiveStart.getTime() - projectStartTime) / totalDuration) * 100;
+      const width = ((effectiveEnd.getTime() - effectiveStart.getTime()) / totalDuration) * 100;
+
+      const label = monthStart.toLocaleDateString(
+        language === 'fr' ? 'fr-FR' : 'en-US',
+        { month: 'short' }
+      ).toUpperCase();
+
+      monthsList.push({ label, position, width });
+
+      currentMonth.setMonth(currentMonth.getMonth() + 1);
     }
-  };
+
+    return monthsList;
+  }, [projectStart, projectEnd, language]);
+
+  const currentDatePosition = useMemo(() => {
+    if (!currentDate) return null;
+    const pStart = new Date(projectStart).getTime();
+    const pEnd = new Date(projectEnd).getTime();
+    const current = new Date(currentDate).getTime();
+    const totalDuration = pEnd - pStart;
+    return ((current - pStart) / totalDuration) * 100;
+  }, [currentDate, projectStart, projectEnd]);
 
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-      <div className="p-3 bg-slate-50 border-b border-slate-200">
-        <h3 className="text-sm font-semibold text-slate-700">{t.ganttChart} - {t.horizontalView}</h3>
-      </div>
-
-      <div className="p-4 space-y-4 max-h-[calc(100vh-300px)] overflow-y-auto smooth-scroll">
-        {tasks.map((task) => {
-          const position = getTaskPosition(task);
-
-          return (
-            <div key={task.id} className={`${task.was_shifted ? 'bg-blue-50 border border-blue-200 rounded-lg p-3' : 'p-3 border border-slate-100 rounded-lg'}`}>
-              <div className="flex items-start justify-between gap-2 mb-2">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <h4 className="text-sm font-semibold text-slate-900 truncate">{task.name}</h4>
-                    {task.was_shifted && (
-                      <span
-                        className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-xs font-bold bg-blue-600 text-white shadow-sm animate-pulse flex-shrink-0"
-                        title={language === 'fr' ? 'Planning décalé' : 'Schedule shifted'}
-                      >
-                        <ArrowRight className="w-2.5 h-2.5" />
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-xs text-slate-500">{task.owner_roles.join(', ')}</div>
-                </div>
-                <div className="flex flex-col items-end gap-1">
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                    task.status === 'On Track'
-                      ? 'bg-emerald-100 text-emerald-800'
-                      : task.status === 'Delayed'
-                      ? 'bg-amber-100 text-amber-800'
-                      : task.status === 'Blocked'
-                      ? 'bg-red-100 text-red-800'
-                      : 'bg-slate-100 text-slate-800'
-                  }`}>
-                    {task.status}
-                  </span>
-                  <span className="text-xs font-semibold text-slate-700">{task.percent_done}%</span>
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <div className="text-xs text-slate-600">
-                  {new Date(task.start_date).toLocaleDateString()} - {new Date(task.end_date).toLocaleDateString()}
-                </div>
-
-                <div className="relative h-8 bg-slate-100 rounded-full overflow-hidden">
-                  <div
-                    className="absolute top-0 h-full"
-                    style={position}
-                  >
-                    <div className={`h-full ${getStatusColor(task.status)} opacity-30`}></div>
-                    <div
-                      className={`absolute top-0 left-0 h-full ${getStatusColor(task.status)} transition-all`}
-                      style={{ width: `${task.percent_done}%` }}
-                    ></div>
-                  </div>
-
-                  <div className="absolute inset-0 flex items-center px-2">
-                    <div
-                      className="h-1 bg-slate-300 rounded-full"
-                      style={{ width: '100%' }}
-                    ></div>
-                  </div>
-                </div>
-
-                <div className="flex justify-between text-xs text-slate-400">
-                  <span>{new Date(projectStart).toLocaleDateString()}</span>
-                  <span>{new Date(projectEnd).toLocaleDateString()}</span>
-                </div>
-              </div>
-
-              {task.delay_reason && (
-                <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded text-xs text-amber-800">
-                  <span className="font-medium">{t.delayReason}:</span> {task.delay_reason}
-                </div>
-              )}
+      <div className="p-4">
+        {/* Month Headers */}
+        <div className="relative h-8 mb-2 border-b border-slate-300">
+          {months.map((month, idx) => (
+            <div
+              key={idx}
+              className="absolute top-0 text-center"
+              style={{
+                left: `${month.position}%`,
+                width: `${month.width}%`
+              }}
+            >
+              <span className="text-xs font-semibold text-slate-700">{month.label}</span>
             </div>
-          );
-        })}
+          ))}
+        </div>
+
+        {/* Timeline Bar */}
+        <div className="relative h-2 bg-slate-100 rounded mb-4">
+          {currentDatePosition !== null && (
+            <div
+              className="absolute top-0 bottom-0 w-0.5 bg-blue-600 z-10"
+              style={{ left: `${currentDatePosition}%` }}
+            />
+          )}
+        </div>
+
+        {/* Tasks */}
+        <div className="space-y-3">
+          {tasks.map((task) => {
+            const { left, width } = calculatePosition(
+              task.start_date,
+              task.end_date,
+              projectStart,
+              projectEnd
+            );
+            const isMyTask = highlightRole && task.owner_roles.includes(highlightRole);
+
+            return (
+              <div
+                key={task.id}
+                className="relative"
+                onClick={() => onTaskClick(task)}
+              >
+                <div className="text-xs text-slate-600 mb-1 truncate">
+                  {task.name}
+                </div>
+                <div className="relative h-8 bg-slate-100 rounded">
+                  <div
+                    className={`absolute top-0 bottom-0 rounded ${getStatusColor(task.status)} ${
+                      isMyTask ? 'ring-2 ring-blue-600' : ''
+                    } cursor-pointer hover:opacity-80 transition-opacity`}
+                    style={{
+                      left: `${left}%`,
+                      width: `${width}%`
+                    }}
+                  />
+                  {currentDatePosition !== null && (
+                    <div
+                      className="absolute top-0 bottom-0 w-0.5 bg-blue-600 z-10 pointer-events-none"
+                      style={{ left: `${currentDatePosition}%` }}
+                    />
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Legend */}
+        <div className="mt-4 pt-4 border-t border-slate-200 flex items-center gap-6 text-xs">
+          <span className="font-semibold text-slate-700">{t.status.toUpperCase()}:</span>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded bg-slate-400"></div>
+            <span className="text-slate-600">{t.onTrack}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded bg-amber-500"></div>
+            <span className="text-slate-600">{t.delayed}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded bg-red-500"></div>
+            <span className="text-slate-600">{t.blocked}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded bg-emerald-500"></div>
+            <span className="text-slate-600">{t.done}</span>
+          </div>
+        </div>
       </div>
     </div>
   );
-}
+});

@@ -1,6 +1,5 @@
-import { useState, useMemo, memo, useCallback } from 'react';
+import { useState, useMemo, memo } from 'react';
 import { Task } from '../types';
-import { getWeeksInRange } from '../lib/utils';
 import { Language, useTranslation } from '../lib/i18n';
 import { ArrowRight } from 'lucide-react';
 
@@ -15,12 +14,20 @@ interface GanttChartProps {
   highlightRole?: string;
 }
 
-interface WeekCell {
+interface MonthColumn {
+  month: number;
   year: number;
-  week: number;
-  date: Date;
-  isInTaskRange: boolean;
-  monthLabel?: string;
+  label: string;
+  weekCount: number;
+}
+
+interface Week {
+  weekIndex: number;
+  weekInMonth: number;
+  startDate: Date;
+  endDate: Date;
+  month: number;
+  year: number;
 }
 
 const getStatusColor = (status: string) => {
@@ -38,92 +45,105 @@ const getStatusColor = (status: string) => {
   }
 };
 
-export const GanttChart = memo(function GanttChart({ tasks, projectStart, projectEnd, currentDate, onWeekClick, language, isReadOnly = false, highlightRole }: GanttChartProps) {
+function getMonthLabel(month: number, language: Language): string {
+  const date = new Date(2026, month, 1);
+  return date.toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { month: 'short' }).toUpperCase();
+}
+
+export const GanttChart = memo(function GanttChart({
+  tasks,
+  projectStart,
+  projectEnd,
+  currentDate,
+  onWeekClick,
+  language,
+  isReadOnly = false,
+  highlightRole
+}: GanttChartProps) {
   const [hoveredCell, setHoveredCell] = useState<string | null>(null);
   const t = useTranslation(language);
 
-  const { months, weeks, totalWeeks, currentWeekIndex } = useMemo(() => {
+  const { months, weeks, currentWeekIndex } = useMemo(() => {
     const start = new Date(projectStart);
     const end = new Date(projectEnd);
-    const weeksData = getWeeksInRange(start, end);
 
-    const monthsMap = new Map<string, { label: string; span: number }>();
-    const weeksWithMonthNumbers: any[] = [];
+    const allWeeks: Week[] = [];
+    const monthsMap = new Map<string, MonthColumn>();
 
-    let currentMonthKey = '';
-    let weekInMonth = 0;
+    const currentWeek = new Date(start);
+    const dayOfWeek = currentWeek.getDay();
+    const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    currentWeek.setDate(currentWeek.getDate() - daysToMonday);
 
-    weeksData.forEach((week) => {
-      const monthKey = `${week.year}-${week.date.getMonth()}`;
-      const monthLabel = week.date.toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { month: 'short' }).toUpperCase();
+    let weekIndex = 0;
 
-      if (monthKey !== currentMonthKey) {
-        currentMonthKey = monthKey;
-        weekInMonth = 1;
+    while (currentWeek <= end) {
+      const weekStart = new Date(currentWeek);
+      const weekEnd = new Date(currentWeek);
+      weekEnd.setDate(weekEnd.getDate() + 6);
 
-        if (!monthsMap.has(monthKey)) {
-          monthsMap.set(monthKey, { label: monthLabel, span: 0 });
-        }
-      } else {
-        weekInMonth++;
-        if (weekInMonth > 4) {
-          weekInMonth = 4;
-        }
+      const month = weekStart.getMonth();
+      const year = weekStart.getFullYear();
+      const monthKey = `${year}-${month}`;
+
+      if (!monthsMap.has(monthKey)) {
+        monthsMap.set(monthKey, {
+          month,
+          year,
+          label: getMonthLabel(month, language),
+          weekCount: 0
+        });
       }
 
       const monthData = monthsMap.get(monthKey)!;
-      monthData.span += 1;
+      monthData.weekCount++;
 
-      weeksWithMonthNumbers.push({
-        ...week,
-        weekInMonth
+      allWeeks.push({
+        weekIndex,
+        weekInMonth: monthData.weekCount,
+        startDate: weekStart,
+        endDate: weekEnd,
+        month,
+        year
       });
-    });
+
+      weekIndex++;
+      currentWeek.setDate(currentWeek.getDate() + 7);
+    }
 
     let currentIdx = -1;
     if (currentDate) {
       const current = new Date(currentDate);
-      currentIdx = weeksWithMonthNumbers.findIndex((w) => {
-        const weekStart = new Date(w.date);
-        const weekEnd = new Date(weekStart);
-        weekEnd.setDate(weekEnd.getDate() + 6);
-        return current >= weekStart && current <= weekEnd;
-      });
+      currentIdx = allWeeks.findIndex(w =>
+        current >= w.startDate && current <= w.endDate
+      );
     }
 
     return {
       months: Array.from(monthsMap.values()),
-      weeks: weeksWithMonthNumbers,
-      totalWeeks: weeksData.length,
-      currentWeekIndex: currentIdx,
+      weeks: allWeeks,
+      currentWeekIndex: currentIdx
     };
-  }, [projectStart, projectEnd, currentDate]);
+  }, [projectStart, projectEnd, currentDate, language]);
 
-  const getTaskWeekCells = useCallback((task: Task): WeekCell[] => {
+  const getTaskWeekCells = (task: Task) => {
     const taskStart = new Date(task.start_date);
     const taskEnd = new Date(task.end_date);
 
-    return weeks.map((week) => {
-      const weekStart = new Date(week.date);
-      const weekEnd = new Date(weekStart);
-      weekEnd.setDate(weekEnd.getDate() + 6);
-
-      const isInTaskRange = weekStart <= taskEnd && weekEnd >= taskStart;
-
+    return weeks.map(week => {
+      const isInRange = week.startDate <= taskEnd && week.endDate >= taskStart;
       return {
-        year: week.year,
-        week: week.week,
-        date: week.date,
-        isInTaskRange,
+        week,
+        isInRange
       };
     });
-  }, [weeks]);
-
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-hidden landscape:h-full">
       <div className="overflow-x-auto overscroll-x-contain landscape:h-full smooth-scroll" style={{ WebkitOverflowScrolling: 'touch' }}>
         <div className="inline-block min-w-full landscape:h-full" style={{ minWidth: '900px' }}>
+
           {/* Month Headers */}
           <div className="flex border-b-2 border-slate-300">
             <div className="w-40 sm:w-64 flex-shrink-0 bg-slate-50 border-r border-slate-300 px-2 sm:px-4 py-2 sm:py-3">
@@ -132,9 +152,9 @@ export const GanttChart = memo(function GanttChart({ tasks, projectStart, projec
             <div className="flex flex-1">
               {months.map((month, idx) => (
                 <div
-                  key={idx}
+                  key={`${month.year}-${month.month}`}
                   className="border-r border-slate-300 bg-slate-50 px-1 sm:px-2 py-2 sm:py-3 text-center"
-                  style={{ width: `${(month.span / totalWeeks) * 100}%` }}
+                  style={{ width: `${(month.weekCount / weeks.length) * 100}%` }}
                 >
                   <span className="text-xs sm:text-sm font-semibold text-slate-700">{month.label}</span>
                 </div>
@@ -148,7 +168,7 @@ export const GanttChart = memo(function GanttChart({ tasks, projectStart, projec
             <div className="flex flex-1">
               {weeks.map((week, idx) => (
                 <div
-                  key={idx}
+                  key={week.weekIndex}
                   className={`border-r border-slate-200 bg-slate-50 px-1 py-2 text-center flex-1 relative ${
                     idx === currentWeekIndex ? 'bg-blue-100' : ''
                   }`}
@@ -165,20 +185,28 @@ export const GanttChart = memo(function GanttChart({ tasks, projectStart, projec
 
           {/* Task Rows */}
           {tasks.map((task) => {
-            const taskWeeks = getTaskWeekCells(task);
+            const taskWeekCells = getTaskWeekCells(task);
             const isMyTask = highlightRole && task.owner_roles.includes(highlightRole);
 
             return (
-              <div key={task.id} className={`flex border-b border-slate-200 hover:bg-slate-50 ${
-                task.was_shifted ? 'bg-blue-50/30' : ''
-              } ${
-                isMyTask ? 'ring-2 ring-inset ring-blue-500 bg-blue-50/50' : ''
-              }`}>
+              <div
+                key={task.id}
+                className={`flex border-b border-slate-200 hover:bg-slate-50 ${
+                  task.was_shifted ? 'bg-blue-50/30' : ''
+                } ${
+                  isMyTask ? 'ring-2 ring-inset ring-blue-500 bg-blue-50/50' : ''
+                }`}
+              >
                 <div className="w-40 sm:w-64 flex-shrink-0 border-r border-slate-300 px-2 sm:px-4 py-2 sm:py-3 pointer-events-none sm:pointer-events-auto">
                   <div className="flex items-center gap-1 sm:gap-2">
-                    <div className={`text-xs sm:text-sm font-medium truncate ${
-                      isMyTask ? 'text-blue-900 font-semibold' : 'text-slate-900'
-                    }`} title={task.name}>{task.name}</div>
+                    <div
+                      className={`text-xs sm:text-sm font-medium truncate ${
+                        isMyTask ? 'text-blue-900 font-semibold' : 'text-slate-900'
+                      }`}
+                      title={task.name}
+                    >
+                      {task.name}
+                    </div>
                     {task.was_shifted && (
                       <span
                         className="inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-xs font-bold bg-blue-600 text-white shadow-sm flex-shrink-0 animate-pulse"
@@ -193,28 +221,29 @@ export const GanttChart = memo(function GanttChart({ tasks, projectStart, projec
                     {task.owner_roles.join(', ')}
                   </div>
                 </div>
+
                 <div className="flex flex-1">
-                  {taskWeeks.map((weekCell, idx) => {
-                    const cellKey = `${task.id}-${weekCell.year}-${weekCell.week}`;
+                  {taskWeekCells.map((cell, idx) => {
+                    const cellKey = `${task.id}-${cell.week.weekIndex}`;
                     const isHovered = hoveredCell === cellKey;
                     const isTodayWeek = idx === currentWeekIndex;
 
                     return (
                       <div
-                        key={idx}
+                        key={cell.week.weekIndex}
                         className={`border-r border-slate-200 p-1 flex items-center justify-center flex-1 relative pointer-events-none ${
                           !isReadOnly ? 'sm:cursor-pointer sm:pointer-events-auto' : ''
                         }`}
                         style={{ minWidth: '40px' }}
                         onMouseEnter={() => !isReadOnly && setHoveredCell(cellKey)}
                         onMouseLeave={() => !isReadOnly && setHoveredCell(null)}
-                        onClick={(e) => {
-                          if (!isReadOnly && weekCell.isInTaskRange && window.innerWidth >= 640) {
-                            onWeekClick(task, weekCell.year, weekCell.week);
+                        onClick={() => {
+                          if (!isReadOnly && cell.isInRange && window.innerWidth >= 640) {
+                            onWeekClick(task, cell.week.year, cell.week.weekInMonth);
                           }
                         }}
                       >
-                        {weekCell.isInTaskRange && (
+                        {cell.isInRange && (
                           <div
                             className={`w-full h-8 rounded ${getStatusColor(task.status)} ${
                               isHovered && !isReadOnly ? 'opacity-80 ring-2 ring-slate-900' : 'opacity-90'
