@@ -571,7 +571,7 @@ function App() {
           ? 'px-2 py-2'
           : isMobile && session?.role === 'contractor' && mobileView === 'my-day'
             ? 'px-4 py-4 pb-24'
-            : 'max-w-[1600px] px-2 sm:px-4 lg:px-8 pt-8 sm:pt-6 pb-20'
+            : 'max-w-[1600px] px-2 sm:px-4 lg:px-8 pt-8 pb-20'
       }`}>
 
         <main>
