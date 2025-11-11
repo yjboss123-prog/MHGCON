@@ -83,7 +83,11 @@ function App() {
 
   useEffect(() => {
     if (session) {
-      setCurrentRole(roleToDisplayName(session.role) as Role);
+      if (session.contractor_role) {
+        setCurrentRole(session.contractor_role as Role);
+      } else {
+        setCurrentRole(roleToDisplayName(session.role) as Role);
+      }
     }
   }, [session]);
 

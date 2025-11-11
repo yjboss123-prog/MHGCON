@@ -26,9 +26,11 @@ Deno.serve(async (req: Request) => {
     }
 
     let userRole: string;
+    let contractorRole: string | null = null;
 
     if (code === CONTRACTOR_CODE) {
       userRole = "contractor";
+      contractorRole = role || "Construction Contractor";
     } else if (code === ELEVATED_CODE) {
       if (!role || !["admin", "developer", "project_manager"].includes(role)) {
         return new Response(
@@ -55,6 +57,7 @@ Deno.serve(async (req: Request) => {
       .insert({
         display_name: displayName,
         role: userRole,
+        contractor_role: contractorRole,
       })
       .select()
       .single();
@@ -99,6 +102,7 @@ Deno.serve(async (req: Request) => {
           user_token: user.user_token,
           display_name: displayName,
           role: userRole,
+          contractor_role: contractorRole,
           expires_at: expiresAt.toISOString(),
         },
       }),

@@ -5,6 +5,7 @@ export interface Session {
   user_token: string;
   display_name: string;
   role: 'contractor' | 'admin' | 'developer' | 'project_manager';
+  contractor_role?: string | null;
   expires_at: string;
 }
 

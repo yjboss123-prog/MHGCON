@@ -1,6 +1,8 @@
-import { useState } from 'react';
-import { Lock, User, Shield } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Lock, User, Shield, Briefcase } from 'lucide-react';
 import { verifyCode, saveSession } from '../lib/session';
+import { getProject } from '../lib/api';
+import { DEFAULT_ROLES } from '../types';
 
 interface AccessCodeEntryProps {
   onSuccess: () => void;
@@ -12,14 +14,37 @@ const ELEVATED_ROLES = [
   { value: 'project_manager', label: 'Project Manager' },
 ];
 
+const CONTRACTOR_ROLES = [
+  'Construction Contractor',
+  'Architect',
+  'Chief of Plumbing',
+  'Chief of Electronics',
+];
+
 export function AccessCodeEntry({ onSuccess }: AccessCodeEntryProps) {
   const [step, setStep] = useState<'code' | 'details'>('code');
   const [code, setCode] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [selectedRole, setSelectedRole] = useState('admin');
+  const [selectedContractorRole, setSelectedContractorRole] = useState('Construction Contractor');
   const [isElevated, setIsElevated] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [availableRoles, setAvailableRoles] = useState<string[]>(CONTRACTOR_ROLES);
+
+  useEffect(() => {
+    const loadRoles = async () => {
+      try {
+        const project = await getProject();
+        if (project && project.custom_contractors) {
+          setAvailableRoles([...CONTRACTOR_ROLES, ...project.custom_contractors]);
+        }
+      } catch (err) {
+        console.error('Error loading project:', err);
+      }
+    };
+    loadRoles();
+  }, []);
 
   const handleCodeSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,10 +71,11 @@ export function AccessCodeEntry({ onSuccess }: AccessCodeEntryProps) {
     setError('');
 
     try {
+      const roleToUse = isElevated ? selectedRole : selectedContractorRole;
       const session = await verifyCode(
         code,
         displayName.trim(),
-        isElevated ? selectedRole : undefined
+        roleToUse
       );
 
       saveSession(session);
@@ -135,7 +161,7 @@ export function AccessCodeEntry({ onSuccess }: AccessCodeEntryProps) {
                 </div>
               </div>
 
-              {isElevated && (
+              {isElevated ? (
                 <div>
                   <label htmlFor="role" className="block text-sm font-medium text-slate-700 mb-2">
                     Select Role
@@ -155,6 +181,30 @@ export function AccessCodeEntry({ onSuccess }: AccessCodeEntryProps) {
                       ))}
                     </select>
                   </div>
+                </div>
+              ) : (
+                <div>
+                  <label htmlFor="contractorRole" className="block text-sm font-medium text-slate-700 mb-2">
+                    Select Your Role
+                  </label>
+                  <div className="relative">
+                    <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                    <select
+                      id="contractorRole"
+                      value={selectedContractorRole}
+                      onChange={(e) => setSelectedContractorRole(e.target.value)}
+                      className="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all appearance-none bg-white"
+                    >
+                      {availableRoles.map((role) => (
+                        <option key={role} value={role}>
+                          {role}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <p className="mt-2 text-xs text-slate-500">
+                    Select the role that matches your responsibilities
+                  </p>
                 </div>
               )}
 

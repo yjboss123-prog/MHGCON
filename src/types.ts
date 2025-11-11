@@ -99,6 +99,7 @@ export type User = {
   user_token: string;
   display_name: string;
   role: 'contractor' | 'admin' | 'developer' | 'project_manager';
+  contractor_role?: string | null;
   created_at: string;
   last_active_at: string;
 };
