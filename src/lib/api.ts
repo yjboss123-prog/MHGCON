@@ -860,3 +860,40 @@ export async function deleteBaseline(baselineId: string) {
 
   if (error) throw error;
 }
+
+export async function getTaskAttachments(taskId: string) {
+  const { data, error } = await supabase
+    .from('task_attachments')
+    .select('*')
+    .eq('task_id', taskId)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data || [];
+}
+
+export async function createTaskAttachment(taskId: string, projectId: string, fileUrl: string, caption?: string, uploadedBy?: string) {
+  const { data, error } = await supabase
+    .from('task_attachments')
+    .insert({
+      task_id: taskId,
+      project_id: projectId,
+      file_url: fileUrl,
+      caption: caption || null,
+      uploaded_by: uploadedBy || null,
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteTaskAttachment(attachmentId: number) {
+  const { error } = await supabase
+    .from('task_attachments')
+    .delete()
+    .eq('id', attachmentId);
+
+  if (error) throw error;
+}
