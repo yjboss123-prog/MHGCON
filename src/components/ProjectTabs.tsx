@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, MoreVertical, Archive, Copy, Edit2, Trash2, ArchiveRestore, FolderOpen } from 'lucide-react';
 import { Project } from '../types';
+import { BottomSheet } from './BottomSheet';
 
 interface ProjectTabsProps {
   projects: Project[];
@@ -32,6 +33,16 @@ export function ProjectTabs({
   canManage
 }: ProjectTabsProps) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.matchMedia('(max-width: 640px)').matches);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const handleMenuToggle = (e: React.MouseEvent, projectId: string) => {
     e.stopPropagation();
@@ -77,53 +88,104 @@ export function ProjectTabs({
               </button>
 
               {openMenuId === project.id && canManage && (
-                <>
-                  <div
-                    className="fixed inset-0 z-[1501]"
-                    onClick={() => setOpenMenuId(null)}
-                  />
-                  <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-slate-200 py-1 z-[2000]">
-                    <button
-                      onClick={(e) => handleMenuAction(e, () => onRenameProject(project.id))}
-                      className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                      Rename
-                    </button>
-                    <button
-                      onClick={(e) => handleMenuAction(e, () => onDuplicateProject(project.id))}
-                      className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
-                    >
-                      <Copy className="w-4 h-4" />
-                      Duplicate
-                    </button>
-                    {!project.archived ? (
+                isMobile ? (
+                  <BottomSheet open={true} onClose={() => setOpenMenuId(null)}>
+                    <div className="space-y-1">
                       <button
-                        onClick={(e) => handleMenuAction(e, () => onArchiveProject(project.id))}
+                        onClick={(e) => handleMenuAction(e, () => onRenameProject(project.id))}
+                        className="w-full px-4 py-3 text-left text-base text-slate-700 hover:bg-slate-50 rounded-lg flex items-center gap-3 transition-colors"
+                        style={{ minHeight: '48px' }}
+                      >
+                        <Edit2 className="w-5 h-5" />
+                        Rename
+                      </button>
+                      <button
+                        onClick={(e) => handleMenuAction(e, () => onDuplicateProject(project.id))}
+                        className="w-full px-4 py-3 text-left text-base text-slate-700 hover:bg-slate-50 rounded-lg flex items-center gap-3 transition-colors"
+                        style={{ minHeight: '48px' }}
+                      >
+                        <Copy className="w-5 h-5" />
+                        Duplicate
+                      </button>
+                      {!project.archived ? (
+                        <button
+                          onClick={(e) => handleMenuAction(e, () => onArchiveProject(project.id))}
+                          className="w-full px-4 py-3 text-left text-base text-slate-700 hover:bg-slate-50 rounded-lg flex items-center gap-3 transition-colors"
+                          style={{ minHeight: '48px' }}
+                        >
+                          <Archive className="w-5 h-5" />
+                          Archive
+                        </button>
+                      ) : (
+                        <button
+                          onClick={(e) => handleMenuAction(e, () => onUnarchiveProject(project.id))}
+                          className="w-full px-4 py-3 text-left text-base text-slate-700 hover:bg-slate-50 rounded-lg flex items-center gap-3 transition-colors"
+                          style={{ minHeight: '48px' }}
+                        >
+                          <ArchiveRestore className="w-5 h-5" />
+                          Unarchive
+                        </button>
+                      )}
+                      <div className="border-t border-slate-200 my-2" />
+                      <button
+                        onClick={(e) => handleMenuAction(e, () => onDeleteProject(project.id))}
+                        className="w-full px-4 py-3 text-left text-base text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-3 transition-colors"
+                        style={{ minHeight: '48px' }}
+                      >
+                        <Trash2 className="w-5 h-5" />
+                        Delete
+                      </button>
+                    </div>
+                  </BottomSheet>
+                ) : (
+                  <>
+                    <div
+                      className="fixed inset-0 z-[1501]"
+                      onClick={() => setOpenMenuId(null)}
+                    />
+                    <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-slate-200 py-1 z-[2000]">
+                      <button
+                        onClick={(e) => handleMenuAction(e, () => onRenameProject(project.id))}
                         className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
                       >
-                        <Archive className="w-4 h-4" />
-                        Archive
+                        <Edit2 className="w-4 h-4" />
+                        Rename
                       </button>
-                    ) : (
                       <button
-                        onClick={(e) => handleMenuAction(e, () => onUnarchiveProject(project.id))}
+                        onClick={(e) => handleMenuAction(e, () => onDuplicateProject(project.id))}
                         className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
                       >
-                        <ArchiveRestore className="w-4 h-4" />
-                        Unarchive
+                        <Copy className="w-4 h-4" />
+                        Duplicate
                       </button>
-                    )}
-                    <div className="border-t border-slate-200 my-1" />
-                    <button
-                      onClick={(e) => handleMenuAction(e, () => onDeleteProject(project.id))}
-                      className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      Delete
-                    </button>
-                  </div>
-                </>
+                      {!project.archived ? (
+                        <button
+                          onClick={(e) => handleMenuAction(e, () => onArchiveProject(project.id))}
+                          className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                        >
+                          <Archive className="w-4 h-4" />
+                          Archive
+                        </button>
+                      ) : (
+                        <button
+                          onClick={(e) => handleMenuAction(e, () => onUnarchiveProject(project.id))}
+                          className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                        >
+                          <ArchiveRestore className="w-4 h-4" />
+                          Unarchive
+                        </button>
+                      )}
+                      <div className="border-t border-slate-200 my-1" />
+                      <button
+                        onClick={(e) => handleMenuAction(e, () => onDeleteProject(project.id))}
+                        className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Delete
+                      </button>
+                    </div>
+                  </>
+                )
               )}
             </div>
           ))}
