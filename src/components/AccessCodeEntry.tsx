@@ -119,7 +119,7 @@ export function AccessCodeEntry({ onSuccess }: AccessCodeEntryProps) {
                   type="text"
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all text-slate-900"
                   placeholder="Enter your code"
                   autoFocus
                   autoComplete="off"
@@ -153,7 +153,7 @@ export function AccessCodeEntry({ onSuccess }: AccessCodeEntryProps) {
                     type="text"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all"
+                    className="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all text-slate-900"
                     placeholder="Your name"
                     autoFocus
                     autoComplete="name"
@@ -172,7 +172,7 @@ export function AccessCodeEntry({ onSuccess }: AccessCodeEntryProps) {
                       id="role"
                       value={selectedRole}
                       onChange={(e) => setSelectedRole(e.target.value)}
-                      className="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all appearance-none bg-white"
+                      className="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all appearance-none bg-white text-slate-900"
                     >
                       {ELEVATED_ROLES.map((role) => (
                         <option key={role.value} value={role.value}>
@@ -193,7 +193,7 @@ export function AccessCodeEntry({ onSuccess }: AccessCodeEntryProps) {
                       id="contractorRole"
                       value={selectedContractorRole}
                       onChange={(e) => setSelectedContractorRole(e.target.value)}
-                      className="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all appearance-none bg-white"
+                      className="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all appearance-none bg-white text-slate-900"
                     >
                       {availableRoles.map((role) => (
                         <option key={role} value={role}>

@@ -97,8 +97,12 @@
   .input-modern {
     @apply px-4 py-3 border border-slate-200 rounded-xl;
     @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
-    @apply transition-all duration-200 bg-white;
+    @apply transition-all duration-200 bg-white text-slate-900;
     min-height: 44px;
+  }
+
+  .input-modern option {
+    @apply text-slate-900 bg-white;
   }
 
   .badge-modern {
