@@ -242,6 +242,26 @@ function App() {
     });
   }, [tasks, selectedStatuses, selectedRoles, selectedMonths]);
 
+  const ganttTasks = useMemo(() => {
+    return tasks.filter((task) => {
+      if (selectedStatuses.length > 0 && !selectedStatuses.includes(task.status)) {
+        return false;
+      }
+
+      if (selectedMonths.length > 0) {
+        const taskMonth = new Date(task.start_date).toLocaleDateString('en-US', {
+          month: 'short',
+          year: 'numeric',
+        });
+        if (!selectedMonths.includes(taskMonth)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [tasks, selectedStatuses, selectedMonths]);
+
   const handleStatusToggle = (status: TaskStatus) => {
     setSelectedStatuses((prev) =>
       prev.includes(status) ? prev.filter((s) => s !== status) : [...prev, status]
@@ -607,6 +627,8 @@ function App() {
           projectName={project?.name || 'MHG Tracker'}
           onSettings={() => setIsProjectSettingsOpen(true)}
           onSignOut={handleSignOut}
+          language={language}
+          onLanguageChange={setLanguage}
         />
       )}
 
@@ -705,7 +727,7 @@ function App() {
             />
           ) : (viewMode === 'gantt' || isLandscape) ? (
             <GanttChart
-              tasks={filteredTasks}
+              tasks={ganttTasks}
               projectStart={projectDates.start}
               projectEnd={projectDates.end}
               currentDate={project?.project_current_date}
