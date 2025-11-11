@@ -52,18 +52,45 @@ Deno.serve(async (req: Request) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const { data: user, error: userError } = await supabase
+    // Check if user already exists with same display name, role, and contractor_role
+    let user;
+    const { data: existingUser } = await supabase
       .from("users")
-      .insert({
-        display_name: displayName,
-        role: userRole,
-        contractor_role: contractorRole,
-      })
       .select()
-      .single();
+      .eq("display_name", displayName)
+      .eq("role", userRole)
+      .eq("contractor_role", contractorRole || null)
+      .maybeSingle();
 
-    if (userError) {
-      throw userError;
+    if (existingUser) {
+      // Update last_active_at for existing user
+      const { data: updatedUser, error: updateError } = await supabase
+        .from("users")
+        .update({ last_active_at: new Date().toISOString() })
+        .eq("user_token", existingUser.user_token)
+        .select()
+        .single();
+
+      if (updateError) {
+        throw updateError;
+      }
+      user = updatedUser;
+    } else {
+      // Create new user
+      const { data: newUser, error: userError } = await supabase
+        .from("users")
+        .insert({
+          display_name: displayName,
+          role: userRole,
+          contractor_role: contractorRole,
+        })
+        .select()
+        .single();
+
+      if (userError) {
+        throw userError;
+      }
+      user = newUser;
     }
 
     const sessionToken = crypto.randomUUID();
