@@ -257,7 +257,7 @@ export const TaskDrawer = memo(function TaskDrawer({
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-slate-100 rounded-lg transition-colors flex-shrink-0"
+              className="hidden sm:flex p-2 hover:bg-slate-100 rounded-lg transition-colors flex-shrink-0"
               style={{ minHeight: '44px', minWidth: '44px' }}
               aria-label="Close"
             >
@@ -266,7 +266,7 @@ export const TaskDrawer = memo(function TaskDrawer({
           </div>
         </div>
 
-        <div className="p-4 space-y-6 pb-32">
+        <div className="p-4 space-y-6 pb-32 sm:pb-32" style={{ paddingBottom: 'calc(180px + env(safe-area-inset-bottom))' }}>
           {task.was_shifted && (
             <div className="bg-blue-600 text-white px-4 py-3 rounded-lg flex items-center gap-3">
               <AlertCircle className="w-5 h-5 flex-shrink-0" />
@@ -441,7 +441,7 @@ export const TaskDrawer = memo(function TaskDrawer({
           </div>
         </div>
 
-        <div className="fixed inset-x-0 bottom-0 bg-white/95 backdrop-blur border-t border-slate-200 pb-safe z-20">
+        <div className="fixed inset-x-0 bottom-0 bg-white/95 backdrop-blur border-t border-slate-200 z-20" style={{ paddingBottom: 'calc(12px + env(safe-area-inset-bottom))' }}>
           <div className="px-4 py-3 flex gap-2">
             <button
               onClick={handleMarkBlocked}
@@ -466,6 +466,17 @@ export const TaskDrawer = memo(function TaskDrawer({
               style={{ minHeight: '48px' }}
             >
               Mark Done
+            </button>
+          </div>
+
+          <div className="sm:hidden px-4 pb-3">
+            <button
+              onClick={onClose}
+              className="w-full h-12 rounded-xl font-medium bg-slate-900 text-white shadow-sm active:scale-[.99] transition-all"
+              style={{ minHeight: '48px' }}
+              aria-label="Close task"
+            >
+              Close
             </button>
           </div>
         </div>
