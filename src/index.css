@@ -144,21 +144,6 @@
     display: none;
   }
 
-  @keyframes slideUp {
-    from {
-      transform: translateY(16px);
-      opacity: 0.8;
-    }
-    to {
-      transform: translateY(0);
-      opacity: 1;
-    }
-  }
-
-  .animate-slideUp {
-    animation: slideUp 0.18s ease-out;
-  }
-
   .smooth-scroll {
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
