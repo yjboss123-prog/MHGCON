@@ -6,8 +6,11 @@ import { TaskList } from './components/TaskList';
 import { TaskDrawer } from './components/TaskDrawer';
 import { ProjectTabs } from './components/ProjectTabs';
 import { AccessCodeEntry } from './components/AccessCodeEntry';
+import { MyDayView } from './components/MyDayView';
+import { MobileNav } from './components/MobileNav';
+import { MobileHeader } from './components/MobileHeader';
 import { Task, Role, TaskStatus, DEFAULT_ROLES, Project } from './types';
-import { getTasks, initializeData, shiftSchedule, deleteTask, rebaselineProject, getProject, updateProject, getAllProjects, createProject, duplicateProject, archiveProject, unarchiveProject, deleteProject } from './lib/api';
+import { getTasks, initializeData, shiftSchedule, deleteTask, rebaselineProject, getProject, updateProject, getAllProjects, createProject, duplicateProject, archiveProject, unarchiveProject, deleteProject, updateTask } from './lib/api';
 import { Language, useTranslation } from './lib/i18n';
 import { getSession, validateSession, signOut, clearSession, Session, isAdmin, canManageTasks, canDeleteTasks } from './lib/session';
 import { roleToDisplayName } from './lib/utils';
@@ -24,13 +27,16 @@ const AdminPanel = lazy(() => import('./components/AdminPanel').then(m => ({ def
 const PROJECT_START = '2026-01-06';
 const PROJECT_END = '2026-12-31';
 
-type ViewMode = 'gantt' | 'list';
+type ViewMode = 'gantt' | 'list' | 'my-day';
+type MobileView = 'my-day' | 'all-tasks' | 'gantt' | 'profile';
 
 function App() {
   const [currentRole, setCurrentRole] = useState<Role>('Project Manager');
   const [language, setLanguage] = useState<Language>('fr');
   const [viewMode, setViewMode] = useState<ViewMode>('gantt');
+  const [mobileView, setMobileView] = useState<MobileView>('my-day');
   const [isLandscape, setIsLandscape] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const t = useTranslation(language);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -123,6 +129,7 @@ function App() {
   useEffect(() => {
     const checkOrientation = () => {
       setIsLandscape(window.innerWidth > window.innerHeight && window.innerWidth < 1024);
+      setIsMobile(window.innerWidth < 768);
     };
 
     checkOrientation();
@@ -134,6 +141,12 @@ function App() {
       window.removeEventListener('orientationchange', checkOrientation);
     };
   }, []);
+
+  useEffect(() => {
+    if (session?.role === 'contractor' && isMobile) {
+      setMobileView('my-day');
+    }
+  }, [session, isMobile]);
 
   const handleSessionSuccess = () => {
     const storedSession = getSession();
@@ -274,6 +287,37 @@ function App() {
     setSelectedTask(task);
     setSelectedWeek({ year, week });
     setIsWeekModalOpen(true);
+  };
+
+  const handleQuickStatusUpdate = async (taskId: string, status: TaskStatus) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    try {
+      const percentDone = status === 'Done' ? 100 : status === 'On Track' && task.percent_done === 0 ? 25 : task.percent_done;
+
+      await updateTask(taskId, {
+        status,
+        percent_done: percentDone,
+      });
+
+      setTasks(tasks.map(t => t.id === taskId ? { ...t, status, percent_done: percentDone } : t));
+      setToast(`Task ${status.toLowerCase()}`);
+      setTimeout(() => setToast(null), 2000);
+    } catch (error) {
+      console.error('Error updating task:', error);
+      setToast('Error updating task');
+      setTimeout(() => setToast(null), 3000);
+    }
+  };
+
+  const handleMobileViewChange = (view: MobileView) => {
+    setMobileView(view);
+    if (view === 'all-tasks') {
+      setViewMode('list');
+    } else if (view === 'gantt') {
+      setViewMode('gantt');
+    }
   };
 
   const handleWeekModalClose = () => {
@@ -527,7 +571,16 @@ function App() {
 
   return (
     <div className={`min-h-screen bg-slate-50 ${isLandscape ? 'landscape-mode' : ''}`}>
-      {!isLandscape && (
+      {isMobile && session?.role === 'contractor' && mobileView === 'my-day' && session && (
+        <MobileHeader
+          session={session}
+          projectName={project?.name || 'MHG Tracker'}
+          onSettings={() => setIsProjectSettingsOpen(true)}
+          onSignOut={handleSignOut}
+        />
+      )}
+
+      {!isLandscape && !(isMobile && session?.role === 'contractor') && (
         <Header
           currentRole={currentRole}
           onRoleChange={setCurrentRole}
@@ -547,8 +600,14 @@ function App() {
         />
       )}
 
-      <div className={`mx-auto ${isLandscape ? 'px-2 py-2' : 'max-w-[1600px] px-2 sm:px-4 lg:px-8 py-4 sm:py-6 pb-20'}`}>
-        {!isLandscape && (
+      <div className={`mx-auto ${
+        isLandscape
+          ? 'px-2 py-2'
+          : isMobile && session?.role === 'contractor' && mobileView === 'my-day'
+            ? 'px-4 py-4 pb-24'
+            : 'max-w-[1600px] px-2 sm:px-4 lg:px-8 py-4 sm:py-6 pb-20'
+      }`}>
+        {!isLandscape && !(isMobile && session?.role === 'contractor' && mobileView === 'my-day') && (
           <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
             <FilterPanel
               selectedStatuses={selectedStatuses}
@@ -607,6 +666,13 @@ function App() {
             <div className="bg-white rounded-lg shadow-sm p-8 text-center">
               <p className="text-slate-500">{t.loadingTasks}</p>
             </div>
+          ) : isMobile && session?.role === 'contractor' && mobileView === 'my-day' ? (
+            <MyDayView
+              tasks={filteredTasks}
+              onTaskClick={handleTaskView}
+              onStatusUpdate={handleQuickStatusUpdate}
+              language={language}
+            />
           ) : (viewMode === 'gantt' || isLandscape) ? (
             <GanttChart
               tasks={filteredTasks}
@@ -752,6 +818,14 @@ function App() {
           }}
         />
       </Suspense>
+
+      {isMobile && session?.role === 'contractor' && (
+        <MobileNav
+          currentView={mobileView}
+          onViewChange={handleMobileViewChange}
+          language={language}
+        />
+      )}
     </div>
   );
 }

@@ -32,6 +32,14 @@
 }
 
 @layer utilities {
+  .safe-area-inset-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .pb-safe {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+
   .landscape-mode {
     height: 100vh;
     overflow: hidden;
@@ -50,6 +58,14 @@
   .landscape-mode .overflow-x-auto {
     flex: 1;
     overflow-y: auto;
+  }
+
+  @supports (color-scheme: dark) {
+    @media (prefers-color-scheme: dark) {
+      :root {
+        color-scheme: light dark;
+      }
+    }
   }
 
   .glass-effect {
