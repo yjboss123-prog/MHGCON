@@ -1,6 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
-import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,6 +9,14 @@ const corsHeaders = {
 
 function normalizeName(name: string): string {
   return name.toLowerCase().trim().replace(/\s+/g, ' ');
+}
+
+async function hashPassword(password: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 Deno.serve(async (req: Request) => {
@@ -40,8 +47,8 @@ Deno.serve(async (req: Request) => {
     );
 
     const nameNorm = normalizeName(displayName);
+    const passwordHash = await hashPassword(password);
 
-    // Check if user already exists
     const { data: existingUser } = await supabase
       .from("users")
       .select("user_token, display_name, role, contractor_role, password_hash")
@@ -54,18 +61,14 @@ Deno.serve(async (req: Request) => {
     let mode = "register";
 
     if (existingUser) {
-      // User exists - verify password
       if (!existingUser.password_hash) {
         return new Response(
-          JSON.stringify({ error: "This account was created before passwords were added. Please contact an administrator." }),
+          JSON.stringify({ error: "This account needs password setup. Please contact admin." }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      const passwordMatch = await bcrypt.compare(password, existingUser.password_hash);
-      
-      if (!passwordMatch) {
-        // Add delay to prevent brute force
+      if (passwordHash !== existingUser.password_hash) {
         await new Promise(resolve => setTimeout(resolve, 1000));
         return new Response(
           JSON.stringify({ error: "Wrong password for this name and role" }),
@@ -73,7 +76,6 @@ Deno.serve(async (req: Request) => {
         );
       }
 
-      // Update last_seen
       const { data: updatedUser, error: updateError } = await supabase
         .from("users")
         .update({ last_seen: new Date().toISOString() })
@@ -88,9 +90,6 @@ Deno.serve(async (req: Request) => {
       user = updatedUser;
       mode = "login";
     } else {
-      // Create new user
-      const passwordHash = await bcrypt.hash(password);
-
       const { data: newUser, error: userError } = await supabase
         .from("users")
         .insert({
@@ -105,9 +104,7 @@ Deno.serve(async (req: Request) => {
         .single();
 
       if (userError) {
-        // Check if it's a unique constraint violation (race condition)
         if (userError.code === '23505') {
-          // Try again as login
           const { data: retryUser } = await supabase
             .from("users")
             .select("user_token, display_name, role, contractor_role, password_hash")
@@ -116,7 +113,7 @@ Deno.serve(async (req: Request) => {
             .eq("role", role)
             .maybeSingle();
 
-          if (retryUser && await bcrypt.compare(password, retryUser.password_hash || "")) {
+          if (retryUser && passwordHash === retryUser.password_hash) {
             await supabase
               .from("users")
               .update({ last_seen: new Date().toISOString() })
@@ -125,7 +122,7 @@ Deno.serve(async (req: Request) => {
             mode = "login";
           } else {
             return new Response(
-              JSON.stringify({ error: "This name and role combination already exists with a different password" }),
+              JSON.stringify({ error: "This name and role already exists with a different password" }),
               { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
             );
           }
@@ -137,7 +134,6 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    // Create session
     const sessionToken = crypto.randomUUID();
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 30);
@@ -160,7 +156,6 @@ Deno.serve(async (req: Request) => {
       throw sessionError;
     }
 
-    // Log action
     await supabase.from("audit_logs").insert({
       user_token: user.user_token,
       action: mode === "login" ? "sign_in" : "register",
