@@ -1,7 +1,6 @@
-import { useState, useMemo, memo } from 'react';
+import { memo, useMemo } from 'react';
 import { Task } from '../types';
 import { Language, useTranslation } from '../lib/i18n';
-import { ArrowRight } from 'lucide-react';
 
 interface GanttChartProps {
   tasks: Task[];
@@ -14,275 +13,231 @@ interface GanttChartProps {
   highlightRole?: string;
 }
 
+const BASE_TASK_NAMES = [
+  'Installation de chantier',
+  'Terrassement',
+  'Fondations production',
+  'Charpente métallique',
+  'Couverture & bardage',
+  'Dallage',
+  'Fondations administration/social',
+  'Élévation',
+  'Plancher',
+  'Équipements industriels',
+  'Lots architecturaux',
+  'Lots techniques',
+  'Aménagement extérieur',
+];
+
+const MONTHS_PER_YEAR = 12;
+const WEEKS_PER_MONTH = 4;
+const TOTAL_WEEKS = MONTHS_PER_YEAR * WEEKS_PER_MONTH;
+const WEEK_WIDTH = 48; // pixels
+
+interface TimelineTask {
+  name: string;
+  startWeek: number;
+  endWeek: number;
+}
+
 interface MonthColumn {
-  month: number;
-  year: number;
+  index: number;
   label: string;
-  weekCount: number;
 }
 
-interface Week {
-  weekIndex: number;
-  weekInMonth: number;
-  startDate: Date;
-  endDate: Date;
-  month: number;
-  year: number;
+interface WeekCell {
+  monthIndex: number;
+  weekOfMonth: number;
+  globalIndex: number;
 }
 
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'Done':
-      return 'bg-emerald-500';
-    case 'On Track':
-      return 'bg-slate-400';
-    case 'Delayed':
-      return 'bg-amber-500';
-    case 'Blocked':
-      return 'bg-red-500';
-    default:
-      return 'bg-slate-300';
+const clampWeek = (week: number) => Math.min(TOTAL_WEEKS - 1, Math.max(0, week));
+
+const getWeekIndexFromDate = (date: Date) => {
+  if (Number.isNaN(date.getTime())) {
+    return 0;
   }
-};
 
-function getMonthLabel(month: number, language: Language): string {
-  const date = new Date(2026, month, 1);
-  return date.toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { month: 'short' }).toUpperCase();
-}
+  const month = date.getMonth();
+  const weekInsideMonth = Math.min(
+    WEEKS_PER_MONTH - 1,
+    Math.floor((date.getDate() - 1) / 7)
+  );
+
+  return clampWeek(month * WEEKS_PER_MONTH + weekInsideMonth);
+};
 
 export const GanttChart = memo(function GanttChart({
   tasks,
   projectStart,
-  projectEnd,
-  currentDate,
-  onWeekClick,
   language,
-  isReadOnly = false,
-  highlightRole
 }: GanttChartProps) {
-  const [hoveredCell, setHoveredCell] = useState<string | null>(null);
   const t = useTranslation(language);
 
-  const { months, weeks, currentWeekIndex } = useMemo(() => {
-    const start = new Date(projectStart);
-    const end = new Date(projectEnd);
+  const baseYear = useMemo(() => {
+    const parsed = new Date(projectStart);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed.getFullYear();
+    }
+    return new Date().getFullYear();
+  }, [projectStart]);
 
-    const allWeeks: Week[] = [];
-    const monthsMap = new Map<string, MonthColumn>();
-
-    const currentWeek = new Date(start);
-    const dayOfWeek = currentWeek.getDay();
-    const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-    currentWeek.setDate(currentWeek.getDate() - daysToMonday);
-
-    let weekIndex = 0;
-
-    while (currentWeek <= end) {
-      const weekStart = new Date(currentWeek);
-      const weekEnd = new Date(currentWeek);
-      weekEnd.setDate(weekEnd.getDate() + 6);
-
-      const month = weekStart.getMonth();
-      const year = weekStart.getFullYear();
-      const monthKey = `${year}-${month}`;
-
-      if (!monthsMap.has(monthKey)) {
-        monthsMap.set(monthKey, {
-          month,
-          year,
-          label: getMonthLabel(month, language),
-          weekCount: 0
-        });
-      }
-
-      const monthData = monthsMap.get(monthKey)!;
-      monthData.weekCount++;
-
-      allWeeks.push({
-        weekIndex,
-        weekInMonth: monthData.weekCount,
-        startDate: weekStart,
-        endDate: weekEnd,
-        month,
-        year
+  const monthColumns = useMemo<MonthColumn[]>(() => {
+    return Array.from({ length: MONTHS_PER_YEAR }, (_, index) => {
+      const date = new Date(baseYear, index, 1);
+      const label = date.toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', {
+        month: 'short',
       });
 
-      weekIndex++;
-      currentWeek.setDate(currentWeek.getDate() + 7);
-    }
-
-    let currentIdx = -1;
-    if (currentDate) {
-      const current = new Date(currentDate);
-      currentIdx = allWeeks.findIndex(w =>
-        current >= w.startDate && current <= w.endDate
-      );
-    }
-
-    return {
-      months: Array.from(monthsMap.values()),
-      weeks: allWeeks,
-      currentWeekIndex: currentIdx
-    };
-  }, [projectStart, projectEnd, currentDate, language]);
-
-  const getTaskWeekCells = (task: Task) => {
-    const taskStart = new Date(task.start_date);
-    const taskEnd = new Date(task.end_date);
-
-    return weeks.map(week => {
-      const isInRange = week.startDate <= taskEnd && week.endDate >= taskStart;
       return {
-        week,
-        isInRange
+        index,
+        label: label.charAt(0).toUpperCase() + label.slice(1),
       };
     });
-  };
+  }, [baseYear, language]);
+
+  const weekCells = useMemo<WeekCell[]>(() => {
+    return monthColumns.flatMap((month) =>
+      Array.from({ length: WEEKS_PER_MONTH }, (_, weekIndex) => ({
+        monthIndex: month.index,
+        weekOfMonth: weekIndex + 1,
+        globalIndex: month.index * WEEKS_PER_MONTH + weekIndex,
+      }))
+    );
+  }, [monthColumns]);
+
+  const timelineWidth = TOTAL_WEEKS * WEEK_WIDTH;
+  const gridTemplateColumns = `repeat(${TOTAL_WEEKS}, ${WEEK_WIDTH}px)`;
+  const monthGridTemplate = `repeat(${MONTHS_PER_YEAR}, ${WEEKS_PER_MONTH * WEEK_WIDTH}px)`;
+
+  const timelineTasks = useMemo<TimelineTask[]>(() => {
+    return BASE_TASK_NAMES.map((taskName, index) => {
+      const matchingTask = tasks.find(
+        (task) => task.name.trim().toLowerCase() === taskName.trim().toLowerCase()
+      );
+
+      if (matchingTask) {
+        const startWeek = getWeekIndexFromDate(new Date(matchingTask.start_date));
+        const endWeek = getWeekIndexFromDate(new Date(matchingTask.end_date));
+        const normalizedStart = clampWeek(Math.min(startWeek, endWeek));
+        const normalizedEnd = clampWeek(Math.max(startWeek, endWeek));
+
+        return {
+          name: taskName,
+          startWeek: normalizedStart,
+          endWeek: normalizedEnd,
+        };
+      }
+
+      const fallbackStart = clampWeek(index * 3);
+      const fallbackEnd = clampWeek(fallbackStart + 3);
+
+      return {
+        name: taskName,
+        startWeek: fallbackStart,
+        endWeek: fallbackEnd,
+      };
+    });
+  }, [tasks]);
 
   return (
-    <div className="bg-white rounded-lg shadow-sm overflow-hidden landscape:h-full">
-      <div className="overflow-x-auto overscroll-x-contain landscape:h-full smooth-scroll" style={{ WebkitOverflowScrolling: 'touch' }}>
-        <div className="inline-block min-w-full landscape:h-full" style={{ minWidth: '900px' }}>
-
-          {/* Month Headers */}
-          <div className="flex border-b-2 border-slate-300">
-            <div className="w-40 sm:w-64 flex-shrink-0 bg-slate-50 border-r border-slate-300 px-2 sm:px-4 py-2 sm:py-3">
-              <span className="text-xs sm:text-sm font-semibold text-slate-700">{t.tasks}</span>
+    <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+      <div
+        className="overflow-x-auto scroll-smooth"
+        style={{ WebkitOverflowScrolling: 'touch' }}
+      >
+        <div className="min-w-full">
+          <div className="flex border-b border-slate-200 bg-slate-50">
+            <div className="w-56 sm:w-64 flex-shrink-0 border-r border-slate-200 px-4 py-3">
+              <span className="text-xs sm:text-sm font-semibold text-slate-700">
+                {t.tasks}
+              </span>
             </div>
-            <div className="flex flex-1">
-              {months.map((month, idx) => (
+            <div
+              className="grid"
+              style={{ width: timelineWidth, gridTemplateColumns: monthGridTemplate }}
+            >
+              {monthColumns.map((month) => (
                 <div
-                  key={`${month.year}-${month.month}`}
-                  className="border-r border-slate-300 bg-slate-50 px-1 sm:px-2 py-2 sm:py-3 text-center"
-                  style={{ width: `${(month.weekCount / weeks.length) * 100}%` }}
+                  key={month.index}
+                  className="border-r border-slate-200 px-2 py-3 text-center"
                 >
-                  <span className="text-xs sm:text-sm font-semibold text-slate-700">{month.label}</span>
+                  <span className="text-xs sm:text-sm font-semibold text-slate-700">
+                    {month.label}
+                  </span>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Week Numbers */}
-          <div className="flex border-b border-slate-300">
-            <div className="w-40 sm:w-64 flex-shrink-0 bg-slate-50 border-r border-slate-300"></div>
-            <div className="flex flex-1">
-              {weeks.map((week, idx) => (
-                <div
-                  key={week.weekIndex}
-                  className={`border-r border-slate-200 bg-slate-50 px-1 py-2 text-center flex-1 relative ${
-                    idx === currentWeekIndex ? 'bg-blue-100' : ''
-                  }`}
-                  style={{ minWidth: '40px' }}
-                >
-                  <span className="text-xs text-slate-600">{week.weekInMonth}</span>
-                  {idx === currentWeekIndex && (
-                    <div className="absolute top-0 left-0 w-full h-0.5 bg-blue-600"></div>
-                  )}
-                </div>
-              ))}
+          <div className="flex border-b border-slate-200">
+            <div className="w-56 sm:w-64 flex-shrink-0 border-r border-slate-200 bg-slate-50"></div>
+            <div
+              className="relative"
+              style={{ width: timelineWidth }}
+            >
+              <div
+                className="grid text-center text-[10px] sm:text-xs text-slate-500"
+                style={{ gridTemplateColumns }}
+              >
+                {weekCells.map((week) => (
+                  <div
+                    key={week.globalIndex}
+                    className={`relative h-10 sm:h-12 flex items-center justify-center border-r border-slate-200 bg-white ${
+                      week.weekOfMonth === 1 ? 'bg-slate-50' : ''
+                    }`}
+                  >
+                    <span className="font-medium">W{week.weekOfMonth}</span>
+                    {week.weekOfMonth === 1 && (
+                      <div className="absolute inset-y-0 left-0 w-px bg-slate-300" />
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
-          {/* Task Rows */}
-          {tasks.map((task) => {
-            const taskWeekCells = getTaskWeekCells(task);
-            const isMyTask = highlightRole && task.owner_roles.includes(highlightRole);
+          {timelineTasks.map((task) => {
+            const barLeft = task.startWeek * WEEK_WIDTH;
+            const barWidth = (task.endWeek - task.startWeek + 1) * WEEK_WIDTH;
 
             return (
               <div
-                key={task.id}
-                className={`flex border-b border-slate-200 hover:bg-slate-50 ${
-                  task.was_shifted ? 'bg-blue-50/30' : ''
-                } ${
-                  isMyTask ? 'ring-2 ring-inset ring-blue-500 bg-blue-50/50' : ''
-                }`}
+                key={task.name}
+                className="flex border-b border-slate-100 hover:bg-slate-50 transition-colors"
               >
-                <div className="w-40 sm:w-64 flex-shrink-0 border-r border-slate-300 px-2 sm:px-4 py-2 sm:py-3 pointer-events-none sm:pointer-events-auto">
-                  <div className="flex items-center gap-1 sm:gap-2">
-                    <div
-                      className={`text-xs sm:text-sm font-medium truncate ${
-                        isMyTask ? 'text-blue-900 font-semibold' : 'text-slate-900'
-                      }`}
-                      title={task.name}
-                    >
-                      {task.name}
-                    </div>
-                    {task.was_shifted && (
-                      <span
-                        className="inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-xs font-bold bg-blue-600 text-white shadow-sm flex-shrink-0 animate-pulse"
-                        title={language === 'fr' ? 'Planning décalé' : 'Schedule shifted'}
-                      >
-                        <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                        <span className="hidden sm:inline">{language === 'fr' ? 'DÉCALÉ' : 'SHIFTED'}</span>
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-xs text-slate-500 mt-0.5 sm:mt-1 truncate" title={task.owner_roles.join(', ')}>
-                    {task.owner_roles.join(', ')}
-                  </div>
+                <div className="w-56 sm:w-64 flex-shrink-0 border-r border-slate-200 px-4 py-3">
+                  <p className="text-sm font-medium text-slate-900 leading-snug">
+                    {task.name}
+                  </p>
                 </div>
-
-                <div className="flex flex-1">
-                  {taskWeekCells.map((cell, idx) => {
-                    const cellKey = `${task.id}-${cell.week.weekIndex}`;
-                    const isHovered = hoveredCell === cellKey;
-                    const isTodayWeek = idx === currentWeekIndex;
-
-                    return (
+                <div
+                  className="relative h-12 sm:h-14"
+                  style={{ width: timelineWidth }}
+                >
+                  <div
+                    className="grid h-full"
+                    style={{ gridTemplateColumns }}
+                  >
+                    {weekCells.map((week) => (
                       <div
-                        key={cell.week.weekIndex}
-                        className={`border-r border-slate-200 p-1 flex items-center justify-center flex-1 relative pointer-events-none ${
-                          !isReadOnly ? 'sm:cursor-pointer sm:pointer-events-auto' : ''
+                        key={`${task.name}-${week.globalIndex}`}
+                        className={`border-r border-slate-200 ${
+                          week.weekOfMonth === 1 ? 'bg-slate-50/30 border-l border-l-slate-300' : 'bg-white'
                         }`}
-                        style={{ minWidth: '40px' }}
-                        onMouseEnter={() => !isReadOnly && setHoveredCell(cellKey)}
-                        onMouseLeave={() => !isReadOnly && setHoveredCell(null)}
-                        onClick={() => {
-                          if (!isReadOnly && cell.isInRange && window.innerWidth >= 640) {
-                            onWeekClick(task, cell.week.year, cell.week.weekInMonth);
-                          }
-                        }}
-                      >
-                        {cell.isInRange && (
-                          <div
-                            className={`w-full h-8 rounded ${getStatusColor(task.status)} ${
-                              isHovered && !isReadOnly ? 'opacity-80 ring-2 ring-slate-900' : 'opacity-90'
-                            } ${
-                              isMyTask ? 'ring-2 ring-blue-600' : ''
-                            } transition-all`}
-                          />
-                        )}
-                        {isTodayWeek && (
-                          <div className="absolute inset-y-0 left-0 w-1 bg-blue-600 z-10"></div>
-                        )}
-                      </div>
-                    );
-                  })}
+                      />
+                    ))}
+                  </div>
+                  <div
+                    className="absolute top-1/2 -translate-y-1/2"
+                    style={{ left: barLeft, width: barWidth }}
+                  >
+                    <div className="h-3 sm:h-4 rounded-full bg-gradient-to-r from-slate-900 via-slate-800 to-slate-700 shadow-sm hover:shadow-md hover:shadow-slate-400/40 transition-shadow"></div>
+                  </div>
                 </div>
               </div>
             );
           })}
-        </div>
-      </div>
-
-      {/* Legend */}
-      <div className="border-t border-slate-200 px-4 py-3 bg-slate-50 flex items-center gap-6 text-xs">
-        <span className="font-semibold text-slate-700">{t.status.toUpperCase()}:</span>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-slate-400"></div>
-          <span className="text-slate-600">{t.onTrack}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-amber-500"></div>
-          <span className="text-slate-600">{t.delayed}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-red-500"></div>
-          <span className="text-slate-600">{t.blocked}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-emerald-500"></div>
-          <span className="text-slate-600">{t.done}</span>
         </div>
       </div>
     </div>
