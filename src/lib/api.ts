@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { Task, Comment, ProgressUpdate, Role, TaskStatus } from '../types';
+import { Task, Comment, ProgressUpdate, Role, TaskStatus, ProjectMember, Baseline, BaselineTask } from '../types';
 import { seedTasks } from './seedData';
 import { Session } from './session';
 import { applyOffsetToTask, calculateOffset, calculateDuration, fitDuration } from './dateWindow';
@@ -683,6 +683,180 @@ export async function deleteProject(projectId: string) {
     .from('projects')
     .delete()
     .eq('id', projectId);
+
+  if (error) throw error;
+}
+
+export async function getProjectMembers(projectId: string): Promise<ProjectMember[]> {
+  const { data, error } = await supabase
+    .from('project_members')
+    .select('*')
+    .eq('project_id', projectId)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data || [];
+}
+
+export async function addProjectMember(
+  projectId: string,
+  userToken: string,
+  role: ProjectMember['role'],
+  contractorRole?: string
+) {
+  const { data, error } = await supabase
+    .from('project_members')
+    .insert([{
+      project_id: projectId,
+      user_token: userToken,
+      role,
+      contractor_role: contractorRole,
+    }])
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function updateProjectMemberRole(
+  projectId: string,
+  userToken: string,
+  role: ProjectMember['role'],
+  contractorRole?: string
+) {
+  const { data, error } = await supabase
+    .from('project_members')
+    .update({
+      role,
+      contractor_role: contractorRole,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('project_id', projectId)
+    .eq('user_token', userToken)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function removeProjectMember(projectId: string, userToken: string) {
+  const { error } = await supabase
+    .from('project_members')
+    .delete()
+    .eq('project_id', projectId)
+    .eq('user_token', userToken);
+
+  if (error) throw error;
+}
+
+export async function getUserProjectRole(
+  userToken: string,
+  projectId: string
+): Promise<ProjectMember['role']> {
+  const { data } = await supabase
+    .from('project_members')
+    .select('role')
+    .eq('project_id', projectId)
+    .eq('user_token', userToken)
+    .maybeSingle();
+
+  return data?.role || 'contractor';
+}
+
+export async function isElevatedInProject(
+  userToken: string,
+  projectId: string
+): Promise<boolean> {
+  const { data } = await supabase
+    .from('project_members')
+    .select('role')
+    .eq('project_id', projectId)
+    .eq('user_token', userToken)
+    .in('role', ['admin', 'project_manager', 'developer'])
+    .maybeSingle();
+
+  return !!data;
+}
+
+export async function createBaseline(
+  projectId: string,
+  name: string = 'Baseline',
+  description?: string
+): Promise<Baseline> {
+  const { data: baseline, error: baselineError } = await supabase
+    .from('baselines')
+    .insert([{
+      project_id: projectId,
+      name,
+      description,
+    }])
+    .select()
+    .single();
+
+  if (baselineError) throw baselineError;
+
+  const { data: tasks } = await supabase
+    .from('tasks')
+    .select('*')
+    .eq('project_id', projectId);
+
+  if (tasks && tasks.length > 0) {
+    const baselineTasks = tasks.map(task => ({
+      baseline_id: baseline.id,
+      task_id: task.id,
+      name: task.name,
+      start_date: task.start_date,
+      end_date: task.end_date,
+      due_date: task.due_date,
+      status: task.status,
+      trade: task.trade,
+      phase: task.phase,
+      priority: task.priority,
+      owner_roles: task.owner_roles,
+      assigned_user_token: task.assigned_user_token,
+      assigned_display_name: task.assigned_display_name,
+      percent_done: task.percent_done,
+    }));
+
+    const { error: tasksError } = await supabase
+      .from('baseline_tasks')
+      .insert(baselineTasks);
+
+    if (tasksError) throw tasksError;
+  }
+
+  return baseline;
+}
+
+export async function getBaselines(projectId: string): Promise<Baseline[]> {
+  const { data, error } = await supabase
+    .from('baselines')
+    .select('*')
+    .eq('project_id', projectId)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data || [];
+}
+
+export async function getBaselineTasks(baselineId: string): Promise<BaselineTask[]> {
+  const { data, error } = await supabase
+    .from('baseline_tasks')
+    .select('*')
+    .eq('baseline_id', baselineId)
+    .order('start_date', { ascending: true });
+
+  if (error) throw error;
+  return data || [];
+}
+
+export async function deleteBaseline(baselineId: string) {
+  const { error } = await supabase
+    .from('baselines')
+    .delete()
+    .eq('id', baselineId);
 
   if (error) throw error;
 }

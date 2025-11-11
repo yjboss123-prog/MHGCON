@@ -130,3 +130,38 @@ export type AuditLog = {
   ip_address?: string;
   created_at: string;
 };
+
+export type ProjectMember = {
+  project_id: string;
+  user_token: string;
+  role: 'admin' | 'project_manager' | 'developer' | 'contractor';
+  contractor_role?: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type Baseline = {
+  id: string;
+  project_id: string;
+  name: string;
+  description?: string;
+  created_at: string;
+};
+
+export type BaselineTask = {
+  baseline_id: string;
+  task_id: string;
+  name: string;
+  start_date?: string;
+  end_date?: string;
+  due_date?: string;
+  status?: string;
+  trade?: string;
+  phase?: string;
+  priority?: number;
+  owner_roles?: string[];
+  assigned_user_token?: string;
+  assigned_display_name?: string;
+  percent_done: number;
+  created_at: string;
+};
