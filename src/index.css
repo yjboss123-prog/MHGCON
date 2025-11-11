@@ -222,6 +222,10 @@
   input[type="range"]:disabled::-moz-range-thumb {
     cursor: not-allowed;
   }
+
+  body.task-drawer-open > div > div > div.fixed.bottom-0.left-0.right-0 {
+    display: none !important;
+  }
 }
 
 @media (orientation: landscape) and (max-width: 1023px) {

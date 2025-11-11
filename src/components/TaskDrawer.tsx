@@ -65,11 +65,14 @@ export const TaskDrawer = memo(function TaskDrawer({
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+      document.body.classList.add('task-drawer-open');
     } else {
       document.body.style.overflow = '';
+      document.body.classList.remove('task-drawer-open');
     }
     return () => {
       document.body.style.overflow = '';
+      document.body.classList.remove('task-drawer-open');
     };
   }, [isOpen]);
 
