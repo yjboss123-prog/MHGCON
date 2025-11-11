@@ -205,13 +205,19 @@ export function getWeeksInRange(
   const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
   current.setDate(current.getDate() - daysToMonday);
 
+  const projectYear = startDate.getFullYear();
+
   while (current <= endDate) {
     const { year, week } = getWeekNumber(current);
-    weeks.push({
-      year,
-      week,
-      date: new Date(current),
-    });
+
+    if (year >= projectYear) {
+      weeks.push({
+        year,
+        week,
+        date: new Date(current),
+      });
+    }
+
     current.setDate(current.getDate() + 7);
   }
 
