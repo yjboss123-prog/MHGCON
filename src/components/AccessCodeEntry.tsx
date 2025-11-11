@@ -23,7 +23,7 @@ const CONTRACTOR_ROLES = [
 ];
 
 const CONTRACTOR_ROLES_FR: Record<string, string> = {
-  'Construction Contractor': 'Entrepreneur en construction',
+  'Construction Contractor': 'Chef de construction',
   'Architect': 'Architecte',
   'Chief of Plumbing': 'Chef de plomberie',
   'Chief of Electronics': 'Chef d\'électronique',
