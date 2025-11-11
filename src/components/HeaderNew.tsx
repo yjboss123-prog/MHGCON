@@ -58,10 +58,7 @@ export const HeaderNew = memo(function HeaderNew({
 
   return (
     <>
-      <header
-        className="glass-effect border-b border-slate-200/50 fixed top-0 left-0 right-0 z-50"
-        style={{ paddingTop: 'max(env(safe-area-inset-top), constant(safe-area-inset-top))' }}
-      >
+      <header className="glass-effect border-b border-slate-200/50 fixed top-0 left-0 right-0 z-50 pt-safe">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-3 sm:py-0 sm:h-16">
             <div className="flex items-center justify-between sm:justify-start gap-3 sm:gap-4">
@@ -212,8 +209,8 @@ export const HeaderNew = memo(function HeaderNew({
           </div>
         </div>
       </header>
-      <div style={{ height: 'calc(5rem + max(env(safe-area-inset-top), constant(safe-area-inset-top)))' }} className="sm:hidden" />
-      <div style={{ height: 'calc(4rem + max(env(safe-area-inset-top), constant(safe-area-inset-top)))' }} className="hidden sm:block" />
+      <div style={{ height: 'calc(5rem + env(safe-area-inset-top))' }} className="sm:hidden" />
+      <div style={{ height: 'calc(4rem + env(safe-area-inset-top))' }} className="hidden sm:block" />
     </>
   );
 });

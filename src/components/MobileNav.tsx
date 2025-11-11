@@ -16,8 +16,7 @@ export const MobileNav = memo(function MobileNav({ currentView, onViewChange, la
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-slate-200 z-50 md:hidden"
-      style={{ paddingBottom: 'max(env(safe-area-inset-bottom), constant(safe-area-inset-bottom))' }}
+      className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-slate-200 z-50 md:hidden pb-safe"
     >
       <div className="flex items-center justify-around px-2">
         {navItems.map((item) => {
