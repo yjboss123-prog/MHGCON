@@ -754,6 +754,8 @@ function App() {
         onRebaseline={() => setIsRebaselineModalOpen(true)}
         onAdminPanel={() => setIsAdminPanelOpen(true)}
         onSignOut={handleSignOut}
+        tasks={tasks}
+        onDeleteTask={handleDeleteTask}
       />
 
       {isMobile && session?.role === 'contractor' && (

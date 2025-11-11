@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { X, Building2, CheckSquare, Users, Eye, Bell, Download, Settings as SettingsIcon } from 'lucide-react';
+import { X, Building2, CheckSquare, Users, Eye, Bell, Download, Settings as SettingsIcon, Trash2 } from 'lucide-react';
 import { Language } from '../lib/i18n';
 import { Session } from '../lib/session';
-import { Project } from '../types';
+import { Project, Task } from '../types';
 
 type SettingsTab = 'project' | 'tasks' | 'access' | 'display' | 'notifications' | 'data' | 'advanced';
 
@@ -18,6 +18,8 @@ type SettingsModalProps = {
   onRebaseline: () => void;
   onAdminPanel?: () => void;
   onSignOut: () => void;
+  tasks?: Task[];
+  onDeleteTask?: (task: Task) => void;
 };
 
 export function SettingsModal({
@@ -32,6 +34,8 @@ export function SettingsModal({
   onRebaseline,
   onAdminPanel,
   onSignOut,
+  tasks = [],
+  onDeleteTask,
 }: SettingsModalProps) {
   const [activeTab, setActiveTab] = useState<SettingsTab>('project');
 
@@ -202,6 +206,55 @@ export function SettingsModal({
                         </div>
                       </div>
                     </div>
+
+                    {isManager && tasks.length > 0 && onDeleteTask && (
+                      <div className="pt-4 border-t border-slate-200">
+                        <label className="block text-sm font-medium text-slate-700 mb-3">
+                          {language === 'fr' ? 'Gestion des Tâches' : 'Task Management'}
+                        </label>
+                        <p className="text-sm text-slate-600 mb-4">
+                          {language === 'fr'
+                            ? 'Supprimer des tâches de ce projet'
+                            : 'Remove tasks from this project'}
+                        </p>
+                        <div className="space-y-2 max-h-80 overflow-y-auto">
+                          {tasks.map((task) => (
+                            <div
+                              key={task.id}
+                              className="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-lg hover:border-slate-300 transition-colors"
+                            >
+                              <div className="flex-1 min-w-0">
+                                <div className="text-sm font-medium text-slate-900 truncate">
+                                  {task.name}
+                                </div>
+                                <div className="text-xs text-slate-500 mt-0.5">
+                                  {new Date(task.start_date).toLocaleDateString()} - {new Date(task.end_date).toLocaleDateString()}
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => {
+                                  const confirmMsg = language === 'fr'
+                                    ? `Supprimer "${task.name}" ?`
+                                    : `Delete "${task.name}"?`;
+                                  if (window.confirm(confirmMsg)) {
+                                    onDeleteTask(task);
+                                  }
+                                }}
+                                className="ml-3 p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
+                                title={language === 'fr' ? 'Supprimer' : 'Delete'}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                        <p className="text-xs text-slate-500 mt-3">
+                          {language === 'fr'
+                            ? `${tasks.length} tâche(s) dans ce projet`
+                            : `${tasks.length} task(s) in this project`}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
