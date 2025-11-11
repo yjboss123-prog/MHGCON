@@ -144,8 +144,8 @@ export const Header = memo(function Header({ currentRole, onRoleChange, onAddTas
         </div>
       </div>
       </header>
-      <div style={{ height: 'calc(4rem + max(env(safe-area-inset-top), constant(safe-area-inset-top)))' }} className="sm:hidden" />
-      <div style={{ height: 'calc(5rem + max(env(safe-area-inset-top), constant(safe-area-inset-top)))' }} className="hidden sm:block" />
+      <div style={{ height: 'calc(5rem + max(env(safe-area-inset-top), constant(safe-area-inset-top)))' }} className="sm:hidden" />
+      <div style={{ height: 'calc(7rem + max(env(safe-area-inset-top), constant(safe-area-inset-top)))' }} className="hidden sm:block" />
     </>
   );
 });
