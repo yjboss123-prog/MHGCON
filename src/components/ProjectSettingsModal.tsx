@@ -7,7 +7,7 @@ interface ProjectSettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
   project: Project | null;
-  onSave: (name: string, description: string, customContractors: string[], currentDate: string) => void;
+  onSave: (name: string, description: string, customContractors: string[], currentDate: string, projectStartDate?: string, durationMonths?: number) => void;
   language: Language;
   onInvite?: () => void;
   canManage?: boolean;
@@ -28,6 +28,8 @@ export function ProjectSettingsModal({
   const [customContractors, setCustomContractors] = useState<string[]>([]);
   const [newContractor, setNewContractor] = useState('');
   const [currentDate, setCurrentDate] = useState('');
+  const [projectStartDate, setProjectStartDate] = useState('');
+  const [durationMonths, setDurationMonths] = useState(12);
   const [isProcessing, setIsProcessing] = useState(false);
   const [activeTab, setActiveTab] = useState<'basic' | 'contractors'>('basic');
 
@@ -37,6 +39,8 @@ export function ProjectSettingsModal({
       setDescription(project.description || '');
       setCustomContractors(project.custom_contractors || []);
       setCurrentDate(project.project_current_date || new Date().toISOString().slice(0, 10));
+      setProjectStartDate(project.project_start_date || '2026-01-06');
+      setDurationMonths(project.project_duration_months || 12);
     }
   }, [isOpen, project]);
 
@@ -57,7 +61,7 @@ export function ProjectSettingsModal({
   const handleSave = async () => {
     setIsProcessing(true);
     try {
-      await onSave(name, description, customContractors, currentDate);
+      await onSave(name, description, customContractors, currentDate, projectStartDate, durationMonths);
       onClose();
     } catch (error) {
       console.error('Error saving project settings:', error);
@@ -146,12 +150,48 @@ export function ProjectSettingsModal({
                     type="date"
                     value={currentDate}
                     onChange={(e) => setCurrentDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent text-slate-900"
                   />
                   <p className="text-xs text-slate-500 mt-1">
                     {language === 'fr'
                       ? 'Marque où nous sommes dans le calendrier du projet'
                       : 'Marks where we are in the project timeline'}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    {language === 'fr' ? 'Date de début du projet' : 'Project Start Date'}
+                  </label>
+                  <input
+                    type="date"
+                    value={projectStartDate}
+                    onChange={(e) => setProjectStartDate(e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent text-slate-900"
+                  />
+                  <p className="text-xs text-slate-500 mt-1">
+                    {language === 'fr'
+                      ? 'Date où le projet démarre sur le calendrier'
+                      : 'When the project timeline begins'}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    {language === 'fr' ? 'Durée du projet (mois)' : 'Project Duration (months)'}
+                  </label>
+                  <input
+                    type="number"
+                    min="9"
+                    max="12"
+                    value={durationMonths}
+                    onChange={(e) => setDurationMonths(Math.max(9, Math.min(12, parseInt(e.target.value) || 12)))}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent text-slate-900"
+                  />
+                  <p className="text-xs text-slate-500 mt-1">
+                    {language === 'fr'
+                      ? 'Durée en mois (9-12 mois)'
+                      : 'Duration in months (9-12 months)'}
                   </p>
                 </div>
               </>

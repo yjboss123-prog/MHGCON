@@ -24,8 +24,13 @@ const InvitationManager = lazy(() => import('./components/InvitationManager').th
 const ProjectOperationsModal = lazy(() => import('./components/ProjectOperationsModal').then(m => ({ default: m.ProjectOperationsModal })));
 const AdminPanel = lazy(() => import('./components/AdminPanel').then(m => ({ default: m.AdminPanel })));
 
-const PROJECT_START = '2026-01-06';
-const PROJECT_END = '2026-12-31';
+function calculateProjectEnd(startDate: string, durationMonths: number): string {
+  const start = new Date(startDate);
+  const end = new Date(start);
+  end.setMonth(end.getMonth() + durationMonths);
+  end.setDate(end.getDate() - 1);
+  return end.toISOString().split('T')[0];
+}
 
 type ViewMode = 'gantt' | 'list' | 'my-day';
 type MobileView = 'my-day' | 'all-tasks' | 'gantt' | 'profile';
@@ -65,6 +70,16 @@ function App() {
   const allRoles = useMemo(() => {
     if (!project) return DEFAULT_ROLES;
     return [...DEFAULT_ROLES, ...(project.custom_contractors || [])];
+  }, [project]);
+
+  const projectDates = useMemo(() => {
+    if (!project) {
+      return { start: '2026-01-06', end: '2026-12-31' };
+    }
+    const start = project.project_start_date || '2026-01-06';
+    const duration = project.project_duration_months || 12;
+    const end = calculateProjectEnd(start, duration);
+    return { start, end };
   }, [project]);
 
   const [selectedStatuses, setSelectedStatuses] = useState<TaskStatus[]>([]);
@@ -504,11 +519,26 @@ function App() {
     }
   };
 
-  const handleProjectSettingsSave = async (name: string, description: string, customContractors: string[], currentDate: string) => {
+  const handleProjectSettingsSave = async (
+    name: string,
+    description: string,
+    customContractors: string[],
+    currentDate: string,
+    projectStartDate?: string,
+    durationMonths?: number
+  ) => {
     if (!project) return;
 
     try {
-      const updatedProject = await updateProject(project.id, name, description, customContractors, currentDate);
+      const updatedProject = await updateProject(
+        project.id,
+        name,
+        description,
+        customContractors,
+        currentDate,
+        projectStartDate,
+        durationMonths
+      );
       setProject(updatedProject);
       await loadTasks();
 
@@ -676,8 +706,8 @@ function App() {
           ) : (viewMode === 'gantt' || isLandscape) ? (
             <GanttChart
               tasks={filteredTasks}
-              projectStart={PROJECT_START}
-              projectEnd={PROJECT_END}
+              projectStart={projectDates.start}
+              projectEnd={projectDates.end}
               currentDate={project?.project_current_date}
               onWeekClick={handleWeekClick}
               language={language}
@@ -688,8 +718,8 @@ function App() {
             <TaskList
               tasks={filteredTasks}
               currentRole={currentRole}
-              projectStart={PROJECT_START}
-              projectEnd={PROJECT_END}
+              projectStart={projectDates.start}
+              projectEnd={projectDates.end}
               onTaskView={handleTaskView}
               onTaskUpdate={handleTaskUpdate}
               onTaskShift={handleShiftTask}

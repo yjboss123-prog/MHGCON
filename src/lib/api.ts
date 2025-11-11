@@ -2,6 +2,7 @@ import { supabase } from './supabase';
 import { Task, Comment, ProgressUpdate, Role, TaskStatus } from '../types';
 import { seedTasks } from './seedData';
 import { Session } from './session';
+import { applyOffsetToTask, calculateOffset, calculateDuration, fitDuration } from './dateWindow';
 
 let isInitialized = false;
 
@@ -419,7 +420,9 @@ export async function updateProject(
   name: string,
   description: string,
   customContractors: string[],
-  currentDate?: string
+  currentDate?: string,
+  projectStartDate?: string,
+  durationMonths?: number
 ) {
   const updateData: any = {
     name,
@@ -432,6 +435,14 @@ export async function updateProject(
     updateData.project_current_date = currentDate;
   }
 
+  if (projectStartDate !== undefined) {
+    updateData.project_start_date = projectStartDate;
+  }
+
+  if (durationMonths !== undefined) {
+    updateData.project_duration_months = Math.max(9, Math.min(12, durationMonths));
+  }
+
   const { data, error } = await supabase
     .from('projects')
     .update(updateData)
@@ -441,6 +452,65 @@ export async function updateProject(
 
   if (error) throw error;
   return data;
+}
+
+export async function saveTaskOffsets(projectId: string) {
+  const project = await getProject(projectId);
+  const { data: tasks } = await supabase
+    .from('tasks')
+    .select('*')
+    .eq('project_id', projectId);
+
+  if (!tasks) return;
+
+  const updates = tasks.map((task) => ({
+    id: task.id,
+    offset_days: calculateOffset(project.project_start_date, task.start_date),
+    duration_days: calculateDuration(task.start_date, task.end_date),
+  }));
+
+  for (const update of updates) {
+    await supabase
+      .from('tasks')
+      .update({ offset_days: update.offset_days, duration_days: update.duration_days })
+      .eq('id', update.id);
+  }
+}
+
+export async function reinitializeProject(
+  projectId: string,
+  newStartDate: string
+) {
+  const { data: tasks } = await supabase
+    .from('tasks')
+    .select('*')
+    .eq('project_id', projectId);
+
+  if (!tasks) throw new Error('No tasks found');
+
+  const taskEndDates = tasks
+    .filter(t => t.offset_days !== null && t.duration_days !== null)
+    .map(t => {
+      const dates = applyOffsetToTask(newStartDate, t.offset_days!, t.duration_days!);
+      return new Date(dates.endDate);
+    });
+
+  const newDuration = fitDuration(newStartDate, taskEndDates);
+
+  await updateProject(projectId, '', '', [], undefined, newStartDate, newDuration);
+
+  for (const task of tasks) {
+    if (task.offset_days !== null && task.duration_days !== null) {
+      const newDates = applyOffsetToTask(newStartDate, task.offset_days, task.duration_days);
+      await updateTask(task.id, {
+        start_date: newDates.startDate,
+        end_date: newDates.endDate,
+      });
+    }
+  }
+
+  const project = await getProject(projectId);
+  return project;
 }
 
 export async function getInvitations() {

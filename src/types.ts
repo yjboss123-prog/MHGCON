@@ -29,6 +29,8 @@ export type Task = {
   trade?: string;
   priority?: number;
   dependency_ids?: string[];
+  offset_days?: number;
+  duration_days?: number;
   created_at: string;
   updated_at: string;
   project_id?: string;
@@ -71,6 +73,8 @@ export type Project = {
   end_date: string;
   custom_contractors: string[];
   project_current_date: string;
+  project_start_date: string;
+  project_duration_months: number;
   archived: boolean;
   created_by?: string;
   created_at: string;
