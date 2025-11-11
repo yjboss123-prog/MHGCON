@@ -672,32 +672,6 @@ function App() {
             ? 'px-4 py-4 pb-24'
             : 'max-w-[1600px] px-2 sm:px-4 lg:px-8 py-4 sm:py-6 pb-20'
       }`}>
-        {!isLandscape && !(isMobile && session?.role === 'contractor' && mobileView === 'my-day') && (
-          <div className="mb-4 sm:mb-6 flex justify-center">
-            <div className="flex bg-white rounded-lg shadow-sm p-1">
-              <button
-                onClick={() => setViewMode('gantt')}
-                className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors ${
-                  viewMode === 'gantt'
-                    ? 'bg-slate-900 text-white'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                {t.ganttChart}
-              </button>
-              <button
-                onClick={() => setViewMode('list')}
-                className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors ${
-                  viewMode === 'list'
-                    ? 'bg-slate-900 text-white'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                {t.listView}
-              </button>
-            </div>
-          </div>
-        )}
 
         <main>
           {loadError ? (
@@ -724,7 +698,7 @@ function App() {
               onStatusUpdate={handleQuickStatusUpdate}
               language={language}
             />
-          ) : (viewMode === 'gantt' || isLandscape) ? (
+          ) : viewMode === 'gantt' || isLandscape ? (
             <GanttChart
               tasks={ganttTasks}
               projectStart={projectDates.start}
@@ -734,6 +708,8 @@ function App() {
               language={language}
               isReadOnly={session?.role === 'contractor'}
               highlightRole={session?.contractor_role || undefined}
+              onViewChange={setViewMode}
+              currentView={viewMode}
             />
           ) : (
             <TaskList
