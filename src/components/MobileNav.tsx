@@ -1,9 +1,9 @@
 import { memo } from 'react';
-import { Home, List, BarChart3, User } from 'lucide-react';
+import { Home, List, User } from 'lucide-react';
 
 interface MobileNavProps {
-  currentView: 'my-day' | 'all-tasks' | 'gantt' | 'profile';
-  onViewChange: (view: 'my-day' | 'all-tasks' | 'gantt' | 'profile') => void;
+  currentView: 'my-day' | 'all-tasks' | 'profile';
+  onViewChange: (view: 'my-day' | 'all-tasks' | 'profile') => void;
   language: 'en' | 'fr';
 }
 
@@ -11,7 +11,6 @@ export const MobileNav = memo(function MobileNav({ currentView, onViewChange, la
   const navItems = [
     { id: 'my-day' as const, icon: Home, labelEn: 'My Day', labelFr: 'Ma Journée' },
     { id: 'all-tasks' as const, icon: List, labelEn: 'Tasks', labelFr: 'Tâches' },
-    { id: 'gantt' as const, icon: BarChart3, labelEn: 'Timeline', labelFr: 'Planning' },
     { id: 'profile' as const, icon: User, labelEn: 'Me', labelFr: 'Profil' },
   ];
 

@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo, lazy, Suspense, useCallback } from 'react';
 import { Header } from './components/Header';
 import { FilterPanel } from './components/FilterPanel';
-import { GanttChart } from './components/GanttChart';
 import { TaskList } from './components/TaskList';
 import { TaskDrawer } from './components/TaskDrawer';
 import { ProjectTabs } from './components/ProjectTabs';
@@ -32,13 +31,13 @@ function calculateProjectEnd(startDate: string, durationMonths: number): string 
   return end.toISOString().split('T')[0];
 }
 
-type ViewMode = 'gantt' | 'list' | 'my-day';
-type MobileView = 'my-day' | 'all-tasks' | 'gantt' | 'profile';
+type ViewMode = 'list' | 'my-day';
+type MobileView = 'my-day' | 'all-tasks' | 'profile';
 
 function App() {
   const [currentRole, setCurrentRole] = useState<Role>('Project Manager');
   const [language, setLanguage] = useState<Language>('fr');
-  const [viewMode, setViewMode] = useState<ViewMode>('gantt');
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [mobileView, setMobileView] = useState<MobileView>('my-day');
   const [isLandscape, setIsLandscape] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -330,8 +329,6 @@ function App() {
     setMobileView(view);
     if (view === 'all-tasks') {
       setViewMode('list');
-    } else if (view === 'gantt') {
-      setViewMode('gantt');
     }
   };
 
@@ -653,28 +650,6 @@ function App() {
               isContractor={session?.role === 'contractor'}
             />
 
-            <div className="flex bg-white rounded-lg shadow-sm p-1 self-center sm:self-auto">
-              <button
-                onClick={() => setViewMode('gantt')}
-                className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors ${
-                  viewMode === 'gantt'
-                    ? 'bg-slate-900 text-white'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                {t.ganttChart}
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors ${
-                viewMode === 'list'
-                  ? 'bg-slate-900 text-white'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              {t.listView}
-            </button>
-          </div>
           </div>
         )}
 
@@ -702,17 +677,6 @@ function App() {
               onTaskClick={handleTaskView}
               onStatusUpdate={handleQuickStatusUpdate}
               language={language}
-            />
-          ) : (viewMode === 'gantt' || isLandscape) ? (
-            <GanttChart
-              tasks={filteredTasks}
-              projectStart={projectDates.start}
-              projectEnd={projectDates.end}
-              currentDate={project?.project_current_date}
-              onWeekClick={handleWeekClick}
-              language={language}
-              isReadOnly={session?.role === 'contractor'}
-              highlightRole={session?.contractor_role || undefined}
             />
           ) : (
             <TaskList
