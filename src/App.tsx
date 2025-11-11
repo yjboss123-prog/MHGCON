@@ -106,11 +106,10 @@ function App() {
     if (session) {
       if (session.contractor_role) {
         setCurrentRole(session.contractor_role as Role);
-        setSelectedRoles([session.contractor_role]);
       } else {
         setCurrentRole(roleToDisplayName(session.role) as Role);
-        setSelectedRoles([]);
       }
+      setSelectedRoles([]);
     }
   }, [session]);
 
@@ -241,6 +240,36 @@ function App() {
       return true;
     });
   }, [tasks, selectedStatuses, selectedRoles, selectedMonths]);
+
+  const listViewTasks = useMemo(() => {
+    return tasks.filter((task) => {
+      if (session?.role === 'contractor' && session?.contractor_role) {
+        if (!task.owner_roles.includes(session.contractor_role)) {
+          return false;
+        }
+      }
+
+      if (selectedStatuses.length > 0 && !selectedStatuses.includes(task.status)) {
+        return false;
+      }
+
+      if (selectedRoles.length > 0 && !task.owner_roles.some(role => selectedRoles.includes(role))) {
+        return false;
+      }
+
+      if (selectedMonths.length > 0) {
+        const taskMonth = new Date(task.start_date).toLocaleDateString('en-US', {
+          month: 'short',
+          year: 'numeric',
+        });
+        if (!selectedMonths.includes(taskMonth)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [tasks, selectedStatuses, selectedRoles, selectedMonths, session]);
 
   const ganttTasks = useMemo(() => {
     return tasks.filter((task) => {
@@ -720,7 +749,7 @@ function App() {
             </div>
           ) : isMobile && session?.role === 'contractor' && mobileView === 'my-day' ? (
             <MyDayView
-              tasks={filteredTasks}
+              tasks={listViewTasks}
               onTaskClick={handleTaskView}
               onStatusUpdate={handleQuickStatusUpdate}
               language={language}
@@ -738,7 +767,7 @@ function App() {
             />
           ) : (
             <TaskList
-              tasks={filteredTasks}
+              tasks={listViewTasks}
               currentRole={currentRole}
               projectStart={projectDates.start}
               projectEnd={projectDates.end}
