@@ -11,6 +11,8 @@ interface GanttChartProps {
   currentDate?: string;
   onWeekClick: (task: Task, year: number, week: number) => void;
   language: Language;
+  isReadOnly?: boolean;
+  highlightRole?: string;
 }
 
 interface WeekCell {
@@ -36,7 +38,7 @@ const getStatusColor = (status: string) => {
   }
 };
 
-export const GanttChart = memo(function GanttChart({ tasks, projectStart, projectEnd, currentDate, onWeekClick, language }: GanttChartProps) {
+export const GanttChart = memo(function GanttChart({ tasks, projectStart, projectEnd, currentDate, onWeekClick, language, isReadOnly = false, highlightRole }: GanttChartProps) {
   const [hoveredCell, setHoveredCell] = useState<string | null>(null);
   const t = useTranslation(language);
 
@@ -164,12 +166,19 @@ export const GanttChart = memo(function GanttChart({ tasks, projectStart, projec
           {/* Task Rows */}
           {tasks.map((task) => {
             const taskWeeks = getTaskWeekCells(task);
+            const isMyTask = highlightRole && task.owner_roles.includes(highlightRole);
 
             return (
-              <div key={task.id} className={`flex border-b border-slate-200 hover:bg-slate-50 ${task.was_shifted ? 'bg-blue-50/30' : ''}`}>
+              <div key={task.id} className={`flex border-b border-slate-200 hover:bg-slate-50 ${
+                task.was_shifted ? 'bg-blue-50/30' : ''
+              } ${
+                isMyTask ? 'ring-2 ring-inset ring-blue-500 bg-blue-50/50' : ''
+              }`}>
                 <div className="w-40 sm:w-64 flex-shrink-0 border-r border-slate-300 px-2 sm:px-4 py-2 sm:py-3 pointer-events-none sm:pointer-events-auto">
                   <div className="flex items-center gap-1 sm:gap-2">
-                    <div className="text-xs sm:text-sm font-medium text-slate-900 truncate" title={task.name}>{task.name}</div>
+                    <div className={`text-xs sm:text-sm font-medium truncate ${
+                      isMyTask ? 'text-blue-900 font-semibold' : 'text-slate-900'
+                    }`} title={task.name}>{task.name}</div>
                     {task.was_shifted && (
                       <span
                         className="inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-xs font-bold bg-blue-600 text-white shadow-sm flex-shrink-0 animate-pulse"
@@ -193,12 +202,14 @@ export const GanttChart = memo(function GanttChart({ tasks, projectStart, projec
                     return (
                       <div
                         key={idx}
-                        className="border-r border-slate-200 p-1 flex items-center justify-center flex-1 sm:cursor-pointer relative pointer-events-none sm:pointer-events-auto"
+                        className={`border-r border-slate-200 p-1 flex items-center justify-center flex-1 relative pointer-events-none ${
+                          !isReadOnly ? 'sm:cursor-pointer sm:pointer-events-auto' : ''
+                        }`}
                         style={{ minWidth: '40px' }}
-                        onMouseEnter={() => setHoveredCell(cellKey)}
-                        onMouseLeave={() => setHoveredCell(null)}
+                        onMouseEnter={() => !isReadOnly && setHoveredCell(cellKey)}
+                        onMouseLeave={() => !isReadOnly && setHoveredCell(null)}
                         onClick={(e) => {
-                          if (weekCell.isInTaskRange && window.innerWidth >= 640) {
+                          if (!isReadOnly && weekCell.isInTaskRange && window.innerWidth >= 640) {
                             onWeekClick(task, weekCell.year, weekCell.week);
                           }
                         }}
@@ -206,7 +217,9 @@ export const GanttChart = memo(function GanttChart({ tasks, projectStart, projec
                         {weekCell.isInTaskRange && (
                           <div
                             className={`w-full h-8 rounded ${getStatusColor(task.status)} ${
-                              isHovered ? 'opacity-80 ring-2 ring-slate-900' : 'opacity-90'
+                              isHovered && !isReadOnly ? 'opacity-80 ring-2 ring-slate-900' : 'opacity-90'
+                            } ${
+                              isMyTask ? 'ring-2 ring-blue-600' : ''
                             } transition-all`}
                           />
                         )}

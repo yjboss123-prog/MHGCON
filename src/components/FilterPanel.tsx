@@ -1,6 +1,6 @@
 import { useState, memo } from 'react';
 import { TaskStatus, TASK_STATUSES } from '../types';
-import { Filter, ChevronDown, ChevronUp } from 'lucide-react';
+import { Filter, ChevronDown, ChevronUp, Lock } from 'lucide-react';
 import { Language, useTranslation, translateRole, translateStatus } from '../lib/i18n';
 
 interface FilterPanelProps {
@@ -14,6 +14,7 @@ interface FilterPanelProps {
   onClearFilters: () => void;
   language: Language;
   allRoles: string[];
+  isContractor?: boolean;
 }
 
 export const FilterPanel = memo(function FilterPanel({
@@ -27,6 +28,7 @@ export const FilterPanel = memo(function FilterPanel({
   onClearFilters,
   language,
   allRoles,
+  isContractor = false,
 }: FilterPanelProps) {
   const t = useTranslation(language);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -42,7 +44,13 @@ export const FilterPanel = memo(function FilterPanel({
               <Filter className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </div>
             <h2 className="text-base sm:text-lg font-bold text-slate-900">{t.filters}</h2>
-            {hasActiveFilters && (
+            {isContractor && selectedRoles.length > 0 && (
+              <div className="flex items-center gap-2 px-3 py-1 bg-blue-50 border border-blue-200 rounded-full">
+                <Lock className="w-3.5 h-3.5 text-blue-600" />
+                <span className="text-xs font-semibold text-blue-700">My Tasks</span>
+              </div>
+            )}
+            {hasActiveFilters && !isContractor && (
               <span className="inline-flex items-center justify-center min-w-[24px] h-6 px-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xs font-bold rounded-full shadow-lg shadow-blue-500/30">
                 {selectedStatuses.length + selectedRoles.length + selectedMonths.length}
               </span>

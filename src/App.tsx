@@ -9,7 +9,7 @@ import { AccessCodeEntry } from './components/AccessCodeEntry';
 import { Task, Role, TaskStatus, DEFAULT_ROLES, Project } from './types';
 import { getTasks, initializeData, shiftSchedule, deleteTask, rebaselineProject, getProject, updateProject, getAllProjects, createProject, duplicateProject, archiveProject, unarchiveProject, deleteProject } from './lib/api';
 import { Language, useTranslation } from './lib/i18n';
-import { getSession, validateSession, signOut, Session, isAdmin, canManageTasks, canDeleteTasks } from './lib/session';
+import { getSession, validateSession, signOut, clearSession, Session, isAdmin, canManageTasks, canDeleteTasks } from './lib/session';
 import { roleToDisplayName } from './lib/utils';
 
 const AddTaskModal = lazy(() => import('./components/AddTaskModal').then(m => ({ default: m.AddTaskModal })));
@@ -85,8 +85,10 @@ function App() {
     if (session) {
       if (session.contractor_role) {
         setCurrentRole(session.contractor_role as Role);
+        setSelectedRoles([session.contractor_role]);
       } else {
         setCurrentRole(roleToDisplayName(session.role) as Role);
+        setSelectedRoles([]);
       }
     }
   }, [session]);
@@ -497,6 +499,13 @@ function App() {
     }
   };
 
+  const handleSwitchCode = () => {
+    clearSession();
+    setSession(null);
+    setTasks([]);
+    setProjects([]);
+  };
+
   const userIsAdmin = isAdmin(session);
   const canManage = canManageTasks(session);
   const canDelete = canDeleteTasks(session);
@@ -534,6 +543,7 @@ function App() {
           allRoles={allRoles}
           userSession={session}
           onSignOut={handleSignOut}
+          onSwitchCode={handleSwitchCode}
         />
       )}
 
@@ -551,6 +561,7 @@ function App() {
               onClearFilters={handleClearFilters}
               language={language}
               allRoles={allRoles}
+              isContractor={session?.role === 'contractor'}
             />
 
             <div className="flex bg-white rounded-lg shadow-sm p-1 self-center sm:self-auto">
@@ -604,6 +615,8 @@ function App() {
               currentDate={project?.project_current_date}
               onWeekClick={handleWeekClick}
               language={language}
+              isReadOnly={session?.role === 'contractor'}
+              highlightRole={session?.contractor_role || undefined}
             />
           ) : (
             <TaskList

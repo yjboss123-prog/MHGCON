@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Settings, RefreshCw, UserPlus, LogOut, User as UserIcon, Shield } from 'lucide-react';
+import { Settings, RefreshCw, UserPlus, LogOut, User as UserIcon, Shield, Lock } from 'lucide-react';
 import { Language, useTranslation } from '../lib/i18n';
 import InstallPrompt from './InstallPrompt';
 import { Session } from '../lib/session';
@@ -20,9 +20,10 @@ interface HeaderProps {
   allRoles: string[];
   userSession: Session | null;
   onSignOut: () => void;
+  onSwitchCode: () => void;
 }
 
-export const Header = memo(function Header({ currentRole, onRoleChange, onAddTask, onRebaseline, onProjectSettings, onInvite, onAdminPanel, language, onLanguageChange, projectName, projectDescription, allRoles, userSession, onSignOut }: HeaderProps) {
+export const Header = memo(function Header({ currentRole, onRoleChange, onAddTask, onRebaseline, onProjectSettings, onInvite, onAdminPanel, language, onLanguageChange, projectName, projectDescription, allRoles, userSession, onSignOut, onSwitchCode }: HeaderProps) {
   const t = useTranslation(language);
   const canManage = isManagerRole(currentRole);
   return (
@@ -64,16 +65,29 @@ export const Header = memo(function Header({ currentRole, onRoleChange, onAddTas
 
             {userSession && (
               <>
-                <div className="hidden sm:flex items-center gap-2 px-3 py-2 bg-white rounded-lg border border-slate-200">
-                  <UserIcon className="w-4 h-4 text-slate-600" />
-                  <div className="flex flex-col">
-                    <span className="text-xs font-medium text-slate-900">{userSession.display_name}</span>
-                    <span className="text-xs text-slate-600 capitalize">{userSession.role.replace('_', ' ')}</span>
+                <div className="hidden sm:flex items-center gap-2">
+                  <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-br from-slate-50 to-white rounded-lg border border-slate-200 shadow-sm">
+                    <UserIcon className="w-4 h-4 text-slate-600" />
+                    <div className="flex flex-col">
+                      <span className="text-xs font-semibold text-slate-900">{userSession.display_name}</span>
+                      <span className="text-xs text-slate-600 font-medium">
+                        {userSession.contractor_role || currentRole}
+                      </span>
+                    </div>
                   </div>
+                  <button
+                    onClick={onSwitchCode}
+                    className="btn-secondary px-3 py-2 text-xs flex items-center gap-2"
+                    title="Switch Access Code"
+                    style={{ minHeight: '44px' }}
+                  >
+                    <Lock className="w-3.5 h-3.5" />
+                    <span className="hidden lg:inline">Switch</span>
+                  </button>
                 </div>
                 <button
                   onClick={onSignOut}
-                  className="btn-secondary px-3 py-2 text-sm"
+                  className="btn-secondary px-3 py-2 text-sm sm:hidden"
                   title="Sign Out"
                   style={{ minHeight: '44px' }}
                 >

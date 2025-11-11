@@ -15,6 +15,7 @@ export type Task = {
   owner_roles: string[];
   start_date: string;
   end_date: string;
+  due_date?: string;
   percent_done: number;
   status: TaskStatus;
   delay_reason?: string;
@@ -24,6 +25,10 @@ export type Task = {
   assigned_display_name?: string;
   created_by_token?: string;
   created_by_role?: string;
+  phase?: string;
+  trade?: string;
+  priority?: number;
+  dependency_ids?: string[];
   created_at: string;
   updated_at: string;
   project_id?: string;
@@ -46,6 +51,15 @@ export type ProgressUpdate = {
   delay_reason?: string;
   note?: string;
   photo_base64?: string;
+  created_at: string;
+};
+
+export type TaskAttachment = {
+  id: number;
+  task_id: string;
+  file_url: string;
+  caption?: string;
+  uploaded_by?: string;
   created_at: string;
 };
 
