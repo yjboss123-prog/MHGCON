@@ -237,31 +237,33 @@ export const TaskDrawer = memo(function TaskDrawer({
         onClick={onClose}
       />
       <div
-        className="fixed inset-y-0 right-0 w-full sm:w-[600px] bg-white shadow-xl z-50 overflow-y-auto smooth-scroll pt-safe pb-safe"
+        className="fixed inset-y-0 right-0 w-full sm:w-[600px] bg-white shadow-xl z-50 overflow-y-auto smooth-scroll min-h-dvh"
         style={{
           transform: 'translateZ(0)',
           willChange: 'transform',
         }}
       >
-        <div className="sticky top-0 bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between z-10">
-          <div className="flex-1 min-w-0">
-            <h2 className="text-base font-semibold text-slate-900 truncate">
-              {task.name}
-            </h2>
-            {task.assigned_display_name && (
-              <div className="text-xs text-slate-500 mt-0.5">
-                Assigned to {task.assigned_display_name}
-              </div>
-            )}
+        <div className="sticky top-0 bg-white/95 backdrop-blur border-b border-slate-200 z-10 pt-safe">
+          <div className="px-4 py-3 flex items-center justify-between">
+            <div className="flex-1 min-w-0">
+              <h2 className="text-base font-semibold text-slate-900 truncate">
+                {task.name}
+              </h2>
+              {task.assigned_display_name && (
+                <div className="text-xs text-slate-500 mt-0.5">
+                  Assigned to {task.assigned_display_name}
+                </div>
+              )}
+            </div>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-slate-100 rounded-lg transition-colors flex-shrink-0"
+              style={{ minHeight: '44px', minWidth: '44px' }}
+              aria-label="Close"
+            >
+              <X className="w-5 h-5 text-slate-500" />
+            </button>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-slate-100 rounded-lg transition-colors flex-shrink-0"
-            style={{ minHeight: '44px', minWidth: '44px' }}
-            aria-label="Close"
-          >
-            <X className="w-5 h-5 text-slate-500" />
-          </button>
         </div>
 
         <div className="p-4 space-y-6 pb-32">
