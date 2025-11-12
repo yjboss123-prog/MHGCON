@@ -632,7 +632,7 @@ function App() {
         </main>
       </div>
 
-      {!isLandscape && (
+      {!isLandscape && !(isMobile && viewMode === 'my-day') && (
         <ProjectTabs
           projects={projects}
           activeProjectId={activeProjectId}
