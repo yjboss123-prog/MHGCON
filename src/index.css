@@ -176,11 +176,26 @@
 
   .main-list {
     position: relative;
-    z-index: 10;
+    z-index: 15;
   }
 
   .bottom-bar {
     z-index: 1200;
+  }
+
+  .bottom-actions-bar {
+    z-index: 1200;
+    pointer-events: auto;
+  }
+
+  .project-switcher-top {
+    z-index: 20;
+    pointer-events: auto;
+  }
+
+  .project-switcher-top button,
+  .bottom-actions-bar button {
+    pointer-events: auto;
   }
 
   button, .btn, a {

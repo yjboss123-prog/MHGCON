@@ -768,7 +768,7 @@ function App() {
         onDeleteTask={handleDeleteTask}
       />
 
-      {isMobile && session?.role === 'contractor' && mobileView !== 'my-day' && (
+      {isMobile && session?.role === 'contractor' && viewMode !== 'my-day' && (
         <MobileNav
           currentView={mobileView}
           onViewChange={handleMobileViewChange}

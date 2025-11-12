@@ -181,18 +181,18 @@ export const MyDayView = memo(function MyDayView({
   }, [language, tasks, handleViewTask]);
 
   return (
-    <>
+    <div className="myday-view-wrapper">
       {isMobile && allProjects.length > 0 && onProjectChange && (
-        <div className="mb-4 px-1">
+        <div className="project-switcher-top relative z-[20] mb-4 px-1" style={{ pointerEvents: 'auto' }}>
           <div className="grid grid-cols-2 gap-3">
             {allProjects.slice(0, 2).map((project) => (
               <button
                 key={project.id}
                 onClick={() => onProjectChange(project.id)}
-                className={`h-10 rounded-xl border text-sm font-medium transition-colors ${
+                className={`h-10 rounded-xl border text-sm font-medium ${
                   project.id === currentProject?.id
                     ? 'border-blue-500 bg-blue-50 text-blue-700'
-                    : 'border-slate-300 bg-white text-slate-700'
+                    : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50 active:bg-slate-100'
                 }`}
               >
                 {project.name}
@@ -202,7 +202,7 @@ export const MyDayView = memo(function MyDayView({
         </div>
       )}
 
-      <div className={isMobile ? "pb-[calc(96px+env(safe-area-inset-bottom))]" : "pb-20"}>
+      <div className={`main-list relative z-[15] ${isMobile ? "pb-[calc(96px+env(safe-area-inset-bottom))]" : "pb-20"}`}>
         {tasksByPriority.today.length > 0 && (
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-3 px-1">
@@ -273,20 +273,20 @@ export const MyDayView = memo(function MyDayView({
 
       {isMobile && onSettings && onLogout && (
         <div
-          className="fixed inset-x-0 bottom-0 z-[1200] bg-white/95 backdrop-blur border-t border-slate-200 px-4 pt-2"
-          style={{ paddingBottom: 'calc(10px + env(safe-area-inset-bottom))' }}
+          className="bottom-actions-bar fixed inset-x-0 bottom-0 z-[1200] bg-white/95 border-t border-slate-200 px-4 pt-2"
+          style={{ paddingBottom: 'calc(10px + env(safe-area-inset-bottom))', pointerEvents: 'auto' }}
         >
           <div className="mx-auto max-w-screen-sm grid grid-cols-2 gap-3">
             <button
               onClick={onSettings}
-              className="h-11 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 transition-colors text-sm font-medium flex items-center justify-center gap-2"
+              className="h-11 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 active:bg-slate-100 text-sm font-medium flex items-center justify-center gap-2"
             >
               <Settings className="w-4 h-4" />
               {language === 'fr' ? 'Réglages' : 'Settings'}
             </button>
             <button
               onClick={onLogout}
-              className="h-11 rounded-xl bg-red-600 text-white hover:bg-red-700 transition-colors text-sm font-medium flex items-center justify-center gap-2"
+              className="h-11 rounded-xl bg-red-600 text-white hover:bg-red-700 active:bg-red-800 text-sm font-medium flex items-center justify-center gap-2"
             >
               <LogOut className="w-4 h-4" />
               {language === 'fr' ? 'Se déconnecter' : 'Logout'}
@@ -294,6 +294,6 @@ export const MyDayView = memo(function MyDayView({
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 });
