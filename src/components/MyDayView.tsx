@@ -51,8 +51,6 @@ export const MyDayView = memo(function MyDayView({
   onLogout
 }: MyDayViewProps) {
   const t = useTranslation(language);
-  const [accessCache, setAccessCache] = useState<Record<string, boolean>>({});
-  const [checkingAccess, setCheckingAccess] = useState<Record<string, boolean>>({});
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -70,64 +68,16 @@ export const MyDayView = memo(function MyDayView({
     upcoming: tasks.filter(t => getTaskPriority(t) === 'upcoming' && t.status !== 'Done'),
   }), [tasks]);
 
-  const checkTaskAccess = useCallback(async (taskId: string) => {
-    setCheckingAccess(prev => {
-      if (prev[taskId]) return prev;
-      return { ...prev, [taskId]: true };
-    });
+  const handleTaskClick = useCallback((task: Task) => {
+    onTaskClick(task);
+  }, [onTaskClick]);
 
-    try {
-      const hasAccess = await canOpenTask(taskId, session);
-      setAccessCache(prev => ({ ...prev, [taskId]: hasAccess }));
-      setCheckingAccess(prev => {
-        const next = { ...prev };
-        delete next[taskId];
-        return next;
-      });
-      return hasAccess;
-    } catch (error) {
-      console.error('Error checking task access:', error);
-      setCheckingAccess(prev => {
-        const next = { ...prev };
-        delete next[taskId];
-        return next;
-      });
-      return false;
-    }
-  }, [session]);
-
-  const handleView = useCallback(async (task: Task, e: React.MouseEvent) => {
-    e.stopPropagation();
-    const hasAccess = await checkTaskAccess(task.id);
-    if (hasAccess) {
-      onTaskClick(task);
-    } else {
-      alert(language === 'fr'
-        ? "Accès requis par le chef de projet"
-        : "Access required by project manager");
-    }
-  }, [checkTaskAccess, onTaskClick, language]);
-
-  const handleUpdate = useCallback(async (task: Task, e: React.MouseEvent) => {
-    e.stopPropagation();
-    const hasAccess = await checkTaskAccess(task.id);
-    if (hasAccess) {
-      onTaskClick(task);
-    } else {
-      alert(language === 'fr'
-        ? "Accès requis par le chef de projet"
-        : "Access required by project manager");
-    }
-  }, [checkTaskAccess, onTaskClick, language]);
-
-  const renderTaskCard = (task: Task) => {
+  const renderTaskCard = useCallback((task: Task) => {
     const daysRemaining = getDaysRemaining(task.end_date, task.status, task.percent_done);
     const dateRange = `${formatDate(task.start_date)} - ${formatDate(task.end_date)}`;
     const daysText = language === 'fr'
       ? `${Math.abs(daysRemaining)} jour${Math.abs(daysRemaining) !== 1 ? 's' : ''} ${daysRemaining >= 0 ? 'restants' : 'de retard'}`
       : `${Math.abs(daysRemaining)} day${Math.abs(daysRemaining) !== 1 ? 's' : ''} ${daysRemaining >= 0 ? 'remaining' : 'overdue'}`;
-
-    const hasAccess = accessCache[task.id] ?? false;
 
     return (
       <article
@@ -170,29 +120,21 @@ export const MyDayView = memo(function MyDayView({
 
         <div className="mt-4 grid grid-cols-2 gap-3">
           <button
-            onClick={(e) => handleView(task, e)}
-            className={`h-11 rounded-xl border text-sm font-medium transition-colors ${
-              hasAccess
-                ? 'border-slate-300 bg-white hover:bg-slate-50'
-                : 'border-slate-200 bg-slate-50 text-slate-500'
-            }`}
+            onClick={() => handleTaskClick(task)}
+            className="h-11 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-sm font-medium transition-colors"
           >
             {language === 'fr' ? 'Voir' : 'View'}
           </button>
           <button
-            onClick={(e) => handleUpdate(task, e)}
-            className={`h-11 rounded-xl text-sm font-medium transition-colors ${
-              hasAccess
-                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                : 'bg-slate-200 text-slate-500'
-            }`}
+            onClick={() => handleTaskClick(task)}
+            className="h-11 rounded-xl bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium transition-colors"
           >
             {language === 'fr' ? 'Mettre à jour' : 'Update'}
           </button>
         </div>
       </article>
     );
-  };
+  }, [language, handleTaskClick]);
 
   return (
     <>
