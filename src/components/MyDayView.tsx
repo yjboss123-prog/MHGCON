@@ -183,12 +183,16 @@ export const MyDayView = memo(function MyDayView({
   return (
     <div className="myday-view-wrapper">
       {isMobile && allProjects.length > 0 && onProjectChange && (
-        <div className="project-switcher-top relative z-[20] mb-4 px-1" style={{ pointerEvents: 'auto' }}>
+        <div className="project-switcher-top relative z-[50] mb-4 px-1" style={{ pointerEvents: 'auto', touchAction: 'manipulation' }}>
           <div className="grid grid-cols-2 gap-3">
             {allProjects.slice(0, 2).map((project) => (
               <button
                 key={project.id}
-                onClick={() => onProjectChange(project.id)}
+                onClick={() => {
+                  console.log('Project button clicked:', project.id);
+                  onProjectChange(project.id);
+                }}
+                style={{ pointerEvents: 'auto', touchAction: 'manipulation' }}
                 className={`h-10 rounded-xl border text-sm font-medium ${
                   project.id === currentProject?.id
                     ? 'border-blue-500 bg-blue-50 text-blue-700'
