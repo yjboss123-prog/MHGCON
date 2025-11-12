@@ -1,4 +1,4 @@
-import { memo, useState, useCallback, useEffect } from 'react';
+import { memo, useState, useCallback, useEffect, useMemo } from 'react';
 import { Task, Project } from '../types';
 import { Calendar, Trash2, User, Settings, LogOut } from 'lucide-react';
 import { Language, useTranslation, translateRole, translateStatus } from '../lib/i18n';
@@ -64,29 +64,37 @@ export const MyDayView = memo(function MyDayView({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const tasksByPriority = {
+  const tasksByPriority = useMemo(() => ({
     today: tasks.filter(t => getTaskPriority(t) === 'today' && t.status !== 'Done'),
     soon: tasks.filter(t => getTaskPriority(t) === 'soon' && t.status !== 'Done'),
     upcoming: tasks.filter(t => getTaskPriority(t) === 'upcoming' && t.status !== 'Done'),
-  };
+  }), [tasks]);
 
   const checkTaskAccess = useCallback(async (taskId: string) => {
-    if (accessCache[taskId] !== undefined) {
-      return accessCache[taskId];
-    }
+    setCheckingAccess(prev => {
+      if (prev[taskId]) return prev;
+      return { ...prev, [taskId]: true };
+    });
 
-    setCheckingAccess(prev => ({ ...prev, [taskId]: true }));
     try {
       const hasAccess = await canOpenTask(taskId, session);
       setAccessCache(prev => ({ ...prev, [taskId]: hasAccess }));
+      setCheckingAccess(prev => {
+        const next = { ...prev };
+        delete next[taskId];
+        return next;
+      });
       return hasAccess;
     } catch (error) {
       console.error('Error checking task access:', error);
+      setCheckingAccess(prev => {
+        const next = { ...prev };
+        delete next[taskId];
+        return next;
+      });
       return false;
-    } finally {
-      setCheckingAccess(prev => ({ ...prev, [taskId]: false }));
     }
-  }, [session, accessCache]);
+  }, [session]);
 
   const handleView = useCallback(async (task: Task, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -119,12 +127,7 @@ export const MyDayView = memo(function MyDayView({
       ? `${Math.abs(daysRemaining)} jour${Math.abs(daysRemaining) !== 1 ? 's' : ''} ${daysRemaining >= 0 ? 'restants' : 'de retard'}`
       : `${Math.abs(daysRemaining)} day${Math.abs(daysRemaining) !== 1 ? 's' : ''} ${daysRemaining >= 0 ? 'remaining' : 'overdue'}`;
 
-    const hasAccess = accessCache[task.id];
-    const isChecking = checkingAccess[task.id];
-
-    if (hasAccess === undefined && !isChecking) {
-      checkTaskAccess(task.id);
-    }
+    const hasAccess = accessCache[task.id] ?? false;
 
     return (
       <article
