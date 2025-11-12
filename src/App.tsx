@@ -598,6 +598,11 @@ function App() {
               onStatusUpdate={handleQuickStatusUpdate}
               language={language}
               session={session}
+              currentProject={project}
+              allProjects={projects}
+              onProjectChange={handleProjectChange}
+              onSettings={() => setIsProjectSettingsOpen(true)}
+              onLogout={handleSignOut}
             />
           ) : viewMode === 'gantt' ? (
             <GanttView
@@ -759,7 +764,7 @@ function App() {
         onDeleteTask={handleDeleteTask}
       />
 
-      {isMobile && session?.role === 'contractor' && (
+      {isMobile && session?.role === 'contractor' && mobileView !== 'my-day' && (
         <MobileNav
           currentView={mobileView}
           onViewChange={handleMobileViewChange}

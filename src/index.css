@@ -101,6 +101,8 @@
   .card-modern {
     @apply bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300;
     border: 1px solid rgba(226, 232, 240, 0.8);
+    position: relative;
+    z-index: 10;
   }
 
   .btn-primary {
@@ -148,6 +150,23 @@
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
     overscroll-behavior-y: contain;
+  }
+
+  .page-header-overlay,
+  .header-blur,
+  .header-gradient,
+  .status-frost,
+  .bg-shape {
+    pointer-events: none !important;
+  }
+
+  .task-card {
+    position: relative;
+    z-index: 10;
+  }
+
+  button, .btn, a {
+    pointer-events: auto;
   }
 
   .min-h-dvh {

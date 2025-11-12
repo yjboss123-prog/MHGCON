@@ -1,6 +1,6 @@
-import { memo, useState, useCallback } from 'react';
-import { Task } from '../types';
-import { Calendar, Trash2, User } from 'lucide-react';
+import { memo, useState, useCallback, useEffect } from 'react';
+import { Task, Project } from '../types';
+import { Calendar, Trash2, User, Settings, LogOut } from 'lucide-react';
 import { Language, useTranslation, translateRole, translateStatus } from '../lib/i18n';
 import {
   formatDate,
@@ -17,6 +17,11 @@ interface MyDayViewProps {
   onStatusUpdate: (taskId: string, status: 'On Track' | 'Delayed' | 'Blocked' | 'Done') => void;
   language: Language;
   session: Session | null;
+  currentProject?: Project;
+  allProjects?: Project[];
+  onProjectChange?: (projectId: string) => void;
+  onSettings?: () => void;
+  onLogout?: () => void;
 }
 
 const getTaskPriority = (task: Task): 'today' | 'soon' | 'upcoming' => {
@@ -38,11 +43,26 @@ export const MyDayView = memo(function MyDayView({
   tasks,
   onTaskClick,
   language,
-  session
+  session,
+  currentProject,
+  allProjects = [],
+  onProjectChange,
+  onSettings,
+  onLogout
 }: MyDayViewProps) {
   const t = useTranslation(language);
   const [accessCache, setAccessCache] = useState<Record<string, boolean>>({});
   const [checkingAccess, setCheckingAccess] = useState<Record<string, boolean>>({});
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.matchMedia("(max-width: 640px)").matches);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const tasksByPriority = {
     today: tasks.filter(t => getTaskPriority(t) === 'today' && t.status !== 'Done'),
@@ -73,16 +93,24 @@ export const MyDayView = memo(function MyDayView({
     const hasAccess = await checkTaskAccess(task.id);
     if (hasAccess) {
       onTaskClick(task);
+    } else {
+      alert(language === 'fr'
+        ? "Accès requis par le chef de projet"
+        : "Access required by project manager");
     }
-  }, [checkTaskAccess, onTaskClick]);
+  }, [checkTaskAccess, onTaskClick, language]);
 
   const handleUpdate = useCallback(async (task: Task, e: React.MouseEvent) => {
     e.stopPropagation();
     const hasAccess = await checkTaskAccess(task.id);
     if (hasAccess) {
       onTaskClick(task);
+    } else {
+      alert(language === 'fr'
+        ? "Accès requis par le chef de projet"
+        : "Access required by project manager");
     }
-  }, [checkTaskAccess, onTaskClick]);
+  }, [checkTaskAccess, onTaskClick, language]);
 
   const renderTaskCard = (task: Task) => {
     const daysRemaining = getDaysRemaining(task.end_date, task.status, task.percent_done);
@@ -137,40 +165,56 @@ export const MyDayView = memo(function MyDayView({
           )}
         </div>
 
-        {hasAccess ? (
-          <div className="mt-4 grid grid-cols-2 gap-3">
-            <button
-              onClick={(e) => handleView(task, e)}
-              disabled={isChecking}
-              className="h-11 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 transition-colors text-sm font-medium disabled:opacity-50"
-            >
-              {language === 'fr' ? 'Voir' : 'View'}
-            </button>
-            <button
-              onClick={(e) => handleUpdate(task, e)}
-              disabled={isChecking}
-              className="h-11 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-50"
-            >
-              {language === 'fr' ? 'Mettre à jour' : 'Update'}
-            </button>
-          </div>
-        ) : (
-          <div className="mt-4">
-            <button
-              disabled
-              className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 text-slate-400 text-sm font-medium"
-            >
-              {language === 'fr' ? 'Voir' : 'View'}
-            </button>
-          </div>
-        )}
+        <div className="mt-4 grid grid-cols-2 gap-3">
+          <button
+            onClick={(e) => handleView(task, e)}
+            className={`h-11 rounded-xl border text-sm font-medium transition-colors ${
+              hasAccess
+                ? 'border-slate-300 bg-white hover:bg-slate-50'
+                : 'border-slate-200 bg-slate-50 text-slate-500'
+            }`}
+          >
+            {language === 'fr' ? 'Voir' : 'View'}
+          </button>
+          <button
+            onClick={(e) => handleUpdate(task, e)}
+            className={`h-11 rounded-xl text-sm font-medium transition-colors ${
+              hasAccess
+                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                : 'bg-slate-200 text-slate-500'
+            }`}
+          >
+            {language === 'fr' ? 'Mettre à jour' : 'Update'}
+          </button>
+        </div>
       </article>
     );
   };
 
   return (
-    <div className="pb-20">
-      {tasksByPriority.today.length > 0 && (
+    <>
+      {isMobile && allProjects.length > 0 && onProjectChange && (
+        <div className="mb-4 px-1">
+          <div className="grid grid-cols-2 gap-3">
+            {allProjects.slice(0, 2).map((project) => (
+              <button
+                key={project.id}
+                onClick={() => onProjectChange(project.id)}
+                className={`h-10 rounded-xl border text-sm font-medium transition-colors ${
+                  project.id === currentProject?.id
+                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                    : 'border-slate-300 bg-white text-slate-700'
+                }`}
+              >
+                {project.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className={isMobile ? "pb-[calc(96px+env(safe-area-inset-bottom))]" : "pb-20"}>
+        {tasksByPriority.today.length > 0 && (
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-3 px-1">
             <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
@@ -221,21 +265,46 @@ export const MyDayView = memo(function MyDayView({
         </div>
       )}
 
-      {tasks.length === 0 && (
-        <div className="text-center py-12">
-          <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Calendar className="w-8 h-8 text-emerald-600" />
+        {tasks.length === 0 && (
+          <div className="text-center py-12">
+            <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Calendar className="w-8 h-8 text-emerald-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-slate-900 mb-2">
+              {language === 'fr' ? 'Aucune tâche' : 'No tasks'}
+            </h3>
+            <p className="text-slate-600">
+              {language === 'fr'
+                ? 'Vous êtes à jour !'
+                : "You're all caught up!"}
+            </p>
           </div>
-          <h3 className="text-lg font-semibold text-slate-900 mb-2">
-            {language === 'fr' ? 'Aucune tâche' : 'No tasks'}
-          </h3>
-          <p className="text-slate-600">
-            {language === 'fr'
-              ? 'Vous êtes à jour !'
-              : "You're all caught up!"}
-          </p>
+        )}
+      </div>
+
+      {isMobile && onSettings && onLogout && (
+        <div
+          className="fixed inset-x-0 bottom-0 z-[1200] bg-white/95 backdrop-blur border-t border-slate-200 px-4 pt-2"
+          style={{ paddingBottom: 'calc(10px + env(safe-area-inset-bottom))' }}
+        >
+          <div className="mx-auto max-w-screen-sm grid grid-cols-2 gap-3">
+            <button
+              onClick={onSettings}
+              className="h-11 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 transition-colors text-sm font-medium flex items-center justify-center gap-2"
+            >
+              <Settings className="w-4 h-4" />
+              {language === 'fr' ? 'Réglages' : 'Settings'}
+            </button>
+            <button
+              onClick={onLogout}
+              className="h-11 rounded-xl bg-red-600 text-white hover:bg-red-700 transition-colors text-sm font-medium flex items-center justify-center gap-2"
+            >
+              <LogOut className="w-4 h-4" />
+              {language === 'fr' ? 'Se déconnecter' : 'Logout'}
+            </button>
+          </div>
         </div>
       )}
-    </div>
+    </>
   );
 });
