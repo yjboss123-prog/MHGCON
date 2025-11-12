@@ -193,7 +193,7 @@ export const TaskDrawer = memo(function TaskDrawer({
     setError(null);
 
     try {
-      const compressed = await compressImage(file, 1200);
+      const compressed = await compressImage(file);
 
       await createTaskAttachment(
         task.id,

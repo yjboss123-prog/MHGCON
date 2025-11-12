@@ -348,9 +348,9 @@ export function AdminPanel({ isOpen, onClose, language }: AdminPanelProps) {
                             <p className="text-sm text-slate-600">
                               {user.contractor_role || user.role.replace('_', ' ')}
                             </p>
-                            {user.last_seen && (
+                            {user.last_active_at && (
                               <p className="text-xs text-slate-500 mt-1">
-                                {isFr ? 'Dernière visite' : 'Last seen'}: {new Date(user.last_seen).toLocaleString(isFr ? 'fr-FR' : 'en-US')}
+                                {isFr ? 'Dernière visite' : 'Last seen'}: {new Date(user.last_active_at).toLocaleString(isFr ? 'fr-FR' : 'en-US')}
                               </p>
                             )}
                           </div>

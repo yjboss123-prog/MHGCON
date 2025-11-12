@@ -598,9 +598,12 @@ function App() {
               onStatusUpdate={handleQuickStatusUpdate}
               language={language}
               session={session}
-              currentProject={project}
+              currentProject={project || undefined}
               allProjects={projects}
-              onProjectChange={handleProjectChange}
+              onProjectChange={(projectId: string) => {
+                localStorage.setItem('activeProjectId', projectId);
+                window.location.reload();
+              }}
               onSettings={() => setIsProjectSettingsOpen(true)}
               onLogout={handleSignOut}
             />
@@ -623,6 +626,7 @@ function App() {
               onTaskShift={handleShiftTask}
               onTaskDelete={handleDeleteTask}
               language={language}
+              session={session}
             />
           )}
         </main>

@@ -965,7 +965,7 @@ export async function getTaskQuickView(taskId: string): Promise<TaskQuickViewDat
 export async function canOpenTask(taskId: string, session: Session | null): Promise<boolean> {
   if (!session) return false;
 
-  const userToken = session.userToken;
+  const userToken = session.user_token;
   const userRole = session.role;
 
   if (userRole === 'admin' || userRole === 'project_manager' || userRole === 'developer') {

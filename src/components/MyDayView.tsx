@@ -1,7 +1,7 @@
 import { memo, useState, useCallback, useEffect, useMemo, FC } from 'react';
 import { Task, Project } from '../types';
-import { Calendar, Trash2, User, Settings, LogOut } from 'lucide-react';
-import { Language, useTranslation, translateRole, translateStatus } from '../lib/i18n';
+import { Calendar, User, Settings, LogOut } from 'lucide-react';
+import { Language, translateRole, translateStatus } from '../lib/i18n';
 import {
   formatDate,
   getDaysRemaining,
@@ -124,14 +124,12 @@ export const MyDayView = memo(function MyDayView({
   tasks,
   onTaskClick,
   language,
-  session,
   currentProject,
   allProjects = [],
   onProjectChange,
   onSettings,
   onLogout
 }: MyDayViewProps) {
-  const t = useTranslation(language);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
