@@ -183,27 +183,68 @@ export const MyDayView = memo(function MyDayView({
   return (
     <div className="myday-view-wrapper">
       {isMobile && allProjects.length > 0 && onProjectChange && (
-        <div className="project-switcher-top relative z-[50] mb-4 px-1" style={{ pointerEvents: 'auto', touchAction: 'manipulation' }}>
-          <div className="grid grid-cols-2 gap-3">
-            {allProjects.slice(0, 2).map((project) => (
-              <button
-                key={project.id}
-                onClick={() => {
-                  console.log('Project button clicked:', project.id);
-                  onProjectChange(project.id);
-                }}
-                style={{ pointerEvents: 'auto', touchAction: 'manipulation' }}
-                className={`h-10 rounded-xl border text-sm font-medium ${
-                  project.id === currentProject?.id
-                    ? 'border-blue-500 bg-blue-50 text-blue-700'
-                    : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50 active:bg-slate-100'
-                }`}
-              >
-                {project.name}
-              </button>
-            ))}
+        <>
+          <div className="project-switcher-top relative z-[50] mb-4 px-1">
+            <button
+              onClick={() => setProjectSwitcherOpen(true)}
+              className="flex items-center justify-center gap-2 w-full h-10 px-4 rounded-full border border-slate-300 bg-slate-100 text-slate-800 text-sm font-medium shadow-sm active:scale-[.98] transition-transform"
+              style={{ pointerEvents: 'auto', touchAction: 'manipulation' }}
+              aria-haspopup="dialog"
+              aria-expanded={projectSwitcherOpen}
+            >
+              <span className="flex-1 text-center">{currentProject?.name}</span>
+              <ChevronDown className="w-4 h-4 text-slate-500 flex-shrink-0" />
+            </button>
           </div>
-        </div>
+
+          {show && createPortal(
+            <div className="fixed inset-0 z-[3000]" role="dialog" aria-modal="true">
+              <button
+                className="absolute inset-0 bg-black/20"
+                style={{ animation: `${closing ? 'fadeOut' : 'fadeIn'} .18s ease` }}
+                onClick={() => setProjectSwitcherOpen(false)}
+                aria-label="Close"
+              />
+              <div
+                className="absolute left-0 right-0 bottom-0 bg-white rounded-t-2xl p-4 pb-[calc(12px+env(safe-area-inset-bottom))] max-h-[70vh] overflow-auto shadow-2xl"
+                style={{ animation: `${closing ? 'sheetOut' : 'sheetIn'} .18s ease` }}
+              >
+                <div className="mx-auto max-w-screen-sm">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-base font-semibold">Switch project</h3>
+                    <button
+                      onClick={() => setProjectSwitcherOpen(false)}
+                      className="h-9 w-9 grid place-items-center rounded-full bg-slate-100 hover:bg-slate-200 active:bg-slate-300"
+                      aria-label="Close"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <ul className="space-y-2">
+                    {allProjects.map((project) => (
+                      <li key={project.id}>
+                        <button
+                          onClick={() => {
+                            onProjectChange(project.id);
+                            setProjectSwitcherOpen(false);
+                          }}
+                          className={`w-full h-11 rounded-xl border px-3 text-left font-medium transition-colors ${
+                            project.id === currentProject?.id
+                              ? 'border-blue-500 bg-blue-50 text-blue-700'
+                              : 'border-slate-200 bg-white hover:bg-slate-50 active:bg-slate-100'
+                          }`}
+                        >
+                          {project.name}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>,
+            document.body
+          )}
+        </>
       )}
 
       <div className={`main-list relative z-[15] ${isMobile ? "pb-[calc(96px+env(safe-area-inset-bottom))]" : "pb-20"}`}>
