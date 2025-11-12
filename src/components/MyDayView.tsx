@@ -1,6 +1,7 @@
 import { memo, useState, useCallback, useEffect, useMemo, FC } from 'react';
+import { createPortal } from 'react-dom';
 import { Task, Project } from '../types';
-import { Calendar, User, Settings, LogOut } from 'lucide-react';
+import { Calendar, User, Settings, LogOut, ChevronDown } from 'lucide-react';
 import { Language, translateRole, translateStatus } from '../lib/i18n';
 import {
   formatDate,
@@ -9,6 +10,7 @@ import {
   getRoleBadgeColor,
 } from '../lib/utils';
 import { Session } from '../lib/session';
+import { useAnimatedToggle } from '../lib/useAnimatedToggle';
 
 interface TaskCardProps {
   id: string;
