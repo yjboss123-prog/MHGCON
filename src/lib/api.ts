@@ -897,3 +897,119 @@ export async function deleteTaskAttachment(attachmentId: number) {
 
   if (error) throw error;
 }
+
+export interface TaskQuickViewData {
+  id: string;
+  name: string;
+  progress: number;
+  status: TaskStatus;
+  files: Array<{
+    id: number;
+    url: string;
+    caption: string | null;
+    created_at: string;
+  }>;
+  comments: Array<{
+    id: string;
+    author: string;
+    text: string;
+    at: string;
+  }>;
+}
+
+export async function getTaskQuickView(taskId: string): Promise<TaskQuickViewData> {
+  const [taskResult, attachmentsResult, commentsResult] = await Promise.all([
+    supabase.from('tasks').select('id, name, percent_done, status, delay_reason').eq('id', taskId).maybeSingle(),
+    supabase.from('task_attachments').select('id, file_url, caption, created_at').eq('task_id', taskId).order('created_at', { ascending: false }),
+    supabase.from('progress_updates').select('id, comment, updated_by, created_at').eq('task_id', taskId).not('comment', 'is', null).order('created_at', { ascending: true })
+  ]);
+
+  if (taskResult.error) throw taskResult.error;
+  if (!taskResult.data) throw new Error('Task not found');
+
+  const task = taskResult.data;
+  const files = attachmentsResult.data || [];
+  const updates = commentsResult.data || [];
+
+  const comments = updates.map(u => ({
+    id: u.id,
+    author: u.updated_by || 'Unknown',
+    text: u.comment || '',
+    at: u.created_at
+  }));
+
+  if (task.delay_reason) {
+    comments.unshift({
+      id: `delay-${taskId}`,
+      author: 'System',
+      text: task.delay_reason,
+      at: task.delay_reason
+    });
+  }
+
+  return {
+    id: task.id,
+    name: task.name,
+    progress: task.percent_done,
+    status: task.status,
+    files: files.map(f => ({
+      id: f.id,
+      url: f.file_url,
+      caption: f.caption,
+      created_at: f.created_at
+    })),
+    comments
+  };
+}
+
+export async function canOpenTask(taskId: string, session: Session | null): Promise<boolean> {
+  if (!session) return false;
+
+  const userToken = session.userToken;
+  const userRole = session.role;
+
+  if (userRole === 'admin' || userRole === 'project_manager' || userRole === 'developer') {
+    return true;
+  }
+
+  if (userRole === 'contractor') {
+    const { data, error } = await supabase
+      .from('task_access')
+      .select('can_open_task')
+      .eq('user_token', userToken)
+      .eq('task_id', taskId)
+      .eq('can_open_task', true)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error checking task access:', error);
+      return false;
+    }
+
+    return !!data;
+  }
+
+  return false;
+}
+
+export async function grantTaskAccess(taskId: string, userToken: string): Promise<void> {
+  const { error } = await supabase
+    .from('task_access')
+    .upsert({
+      task_id: taskId,
+      user_token: userToken,
+      can_open_task: true
+    });
+
+  if (error) throw error;
+}
+
+export async function revokeTaskAccess(taskId: string, userToken: string): Promise<void> {
+  const { error } = await supabase
+    .from('task_access')
+    .delete()
+    .eq('task_id', taskId)
+    .eq('user_token', userToken);
+
+  if (error) throw error;
+}

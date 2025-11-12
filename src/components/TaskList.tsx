@@ -3,6 +3,7 @@ import { Task } from '../types';
 import { TaskListItem } from './TaskListItem';
 import { Language } from '../lib/i18n';
 import { isManagerRole } from '../lib/utils';
+import { Session } from '../lib/session';
 
 interface TaskListProps {
   tasks: Task[];
@@ -14,6 +15,7 @@ interface TaskListProps {
   onTaskShift?: (task: Task) => void;
   onTaskDelete?: (task: Task) => void;
   language: Language;
+  session: Session | null;
 }
 
 export const TaskList = memo(function TaskList({
@@ -26,6 +28,7 @@ export const TaskList = memo(function TaskList({
   onTaskShift,
   onTaskDelete,
   language,
+  session,
 }: TaskListProps) {
   const canManage = useMemo(() => isManagerRole(currentRole), [currentRole]);
 
@@ -43,7 +46,7 @@ export const TaskList = memo(function TaskList({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {filteredTasks.map((task) => (
         <TaskListItem
           key={task.id}
@@ -56,6 +59,7 @@ export const TaskList = memo(function TaskList({
           onShift={onTaskShift}
           onDelete={onTaskDelete}
           language={language}
+          session={session}
         />
       ))}
     </div>

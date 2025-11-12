@@ -1,16 +1,16 @@
-import { memo, useMemo } from 'react';
+import { memo, useMemo, useState, useCallback } from 'react';
 import { Task } from '../types';
-import { Calendar, Trash2, ArrowRight, User } from 'lucide-react';
+import { Calendar, Trash2, User } from 'lucide-react';
 import {
   formatDate,
   getDaysRemaining,
-  getStatusColor,
   getStatusBadgeColor,
   getRoleBadgeColor,
-  calculateGanttPosition,
   isManagerRole,
 } from '../lib/utils';
 import { Language, useTranslation, translateRole, translateStatus } from '../lib/i18n';
+import { canOpenTask } from '../lib/api';
+import { Session } from '../lib/session';
 
 interface TaskListItemProps {
   task: Task;
@@ -22,155 +22,156 @@ interface TaskListItemProps {
   onShift?: (task: Task) => void;
   onDelete?: (task: Task) => void;
   language: Language;
+  session: Session | null;
 }
 
 export const TaskListItem = memo(function TaskListItem({
   task,
   currentRole,
-  projectStart,
-  projectEnd,
   onView,
   onUpdate,
   onShift,
   onDelete,
   language,
+  session,
 }: TaskListItemProps) {
   const t = useTranslation(language);
+  const [isCheckingAccess, setIsCheckingAccess] = useState(false);
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
 
   const daysRemaining = useMemo(() =>
     getDaysRemaining(task.end_date, task.status, task.percent_done),
     [task.end_date, task.status, task.percent_done]
   );
 
-  const canUpdate = useMemo(() =>
-    task.owner_roles.includes(currentRole) || isManagerRole(currentRole),
-    [task.owner_roles, currentRole]
-  );
-
   const canManage = useMemo(() => isManagerRole(currentRole), [currentRole]);
 
-  const position = useMemo(() => calculateGanttPosition(
-    task.start_date,
-    task.end_date,
-    projectStart,
-    projectEnd
-  ), [task.start_date, task.end_date, projectStart, projectEnd]);
+  const checkAccess = useCallback(async () => {
+    if (hasAccess !== null) return hasAccess;
+
+    setIsCheckingAccess(true);
+    try {
+      const allowed = await canOpenTask(task.id, session);
+      setHasAccess(allowed);
+      return allowed;
+    } catch (error) {
+      console.error('Error checking task access:', error);
+      setHasAccess(false);
+      return false;
+    } finally {
+      setIsCheckingAccess(false);
+    }
+  }, [task.id, session, hasAccess]);
+
+  const handleView = useCallback(async () => {
+    const allowed = await checkAccess();
+    if (allowed) {
+      onView(task);
+    }
+  }, [checkAccess, onView, task]);
+
+  const handleUpdate = useCallback(async () => {
+    const allowed = await checkAccess();
+    if (allowed) {
+      onUpdate(task);
+    }
+  }, [checkAccess, onUpdate, task]);
+
+  useMemo(() => {
+    checkAccess();
+  }, [checkAccess]);
+
+  const dateRange = `${formatDate(task.start_date)} - ${formatDate(task.end_date)}`;
+  const roleLabel = task.owner_roles.map(role => translateRole(role, language)).join(', ');
+  const statusLabel = translateStatus(task.status, language);
+
+  const daysText = language === 'fr'
+    ? `${Math.abs(daysRemaining)} jour${Math.abs(daysRemaining) !== 1 ? 's' : ''} ${daysRemaining >= 0 ? 'restants' : 'de retard'}`
+    : `${Math.abs(daysRemaining)} day${Math.abs(daysRemaining) !== 1 ? 's' : ''} ${daysRemaining >= 0 ? 'remaining' : 'overdue'}`;
+
+  const canShowButtons = hasAccess === true || canManage;
 
   return (
-    <div className={`card-modern p-4 sm:p-5 ${task.was_shifted ? 'ring-2 ring-blue-500 bg-gradient-to-br from-blue-50 to-white' : ''}`}>
-      <div className="flex flex-col lg:flex-row lg:items-center gap-3 sm:gap-4">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-2 mb-2">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-2">
-                <h3 className="text-base sm:text-lg font-bold text-slate-900 break-words">{task.name}</h3>
-                {task.was_shifted && (
-                  <span
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30 animate-pulse flex-shrink-0"
-                    title={language === 'fr' ? 'Planning décalé' : 'Schedule shifted'}
-                  >
-                    <ArrowRight className="w-3.5 h-3.5" />
-                    <span>{language === 'fr' ? 'DÉCALÉ' : 'SHIFTED'}</span>
-                  </span>
-                )}
-              </div>
-              <div className="flex flex-wrap items-center gap-2 mt-2">
-                {task.owner_roles.map((role) => (
-                  <span key={role} className={`badge-modern ${getRoleBadgeColor(role)}`}>
-                    {translateRole(role, language)}
-                  </span>
-                ))}
-                <span className={`badge-modern ${getStatusBadgeColor(task.status)}`}>
-                  {translateStatus(task.status, language)}
-                </span>
-              </div>
-            </div>
-          </div>
+    <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow">
+      <h3 className="text-lg font-semibold text-slate-900">{task.name}</h3>
 
-          <div className="relative h-10 bg-gradient-to-r from-slate-100 to-slate-50 rounded-2xl overflow-hidden mb-3 shadow-inner">
-            <div
-              className="absolute top-0 left-0 h-full"
-              style={{ left: position.left, width: position.width }}
-            >
-              <div className={`h-full ${getStatusColor(task.status)} opacity-20`}></div>
-              <div
-                className={`absolute top-0 left-0 h-full ${getStatusColor(task.status)} shadow-lg`}
-                style={{ width: `${task.percent_done}%` }}
-              ></div>
-            </div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-sm font-bold text-slate-800 drop-shadow">
-                {task.percent_done}%
-              </span>
-            </div>
-          </div>
+      <div className="mt-2 flex flex-wrap gap-2 text-xs">
+        {task.owner_roles.map((role) => (
+          <span key={role} className={`rounded-full px-3 py-1 ${getRoleBadgeColor(role)}`}>
+            {translateRole(role, language)}
+          </span>
+        ))}
+        <span className={`rounded-full px-3 py-1 ${getStatusBadgeColor(task.status)}`}>
+          {statusLabel}
+        </span>
+      </div>
 
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600">
-            <span>
-              {formatDate(task.start_date)} - {formatDate(task.end_date)}
-            </span>
-            {daysRemaining > 0 && (
-              <span className="text-slate-500">
-                {daysRemaining} {daysRemaining !== 1 ? t.daysRemaining : t.dayRemaining}
-              </span>
-            )}
-            {daysRemaining < 0 && (
-              <span className="text-red-600 font-medium">
-                {Math.abs(daysRemaining)} {Math.abs(daysRemaining) !== 1 ? t.daysOverdue : t.dayOverdue}
-              </span>
-            )}
-            {task.assigned_display_name && (
-              <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-md font-medium">
-                <User className="w-3 h-3" />
-                {task.assigned_display_name}
-              </span>
-            )}
-          </div>
-
-          {task.delay_reason && canManage && (
-            <div className="mt-3 p-3 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl text-xs text-amber-900">
-              <span className="font-semibold">{t.delayReason}:</span> {task.delay_reason}
-            </div>
-          )}
+      <div className="mt-4">
+        <div className="h-2 w-full rounded-full bg-slate-200 overflow-hidden">
+          <div
+            className="h-2 bg-emerald-500 transition-all duration-500"
+            style={{ width: `${task.percent_done}%` }}
+          />
         </div>
+        <div className="mt-2 text-sm font-medium text-slate-900">{task.percent_done}%</div>
+      </div>
 
-        <div className="flex lg:flex-col gap-2">
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-600">
+        <span>{dateRange}</span>
+        <span>• {daysText}</span>
+        {task.assigned_display_name && (
+          <span className="ml-auto rounded-lg bg-slate-100 px-2 py-1 text-slate-700 text-sm inline-flex items-center gap-1.5">
+            <User className="w-3.5 h-3.5" />
+            {task.assigned_display_name}
+          </span>
+        )}
+      </div>
+
+      {canShowButtons ? (
+        <div className="mt-4 grid grid-cols-4 gap-3">
           <button
-            onClick={() => onView(task)}
-            className="btn-secondary flex-1 lg:flex-none px-4 py-2 text-sm"
+            onClick={handleView}
+            disabled={isCheckingAccess}
+            className="h-11 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 transition-colors text-sm font-medium disabled:opacity-50"
           >
-            {t.view}
+            {language === 'fr' ? 'Voir' : 'View'}
           </button>
-          {canUpdate && (
-            <button
-              onClick={() => onUpdate(task)}
-              className="btn-primary flex-1 lg:flex-none px-4 py-2 text-sm"
-            >
-              {t.update}
-            </button>
-          )}
+          <button
+            onClick={handleUpdate}
+            disabled={isCheckingAccess}
+            className="h-11 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-50"
+          >
+            {language === 'fr' ? 'Mettre à jour' : 'Update'}
+          </button>
           {canManage && onShift && (
             <button
               onClick={() => onShift(task)}
-              className="flex-1 lg:flex-none px-4 py-2 bg-blue-50 text-blue-700 font-medium rounded-xl border border-blue-200 hover:bg-blue-100 hover:border-blue-300 transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center gap-1.5 text-sm"
-              title={language === 'fr' ? 'Décaler le planning' : 'Delay / Shift Schedule'}
+              className="h-11 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 transition-colors flex items-center justify-center"
+              title={language === 'fr' ? 'Décaler le planning' : 'Shift schedule'}
             >
-              <Calendar className="w-4 h-4" />
-              <span className="hidden lg:inline">{t.shift}</span>
+              <Calendar className="w-5 h-5 text-slate-600" />
             </button>
           )}
           {canManage && onDelete && (
             <button
               onClick={() => onDelete(task)}
-              className="flex-1 lg:flex-none px-4 py-2 bg-red-50 text-red-700 font-medium rounded-xl border border-red-200 hover:bg-red-100 hover:border-red-300 transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center gap-1.5 text-sm"
-              title={t.deleteTask}
+              className="h-11 rounded-xl border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 transition-colors flex items-center justify-center"
+              title={language === 'fr' ? 'Supprimer' : 'Delete'}
             >
-              <Trash2 className="w-4 h-4" />
-              <span className="hidden lg:inline">{t.delete}</span>
+              <Trash2 className="w-5 h-5" />
             </button>
           )}
         </div>
-      </div>
-    </div>
+      ) : (
+        <div className="mt-4">
+          <button
+            disabled
+            className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 text-slate-400 text-sm font-medium"
+          >
+            {language === 'fr' ? 'Voir' : 'View'}
+          </button>
+        </div>
+      )}
+    </article>
   );
 });
