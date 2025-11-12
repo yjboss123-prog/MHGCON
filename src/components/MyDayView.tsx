@@ -171,7 +171,7 @@ export const MyDayView = memo(function MyDayView({
             </span>
           </div>
           <div className="space-y-4">
-            {tasksByPriority.today.map(renderTaskCard)}
+            {tasksByPriority.today.map((task) => renderTaskCard(task))}
           </div>
         </div>
       )}
@@ -188,7 +188,7 @@ export const MyDayView = memo(function MyDayView({
             </span>
           </div>
           <div className="space-y-4">
-            {tasksByPriority.soon.map(renderTaskCard)}
+            {tasksByPriority.soon.map((task) => renderTaskCard(task))}
           </div>
         </div>
       )}
@@ -205,7 +205,7 @@ export const MyDayView = memo(function MyDayView({
             </span>
           </div>
           <div className="space-y-4">
-            {tasksByPriority.upcoming.map(renderTaskCard)}
+            {tasksByPriority.upcoming.map((task) => renderTaskCard(task))}
           </div>
         </div>
       )}
