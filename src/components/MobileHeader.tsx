@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useState, useEffect } from 'react';
 import { LogOut, Settings } from 'lucide-react';
 import { Session } from '../lib/session';
 
@@ -10,9 +10,25 @@ interface MobileHeaderProps {
 }
 
 export const MobileHeader = memo(function MobileHeader({ session, projectName, onSettings, onSignOut }: MobileHeaderProps) {
-  const today = new Date();
-  const dayName = today.toLocaleDateString('en-US', { weekday: 'long' });
-  const dateStr = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const [dateInfo, setDateInfo] = useState(() => {
+    const today = new Date();
+    return {
+      dayName: today.toLocaleDateString('en-US', { weekday: 'long' }),
+      dateStr: today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    };
+  });
+
+  useEffect(() => {
+    const updateDate = () => {
+      const today = new Date();
+      setDateInfo({
+        dayName: today.toLocaleDateString('en-US', { weekday: 'long' }),
+        dateStr: today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      });
+    };
+    const id = setInterval(updateDate, 60000);
+    return () => clearInterval(id);
+  }, []);
 
   return (
     <header
@@ -24,10 +40,10 @@ export const MobileHeader = memo(function MobileHeader({ session, projectName, o
             {projectName}
           </div>
           <h1 className="text-2xl font-bold mb-1">
-            {dayName}
+            {dateInfo.dayName}
           </h1>
           <div className="text-slate-300 text-sm">
-            {dateStr}
+            {dateInfo.dateStr}
           </div>
         </div>
 

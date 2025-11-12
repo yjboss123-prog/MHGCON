@@ -1,4 +1,4 @@
-import { memo, useState, useCallback, useEffect, useMemo } from 'react';
+import { memo, useState, useCallback, useEffect, useMemo, FC } from 'react';
 import { Task, Project } from '../types';
 import { Calendar, Trash2, User, Settings, LogOut } from 'lucide-react';
 import { Language, useTranslation, translateRole, translateStatus } from '../lib/i18n';
@@ -9,6 +9,88 @@ import {
   getRoleBadgeColor,
 } from '../lib/utils';
 import { Session } from '../lib/session';
+
+interface TaskCardProps {
+  id: string;
+  name: string;
+  roleLabels: string[];
+  roleBadgeColors: string[];
+  statusLabel: string;
+  statusBadgeColor: string;
+  startDate: string;
+  endDate: string;
+  daysRemaining: number;
+  daysText: string;
+  progressPct: number;
+  assignee?: string;
+  viewLabel: string;
+  updateLabel: string;
+  onView: (id: string) => void;
+}
+
+const TaskCard: FC<TaskCardProps> = memo(({
+  id, name, roleLabels, roleBadgeColors, statusLabel, statusBadgeColor,
+  startDate, endDate, daysText, progressPct, assignee, viewLabel, updateLabel, onView
+}) => {
+  return (
+    <article className="rounded-2xl border border-slate-200 bg-white p-4">
+      <h3 className="text-lg font-semibold text-slate-900">{name}</h3>
+
+      <div className="mt-2 flex flex-wrap gap-2 text-xs">
+        {roleLabels.map((role, idx) => (
+          <span key={role} className={`rounded-full px-3 py-1 ${roleBadgeColors[idx]}`}>
+            {role}
+          </span>
+        ))}
+        <span className={`rounded-full px-3 py-1 ${statusBadgeColor}`}>
+          {statusLabel}
+        </span>
+      </div>
+
+      <div className="mt-4">
+        <div className="h-2 w-full rounded-full bg-slate-200 overflow-hidden">
+          <div
+            className="h-2 bg-emerald-500"
+            style={{ width: `${progressPct}%` }}
+          />
+        </div>
+        <div className="mt-2 text-sm font-medium text-slate-900">{progressPct}%</div>
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-600">
+        <span>{startDate} - {endDate}</span>
+        <span>• {daysText}</span>
+        {assignee && (
+          <span className="ml-auto rounded-lg bg-slate-100 px-2 py-1 text-slate-700 text-sm inline-flex items-center gap-1.5">
+            <User className="w-3.5 h-3.5" />
+            {assignee}
+          </span>
+        )}
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-3">
+        <button
+          onClick={() => onView(id)}
+          className="h-11 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 active:bg-slate-100 text-sm font-medium"
+        >
+          {viewLabel}
+        </button>
+        <button
+          onClick={() => onView(id)}
+          className="h-11 rounded-xl bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 text-sm font-medium"
+        >
+          {updateLabel}
+        </button>
+      </div>
+    </article>
+  );
+}, (prev, next) => {
+  return prev.id === next.id &&
+    prev.name === next.name &&
+    prev.progressPct === next.progressPct &&
+    prev.statusLabel === next.statusLabel &&
+    prev.assignee === next.assignee;
+});
 
 interface MyDayViewProps {
   tasks: Task[];
@@ -67,69 +149,38 @@ export const MyDayView = memo(function MyDayView({
     upcoming: tasks.filter(t => getTaskPriority(t) === 'upcoming' && t.status !== 'Done'),
   }), [tasks]);
 
-  const renderTaskCard = (task: Task) => {
+  const handleViewTask = useCallback((taskId: string) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (task) onTaskClick(task);
+  }, [tasks, onTaskClick]);
+
+  const renderTaskCard = useCallback((task: Task) => {
     const daysRemaining = getDaysRemaining(task.end_date, task.status, task.percent_done);
-    const dateRange = `${formatDate(task.start_date)} - ${formatDate(task.end_date)}`;
     const daysText = language === 'fr'
       ? `${Math.abs(daysRemaining)} jour${Math.abs(daysRemaining) !== 1 ? 's' : ''} ${daysRemaining >= 0 ? 'restants' : 'de retard'}`
       : `${Math.abs(daysRemaining)} day${Math.abs(daysRemaining) !== 1 ? 's' : ''} ${daysRemaining >= 0 ? 'remaining' : 'overdue'}`;
 
     return (
-      <article
+      <TaskCard
         key={task.id}
-        className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow"
-      >
-        <h3 className="text-lg font-semibold text-slate-900">{task.name}</h3>
-
-        <div className="mt-2 flex flex-wrap gap-2 text-xs">
-          {task.owner_roles.map((role) => (
-            <span key={role} className={`rounded-full px-3 py-1 ${getRoleBadgeColor(role)}`}>
-              {translateRole(role, language)}
-            </span>
-          ))}
-          <span className={`rounded-full px-3 py-1 ${getStatusBadgeColor(task.status)}`}>
-            {translateStatus(task.status, language)}
-          </span>
-        </div>
-
-        <div className="mt-4">
-          <div className="h-2 w-full rounded-full bg-slate-200 overflow-hidden">
-            <div
-              className="h-2 bg-emerald-500 transition-all duration-500"
-              style={{ width: `${task.percent_done}%` }}
-            />
-          </div>
-          <div className="mt-2 text-sm font-medium text-slate-900">{task.percent_done}%</div>
-        </div>
-
-        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-600">
-          <span>{dateRange}</span>
-          <span>• {daysText}</span>
-          {task.assigned_display_name && (
-            <span className="ml-auto rounded-lg bg-slate-100 px-2 py-1 text-slate-700 text-sm inline-flex items-center gap-1.5">
-              <User className="w-3.5 h-3.5" />
-              {task.assigned_display_name}
-            </span>
-          )}
-        </div>
-
-        <div className="mt-4 grid grid-cols-2 gap-3">
-          <button
-            onClick={() => onTaskClick(task)}
-            className="h-11 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-sm font-medium transition-colors"
-          >
-            {language === 'fr' ? 'Voir' : 'View'}
-          </button>
-          <button
-            onClick={() => onTaskClick(task)}
-            className="h-11 rounded-xl bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium transition-colors"
-          >
-            {language === 'fr' ? 'Mettre à jour' : 'Update'}
-          </button>
-        </div>
-      </article>
+        id={task.id}
+        name={task.name}
+        roleLabels={task.owner_roles.map(r => translateRole(r, language))}
+        roleBadgeColors={task.owner_roles.map(r => getRoleBadgeColor(r))}
+        statusLabel={translateStatus(task.status, language)}
+        statusBadgeColor={getStatusBadgeColor(task.status)}
+        startDate={formatDate(task.start_date)}
+        endDate={formatDate(task.end_date)}
+        daysRemaining={daysRemaining}
+        daysText={daysText}
+        progressPct={task.percent_done}
+        assignee={task.assigned_display_name}
+        viewLabel={language === 'fr' ? 'Voir' : 'View'}
+        updateLabel={language === 'fr' ? 'Mettre à jour' : 'Update'}
+        onView={handleViewTask}
+      />
     );
-  };
+  }, [language, tasks, handleViewTask]);
 
   return (
     <>
