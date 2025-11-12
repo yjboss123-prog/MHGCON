@@ -597,6 +597,7 @@ function App() {
               onTaskClick={handleTaskView}
               onStatusUpdate={handleQuickStatusUpdate}
               language={language}
+              session={session}
             />
           ) : viewMode === 'gantt' ? (
             <GanttView

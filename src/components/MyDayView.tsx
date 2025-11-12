@@ -1,13 +1,22 @@
-import { memo, useState } from 'react';
+import { memo, useState, useCallback } from 'react';
 import { Task } from '../types';
-import { Calendar, Clock, Camera, AlertCircle, CheckCircle, Play, Pause } from 'lucide-react';
-import { Language, useTranslation } from '../lib/i18n';
+import { Calendar, Trash2, User } from 'lucide-react';
+import { Language, useTranslation, translateRole, translateStatus } from '../lib/i18n';
+import {
+  formatDate,
+  getDaysRemaining,
+  getStatusBadgeColor,
+  getRoleBadgeColor,
+} from '../lib/utils';
+import { canOpenTask } from '../lib/api';
+import { Session } from '../lib/session';
 
 interface MyDayViewProps {
   tasks: Task[];
   onTaskClick: (task: Task) => void;
   onStatusUpdate: (taskId: string, status: 'On Track' | 'Delayed' | 'Blocked' | 'Done') => void;
   language: Language;
+  session: Session | null;
 }
 
 const getTaskPriority = (task: Task): 'today' | 'soon' | 'upcoming' => {
@@ -25,37 +34,15 @@ const getTaskPriority = (task: Task): 'today' | 'soon' | 'upcoming' => {
   return 'upcoming';
 };
 
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'Done':
-      return 'bg-emerald-500';
-    case 'On Track':
-      return 'bg-blue-500';
-    case 'Delayed':
-      return 'bg-amber-500';
-    case 'Blocked':
-      return 'bg-red-500';
-    default:
-      return 'bg-slate-400';
-  }
-};
-
-const getStatusIcon = (status: string) => {
-  switch (status) {
-    case 'Done':
-      return CheckCircle;
-    case 'On Track':
-      return Play;
-    case 'Blocked':
-      return AlertCircle;
-    default:
-      return Clock;
-  }
-};
-
-export const MyDayView = memo(function MyDayView({ tasks, onTaskClick, onStatusUpdate, language }: MyDayViewProps) {
+export const MyDayView = memo(function MyDayView({
+  tasks,
+  onTaskClick,
+  language,
+  session
+}: MyDayViewProps) {
   const t = useTranslation(language);
-  const [expandedTask, setExpandedTask] = useState<string | null>(null);
+  const [accessCache, setAccessCache] = useState<Record<string, boolean>>({});
+  const [checkingAccess, setCheckingAccess] = useState<Record<string, boolean>>({});
 
   const tasksByPriority = {
     today: tasks.filter(t => getTaskPriority(t) === 'today' && t.status !== 'Done'),
@@ -63,157 +50,121 @@ export const MyDayView = memo(function MyDayView({ tasks, onTaskClick, onStatusU
     upcoming: tasks.filter(t => getTaskPriority(t) === 'upcoming' && t.status !== 'Done'),
   };
 
-  const getNextAction = (task: Task) => {
-    if (task.status === 'Done') return null;
-    if (task.status === 'Blocked') return 'resume';
-    if (task.percent_done === 0) return 'start';
-    if (task.percent_done === 100) return 'complete';
-    return 'continue';
-  };
-
-  const handleQuickAction = (task: Task, e: React.MouseEvent) => {
-    e.stopPropagation();
-    const action = getNextAction(task);
-
-    if (action === 'start') {
-      onStatusUpdate(task.id, 'On Track');
-    } else if (action === 'complete') {
-      onStatusUpdate(task.id, 'Done');
-    } else if (action === 'resume') {
-      onStatusUpdate(task.id, 'On Track');
+  const checkTaskAccess = useCallback(async (taskId: string) => {
+    if (accessCache[taskId] !== undefined) {
+      return accessCache[taskId];
     }
-  };
+
+    setCheckingAccess(prev => ({ ...prev, [taskId]: true }));
+    try {
+      const hasAccess = await canOpenTask(taskId, session);
+      setAccessCache(prev => ({ ...prev, [taskId]: hasAccess }));
+      return hasAccess;
+    } catch (error) {
+      console.error('Error checking task access:', error);
+      return false;
+    } finally {
+      setCheckingAccess(prev => ({ ...prev, [taskId]: false }));
+    }
+  }, [session, accessCache]);
+
+  const handleView = useCallback(async (task: Task, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const hasAccess = await checkTaskAccess(task.id);
+    if (hasAccess) {
+      onTaskClick(task);
+    }
+  }, [checkTaskAccess, onTaskClick]);
+
+  const handleUpdate = useCallback(async (task: Task, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const hasAccess = await checkTaskAccess(task.id);
+    if (hasAccess) {
+      onTaskClick(task);
+    }
+  }, [checkTaskAccess, onTaskClick]);
 
   const renderTaskCard = (task: Task) => {
-    const StatusIcon = getStatusIcon(task.status);
-    const nextAction = getNextAction(task);
-    const isExpanded = expandedTask === task.id;
+    const daysRemaining = getDaysRemaining(task.end_date, task.status, task.percent_done);
+    const dateRange = `${formatDate(task.start_date)} - ${formatDate(task.end_date)}`;
+    const daysText = language === 'fr'
+      ? `${Math.abs(daysRemaining)} jour${Math.abs(daysRemaining) !== 1 ? 's' : ''} ${daysRemaining >= 0 ? 'restants' : 'de retard'}`
+      : `${Math.abs(daysRemaining)} day${Math.abs(daysRemaining) !== 1 ? 's' : ''} ${daysRemaining >= 0 ? 'remaining' : 'overdue'}`;
+
+    const hasAccess = accessCache[task.id];
+    const isChecking = checkingAccess[task.id];
+
+    if (hasAccess === undefined && !isChecking) {
+      checkTaskAccess(task.id);
+    }
 
     return (
-      <div
+      <article
         key={task.id}
-        className="bg-white rounded-2xl shadow-sm border-2 border-slate-200 overflow-hidden active:scale-[0.98] transition-transform"
-        onClick={() => setExpandedTask(isExpanded ? null : task.id)}
+        className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow"
       >
-        <div className="p-4">
-          <div className="flex items-start gap-3 mb-3">
-            <div className={`p-2.5 rounded-xl ${getStatusColor(task.status)}`}>
-              <StatusIcon className="w-5 h-5 text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-base text-slate-900 mb-1 leading-snug">
-                {task.name}
-              </h3>
-              {task.due_date && (
-                <div className="flex items-center gap-1.5 text-sm text-slate-600">
-                  <Calendar className="w-4 h-4" />
-                  <span>{new Date(task.due_date).toLocaleDateString('en-GB', {
-                    day: 'numeric',
-                    month: 'short'
-                  })}</span>
-                </div>
-              )}
-            </div>
-            <div className="flex-shrink-0">
-              <div className="text-right">
-                <div className="text-2xl font-bold text-slate-900">
-                  {task.percent_done}%
-                </div>
-                <div className="text-xs text-slate-500">
-                  {language === 'fr' ? 'Fait' : 'Done'}
-                </div>
-              </div>
-            </div>
-          </div>
+        <h3 className="text-lg font-semibold text-slate-900">{task.name}</h3>
 
-          {task.trade && (
-            <div className="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 rounded-lg text-xs font-medium text-slate-700 mb-3">
-              {task.trade}
-            </div>
-          )}
-
-          {isExpanded && task.delay_reason && (
-            <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-              <div className="flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-red-900">{task.delay_reason}</p>
-              </div>
-            </div>
-          )}
-
-          <div className="flex gap-2">
-            {nextAction && (
-              <button
-                onClick={(e) => handleQuickAction(task, e)}
-                className={`flex-1 flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl font-semibold text-white transition-all active:scale-95 ${
-                  nextAction === 'complete'
-                    ? 'bg-emerald-500 active:bg-emerald-600'
-                    : 'bg-blue-500 active:bg-blue-600'
-                }`}
-                style={{ minHeight: '48px' }}
-              >
-                {nextAction === 'start' && (
-                  <>
-                    <Play className="w-5 h-5" />
-                    <span>{language === 'fr' ? 'Commencer' : 'Start'}</span>
-                  </>
-                )}
-                {nextAction === 'continue' && (
-                  <>
-                    <Pause className="w-5 h-5" />
-                    <span>{language === 'fr' ? 'Continuer' : 'Continue'}</span>
-                  </>
-                )}
-                {nextAction === 'complete' && (
-                  <>
-                    <CheckCircle className="w-5 h-5" />
-                    <span>{language === 'fr' ? 'Terminer' : 'Complete'}</span>
-                  </>
-                )}
-                {nextAction === 'resume' && (
-                  <>
-                    <Play className="w-5 h-5" />
-                    <span>{language === 'fr' ? 'Reprendre' : 'Resume'}</span>
-                  </>
-                )}
-              </button>
-            )}
-
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onTaskClick(task);
-              }}
-              className="flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl font-semibold bg-slate-100 text-slate-700 active:bg-slate-200 transition-all active:scale-95"
-              style={{ minHeight: '48px' }}
-            >
-              <Camera className="w-5 h-5" />
-              <span className="hidden sm:inline">{language === 'fr' ? 'Photo' : 'Photo'}</span>
-            </button>
-
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onStatusUpdate(task.id, 'Blocked');
-              }}
-              className="flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl font-semibold bg-red-50 text-red-700 active:bg-red-100 transition-all active:scale-95"
-              style={{ minHeight: '48px' }}
-            >
-              <AlertCircle className="w-5 h-5" />
-              <span className="hidden sm:inline">{language === 'fr' ? 'Bloqué' : 'Block'}</span>
-            </button>
-          </div>
+        <div className="mt-2 flex flex-wrap gap-2 text-xs">
+          {task.owner_roles.map((role) => (
+            <span key={role} className={`rounded-full px-3 py-1 ${getRoleBadgeColor(role)}`}>
+              {translateRole(role, language)}
+            </span>
+          ))}
+          <span className={`rounded-full px-3 py-1 ${getStatusBadgeColor(task.status)}`}>
+            {translateStatus(task.status, language)}
+          </span>
         </div>
 
-        {task.percent_done > 0 && task.percent_done < 100 && (
-          <div className="h-2 bg-slate-100">
+        <div className="mt-4">
+          <div className="h-2 w-full rounded-full bg-slate-200 overflow-hidden">
             <div
-              className={`h-full ${getStatusColor(task.status)} transition-all duration-300`}
+              className="h-2 bg-emerald-500 transition-all duration-500"
               style={{ width: `${task.percent_done}%` }}
             />
           </div>
+          <div className="mt-2 text-sm font-medium text-slate-900">{task.percent_done}%</div>
+        </div>
+
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-600">
+          <span>{dateRange}</span>
+          <span>• {daysText}</span>
+          {task.assigned_display_name && (
+            <span className="ml-auto rounded-lg bg-slate-100 px-2 py-1 text-slate-700 text-sm inline-flex items-center gap-1.5">
+              <User className="w-3.5 h-3.5" />
+              {task.assigned_display_name}
+            </span>
+          )}
+        </div>
+
+        {hasAccess ? (
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <button
+              onClick={(e) => handleView(task, e)}
+              disabled={isChecking}
+              className="h-11 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 transition-colors text-sm font-medium disabled:opacity-50"
+            >
+              {language === 'fr' ? 'Voir' : 'View'}
+            </button>
+            <button
+              onClick={(e) => handleUpdate(task, e)}
+              disabled={isChecking}
+              className="h-11 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-50"
+            >
+              {language === 'fr' ? 'Mettre à jour' : 'Update'}
+            </button>
+          </div>
+        ) : (
+          <div className="mt-4">
+            <button
+              disabled
+              className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 text-slate-400 text-sm font-medium"
+            >
+              {language === 'fr' ? 'Voir' : 'View'}
+            </button>
+          </div>
         )}
-      </div>
+      </article>
     );
   };
 
@@ -230,7 +181,7 @@ export const MyDayView = memo(function MyDayView({ tasks, onTaskClick, onStatusU
               ({tasksByPriority.today.length})
             </span>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {tasksByPriority.today.map(renderTaskCard)}
           </div>
         </div>
@@ -247,7 +198,7 @@ export const MyDayView = memo(function MyDayView({ tasks, onTaskClick, onStatusU
               ({tasksByPriority.soon.length})
             </span>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {tasksByPriority.soon.map(renderTaskCard)}
           </div>
         </div>
@@ -264,7 +215,7 @@ export const MyDayView = memo(function MyDayView({ tasks, onTaskClick, onStatusU
               ({tasksByPriority.upcoming.length})
             </span>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {tasksByPriority.upcoming.map(renderTaskCard)}
           </div>
         </div>
@@ -272,7 +223,9 @@ export const MyDayView = memo(function MyDayView({ tasks, onTaskClick, onStatusU
 
       {tasks.length === 0 && (
         <div className="text-center py-12">
-          <CheckCircle className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
+          <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Calendar className="w-8 h-8 text-emerald-600" />
+          </div>
           <h3 className="text-lg font-semibold text-slate-900 mb-2">
             {language === 'fr' ? 'Aucune tâche' : 'No tasks'}
           </h3>
