@@ -8,7 +8,6 @@ import {
   getStatusBadgeColor,
   getRoleBadgeColor,
 } from '../lib/utils';
-import { canOpenTask } from '../lib/api';
 import { Session } from '../lib/session';
 
 interface MyDayViewProps {
@@ -68,11 +67,7 @@ export const MyDayView = memo(function MyDayView({
     upcoming: tasks.filter(t => getTaskPriority(t) === 'upcoming' && t.status !== 'Done'),
   }), [tasks]);
 
-  const handleTaskClick = useCallback((task: Task) => {
-    onTaskClick(task);
-  }, [onTaskClick]);
-
-  const renderTaskCard = useCallback((task: Task) => {
+  const renderTaskCard = (task: Task) => {
     const daysRemaining = getDaysRemaining(task.end_date, task.status, task.percent_done);
     const dateRange = `${formatDate(task.start_date)} - ${formatDate(task.end_date)}`;
     const daysText = language === 'fr'
@@ -120,13 +115,13 @@ export const MyDayView = memo(function MyDayView({
 
         <div className="mt-4 grid grid-cols-2 gap-3">
           <button
-            onClick={() => handleTaskClick(task)}
+            onClick={() => onTaskClick(task)}
             className="h-11 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-sm font-medium transition-colors"
           >
             {language === 'fr' ? 'Voir' : 'View'}
           </button>
           <button
-            onClick={() => handleTaskClick(task)}
+            onClick={() => onTaskClick(task)}
             className="h-11 rounded-xl bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium transition-colors"
           >
             {language === 'fr' ? 'Mettre à jour' : 'Update'}
@@ -134,7 +129,7 @@ export const MyDayView = memo(function MyDayView({
         </div>
       </article>
     );
-  }, [language, handleTaskClick]);
+  };
 
   return (
     <>
