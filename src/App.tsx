@@ -632,7 +632,7 @@ function App() {
         </main>
       </div>
 
-      {!isLandscape && !(isMobile && viewMode === 'my-day') && (
+      {!isLandscape && !(isMobile && mobileView === 'my-day') && (
         <ProjectTabs
           projects={projects}
           activeProjectId={activeProjectId}
@@ -768,7 +768,7 @@ function App() {
         onDeleteTask={handleDeleteTask}
       />
 
-      {isMobile && session?.role === 'contractor' && viewMode !== 'my-day' && (
+      {isMobile && session?.role === 'contractor' && mobileView !== 'my-day' && (
         <MobileNav
           currentView={mobileView}
           onViewChange={handleMobileViewChange}
