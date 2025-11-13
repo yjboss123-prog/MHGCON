@@ -139,7 +139,10 @@ export const TaskListItem = memo(function TaskListItem({
       {canShowButtons ? (
         <div className="mt-4 grid grid-cols-3 gap-3">
           <button
-            onClick={handleUpdate}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleUpdate();
+            }}
             disabled={isCheckingAccess}
             className="h-11 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-50"
           >
@@ -147,7 +150,10 @@ export const TaskListItem = memo(function TaskListItem({
           </button>
           {canManage && onShift && (
             <button
-              onClick={() => onShift(task)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onShift(task);
+              }}
               className="h-11 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 transition-colors flex items-center justify-center"
               title={language === 'fr' ? 'Décaler le planning' : 'Shift schedule'}
             >
@@ -156,7 +162,10 @@ export const TaskListItem = memo(function TaskListItem({
           )}
           {canManage && onDelete && (
             <button
-              onClick={() => onDelete(task)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(task);
+              }}
               className="h-11 rounded-xl border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 transition-colors flex items-center justify-center"
               title={language === 'fr' ? 'Supprimer' : 'Delete'}
             >
@@ -167,7 +176,10 @@ export const TaskListItem = memo(function TaskListItem({
       ) : (
         <div className="mt-4">
           <button
-            onClick={handleUpdate}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleUpdate();
+            }}
             disabled={isCheckingAccess}
             className="h-11 w-full rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-50"
           >

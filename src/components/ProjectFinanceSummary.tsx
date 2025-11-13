@@ -1,6 +1,7 @@
 import { memo, useMemo } from 'react';
 import { Task } from '../types';
 import { DollarSign } from 'lucide-react';
+import { formatCurrency } from '../lib/utils';
 
 interface ProjectFinanceSummaryProps {
   tasks: Task[];
@@ -48,7 +49,7 @@ export const ProjectFinanceSummary = memo(function ProjectFinanceSummary({
             {language === 'fr' ? 'Budget' : 'Budget'}
           </div>
           <div className="text-lg font-bold text-slate-900">
-            ${finances.budget.toFixed(2)}
+            ${formatCurrency(finances.budget)}
           </div>
         </div>
 
@@ -57,7 +58,7 @@ export const ProjectFinanceSummary = memo(function ProjectFinanceSummary({
             {language === 'fr' ? 'Gagné' : 'Earned'}
           </div>
           <div className="text-lg font-bold text-emerald-600">
-            ${finances.earned.toFixed(2)}
+            ${formatCurrency(finances.earned)}
           </div>
         </div>
 
@@ -75,7 +76,7 @@ export const ProjectFinanceSummary = memo(function ProjectFinanceSummary({
             {language === 'fr' ? 'Restant' : 'Remaining'}
           </div>
           <div className="text-lg font-bold text-slate-900">
-            ${finances.remaining.toFixed(2)}
+            ${formatCurrency(finances.remaining)}
           </div>
         </div>
       </div>

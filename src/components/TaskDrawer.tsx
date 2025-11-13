@@ -2,7 +2,7 @@ import { useState, useEffect, memo, useCallback, useRef } from 'react';
 import { Task, TaskStatus, TASK_STATUSES } from '../types';
 import { Session } from '../lib/session';
 import { X, Upload, Camera, Check, AlertCircle } from 'lucide-react';
-import { formatDateTime, compressImage } from '../lib/utils';
+import { formatDateTime, compressImage, formatCurrency } from '../lib/utils';
 import { updateTask, createTaskAttachment, getTaskAttachments } from '../lib/api';
 
 interface TaskDrawerProps {
@@ -422,7 +422,7 @@ export const TaskDrawer = memo(function TaskDrawer({
                     Earned
                   </label>
                   <div className="px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-900">
-                    ${((budget * percentDone) / 100).toFixed(2)}
+                    ${formatCurrency((budget * percentDone) / 100)}
                   </div>
                 </div>
 
@@ -431,7 +431,7 @@ export const TaskDrawer = memo(function TaskDrawer({
                     Remaining
                   </label>
                   <div className="px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-900">
-                    ${(budget - (budget * percentDone) / 100).toFixed(2)}
+                    ${formatCurrency(budget - (budget * percentDone) / 100)}
                   </div>
                 </div>
               </div>
