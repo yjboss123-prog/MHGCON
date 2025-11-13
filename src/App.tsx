@@ -619,7 +619,7 @@ function App() {
           ) : (
             <>
               <div className="mb-4">
-                <ProjectFinanceSummary tasks={filteredTasks} language={language} />
+                <ProjectFinanceSummary tasks={filteredTasks} language={language} session={session} />
               </div>
               <TaskList
                 tasks={filteredTasks}

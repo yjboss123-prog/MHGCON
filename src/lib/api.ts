@@ -56,6 +56,16 @@ export async function getTasks(projectId?: string, session?: Session | null): Pr
       task.assigned_user_token === session.user_token ||
       task.owner_roles.includes('contractor')
     );
+
+    tasks = tasks.map(task => {
+      if (task.assigned_user_token !== session.user_token) {
+        return {
+          ...task,
+          budget: undefined
+        };
+      }
+      return task;
+    });
   }
 
   return tasks;
