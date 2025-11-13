@@ -275,7 +275,7 @@ export const TaskDrawer = memo(function TaskDrawer({
         <button
           onClick={onClose}
           aria-label="Close"
-          className="sm:hidden fixed left-1/2 -translate-x-1/2 bottom-[calc(80px+env(safe-area-inset-bottom))] z-[3000] h-12 w-12 rounded-full bg-white shadow-lg flex items-center justify-center active:scale-95 transition-transform"
+          className="sm:hidden fixed left-1/2 -translate-x-1/2 bottom-[calc(80px+env(safe-area-inset-bottom))] z-[55] h-12 w-12 rounded-full bg-white shadow-lg flex items-center justify-center active:scale-95 transition-transform"
         >
           <X className="w-5 h-5 text-slate-700" />
         </button>
@@ -500,7 +500,7 @@ export const TaskDrawer = memo(function TaskDrawer({
           </div>
         </div>
 
-        <div className="fixed inset-x-0 bottom-0 bg-white/95 backdrop-blur border-t border-slate-200 pb-safe z-20">
+        <div className="fixed inset-x-0 bottom-0 bg-white/95 backdrop-blur border-t border-slate-200 pb-safe z-[60]">
           <div className="px-4 py-3 flex gap-2">
             <button
               onClick={handleMarkBlocked}
