@@ -108,14 +108,14 @@ interface MyDayViewProps {
 }
 
 const getTaskPriority = (task: Task): 'today' | 'soon' | 'upcoming' => {
-  if (!task.due_date) return 'upcoming';
+  if (!task.end_date) return 'upcoming';
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const dueDate = new Date(task.due_date);
-  dueDate.setHours(0, 0, 0, 0);
+  const endDate = new Date(task.end_date);
+  endDate.setHours(0, 0, 0, 0);
 
-  const diffDays = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  const diffDays = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
   if (diffDays <= 0) return 'today';
   if (diffDays <= 3) return 'soon';
