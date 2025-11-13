@@ -128,14 +128,7 @@ export const TaskListItem = memo(function TaskListItem({
       </div>
 
       {canShowButtons ? (
-        <div className="mt-4 grid grid-cols-4 gap-3">
-          <button
-            onClick={handleView}
-            disabled={isCheckingAccess}
-            className="h-11 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 transition-colors text-sm font-medium disabled:opacity-50"
-          >
-            {language === 'fr' ? 'Voir' : 'View'}
-          </button>
+        <div className="mt-4 grid grid-cols-3 gap-3">
           <button
             onClick={handleUpdate}
             disabled={isCheckingAccess}
@@ -165,10 +158,11 @@ export const TaskListItem = memo(function TaskListItem({
       ) : (
         <div className="mt-4">
           <button
-            disabled
-            className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 text-slate-400 text-sm font-medium"
+            onClick={handleUpdate}
+            disabled={isCheckingAccess}
+            className="h-11 w-full rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-50"
           >
-            {language === 'fr' ? 'Voir' : 'View'}
+            {language === 'fr' ? 'Mettre à jour' : 'Update'}
           </button>
         </div>
       )}
