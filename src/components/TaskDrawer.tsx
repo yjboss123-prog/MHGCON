@@ -413,21 +413,21 @@ export const TaskDrawer = memo(function TaskDrawer({
                     </label>
                     {canEditBudget ? (
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">$</span>
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">DH</span>
                         <input
                           type="number"
                           min="0"
                           step="0.01"
                           value={budget}
                           onChange={(e) => setBudget(parseFloat(e.target.value) || 0)}
-                          className="w-full pl-8 pr-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                          className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                           style={{ fontSize: '16px' }}
                           placeholder="0.00"
                         />
                       </div>
                     ) : (
                       <div className="px-3 py-2.5 bg-slate-100 border border-slate-200 rounded-lg text-sm font-medium text-slate-900">
-                        ${formatCurrency(budget)}
+                        {formatCurrency(budget)} DH
                       </div>
                     )}
                   </div>
@@ -438,7 +438,7 @@ export const TaskDrawer = memo(function TaskDrawer({
                         Earned
                       </label>
                       <div className="px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-900">
-                        ${formatCurrency((budget * percentDone) / 100)}
+                        {formatCurrency((budget * percentDone) / 100)} DH
                       </div>
                     </div>
 
@@ -447,7 +447,7 @@ export const TaskDrawer = memo(function TaskDrawer({
                         Remaining
                       </label>
                       <div className="px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-900">
-                        ${formatCurrency(budget - (budget * percentDone) / 100)}
+                        {formatCurrency(budget - (budget * percentDone) / 100)} DH
                       </div>
                     </div>
                   </div>

@@ -55,7 +55,7 @@ export const ProjectFinanceSummary = memo(function ProjectFinanceSummary({
             {language === 'fr' ? 'Budget' : 'Budget'}
           </div>
           <div className="text-lg font-bold text-slate-900">
-            ${formatCurrency(finances.budget)}
+            {formatCurrency(finances.budget)} DH
           </div>
         </div>
 
@@ -64,7 +64,7 @@ export const ProjectFinanceSummary = memo(function ProjectFinanceSummary({
             {language === 'fr' ? 'Gagné' : 'Earned'}
           </div>
           <div className="text-lg font-bold text-emerald-600">
-            ${formatCurrency(finances.earned)}
+            {formatCurrency(finances.earned)} DH
           </div>
         </div>
 
@@ -82,7 +82,7 @@ export const ProjectFinanceSummary = memo(function ProjectFinanceSummary({
             {language === 'fr' ? 'Restant' : 'Remaining'}
           </div>
           <div className="text-lg font-bold text-slate-900">
-            ${formatCurrency(finances.remaining)}
+            {formatCurrency(finances.remaining)} DH
           </div>
         </div>
       </div>
