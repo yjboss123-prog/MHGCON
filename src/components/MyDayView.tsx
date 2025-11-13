@@ -136,6 +136,7 @@ export const MyDayView = memo(function MyDayView({
   onLogout
 }: MyDayViewProps) {
   const [isMobile, setIsMobile] = useState(false);
+  const { show, closing, setOpen: setProjectSwitcherOpen, projectSwitcherOpen } = useAnimatedToggle();
 
   useEffect(() => {
     const checkMobile = () => {
