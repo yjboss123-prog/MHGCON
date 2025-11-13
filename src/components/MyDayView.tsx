@@ -70,16 +70,10 @@ const TaskCard: FC<TaskCardProps> = memo(({
         )}
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-3">
+      <div className="mt-4">
         <button
           onClick={() => onView(id)}
-          className="h-11 rounded-xl border border-slate-300 bg-white text-slate-900 hover:bg-slate-50 active:bg-slate-100 text-sm font-medium"
-        >
-          {viewLabel}
-        </button>
-        <button
-          onClick={() => onView(id)}
-          className="h-11 rounded-xl bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 text-sm font-medium"
+          className="w-full h-11 rounded-xl bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 text-sm font-medium"
         >
           {updateLabel}
         </button>
