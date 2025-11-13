@@ -11,6 +11,7 @@ import {
 } from '../lib/utils';
 import { Session } from '../lib/session';
 import { useAnimatedToggle } from '../lib/useAnimatedToggle';
+import { useDoubleTap } from '../lib/useDoubleTap';
 
 interface TaskCardProps {
   id: string;
@@ -34,8 +35,16 @@ const TaskCard: FC<TaskCardProps> = memo(({
   id, name, roleLabels, roleBadgeColors, statusLabel, statusBadgeColor,
   startDate, endDate, daysText, progressPct, assignee, viewLabel, updateLabel, onView
 }) => {
+  const handleCardDoubleTap = useDoubleTap({
+    onDoubleTap: () => onView(id)
+  });
+
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-4">
+    <article
+      className="rounded-2xl border border-slate-200 bg-white p-4 cursor-pointer"
+      onClick={handleCardDoubleTap}
+      onDoubleClick={() => onView(id)}
+    >
       <h3 className="text-lg font-semibold text-slate-900">{name}</h3>
 
       <div className="mt-2 flex flex-wrap gap-2 text-xs">

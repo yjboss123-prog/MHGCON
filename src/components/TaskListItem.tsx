@@ -11,6 +11,7 @@ import {
 import { Language, useTranslation, translateRole, translateStatus } from '../lib/i18n';
 import { canOpenTask } from '../lib/api';
 import { Session } from '../lib/session';
+import { useDoubleTap } from '../lib/useDoubleTap';
 
 interface TaskListItemProps {
   task: Task;
@@ -91,8 +92,16 @@ export const TaskListItem = memo(function TaskListItem({
 
   const canShowButtons = hasAccess === true || canManage;
 
+  const handleCardDoubleTap = useDoubleTap({
+    onDoubleTap: handleUpdate
+  });
+
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow">
+    <article
+      className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+      onClick={handleCardDoubleTap}
+      onDoubleClick={handleUpdate}
+    >
       <h3 className="text-lg font-semibold text-slate-900">{task.name}</h3>
 
       <div className="mt-2 flex flex-wrap gap-2 text-xs">

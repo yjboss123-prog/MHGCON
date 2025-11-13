@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Download } from 'lucide-react';
 import { Task } from '../types';
 import { updateTask } from '../lib/api';
+import { useDoubleTap } from '../lib/useDoubleTap';
 
 type GanttViewProps = {
   tasks: Task[];
@@ -43,6 +44,7 @@ export function GanttView({ tasks, onTaskUpdate, userRole, userToken, language }
   const [dragType, setDragType] = useState<'move' | 'resize-start' | 'resize-end' | null>(null);
   const [dragStartX, setDragStartX] = useState(0);
   const [originalDates, setOriginalDates] = useState<{ start: string; end: string } | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const monthNames = language === 'fr' ? MONTHS_FR : MONTHS;
@@ -91,6 +93,7 @@ export function GanttView({ tasks, onTaskUpdate, userRole, userToken, language }
     setDragType(type);
     setDragStartX(e.clientX);
     setOriginalDates({ start: task.start_date, end: task.end_date });
+    setIsDragging(false);
   };
 
   const handleMouseMove = (e: MouseEvent) => {
@@ -103,6 +106,10 @@ export function GanttView({ tasks, onTaskUpdate, userRole, userToken, language }
     const weekWidth = rect.width / 48;
     const deltaX = e.clientX - dragStartX;
     const weeksDelta = Math.round(deltaX / weekWidth);
+
+    if (Math.abs(deltaX) > 5) {
+      setIsDragging(true);
+    }
 
     if (weeksDelta === 0) return;
 
@@ -208,6 +215,51 @@ export function GanttView({ tasks, onTaskUpdate, userRole, userToken, language }
               const isMyTask = isContractor && task.assigned_user_token === userToken;
               const showHighlight = isMyTask;
 
+              const TaskBar = () => {
+                const handleDoubleTap = useDoubleTap({
+                  onDoubleTap: () => {
+                    if (!isDragging) {
+                      onTaskUpdate(task);
+                    }
+                  }
+                });
+
+                return (
+                  <div
+                    className={`absolute top-2 h-8 rounded ${STATUS_COLORS[task.status]} cursor-move group ${
+                      showHighlight ? 'ring-2 ring-sky-400/60' : ''
+                    }`}
+                    style={{
+                      left: `${(left / 48) * 100}%`,
+                      width: `${(width / 48) * 100}%`,
+                    }}
+                    onMouseDown={(e) => handleMouseDown(e, task.id, 'move')}
+                    onClick={handleDoubleTap}
+                    onDoubleClick={() => {
+                      if (!isDragging) {
+                        onTaskUpdate(task);
+                      }
+                    }}
+                    title={`${task.name}\n${task.start_date} → ${task.end_date}\n${task.assigned_display_name || ''}\n${task.status}`}
+                  >
+                    <div
+                      className="absolute left-0 top-0 w-2 h-full cursor-ew-resize hover:bg-black/20"
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                        handleMouseDown(e, task.id, 'resize-start');
+                      }}
+                    />
+                    <div
+                      className="absolute right-0 top-0 w-2 h-full cursor-ew-resize hover:bg-black/20"
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                        handleMouseDown(e, task.id, 'resize-end');
+                      }}
+                    />
+                  </div>
+                );
+              };
+
               return (
                 <div
                   key={task.id}
@@ -225,32 +277,7 @@ export function GanttView({ tasks, onTaskUpdate, userRole, userToken, language }
                         />
                       ))}
                     </div>
-                    <div
-                      className={`absolute top-2 h-8 rounded ${STATUS_COLORS[task.status]} cursor-move group ${
-                        showHighlight ? 'ring-2 ring-sky-400/60' : ''
-                      }`}
-                      style={{
-                        left: `${(left / 48) * 100}%`,
-                        width: `${(width / 48) * 100}%`,
-                      }}
-                      onMouseDown={(e) => handleMouseDown(e, task.id, 'move')}
-                      title={`${task.name}\n${task.start_date} → ${task.end_date}\n${task.assigned_display_name || ''}\n${task.status}`}
-                    >
-                      <div
-                        className="absolute left-0 top-0 w-2 h-full cursor-ew-resize hover:bg-black/20"
-                        onMouseDown={(e) => {
-                          e.stopPropagation();
-                          handleMouseDown(e, task.id, 'resize-start');
-                        }}
-                      />
-                      <div
-                        className="absolute right-0 top-0 w-2 h-full cursor-ew-resize hover:bg-black/20"
-                        onMouseDown={(e) => {
-                          e.stopPropagation();
-                          handleMouseDown(e, task.id, 'resize-end');
-                        }}
-                      />
-                    </div>
+                    <TaskBar />
                   </div>
                 </div>
               );
