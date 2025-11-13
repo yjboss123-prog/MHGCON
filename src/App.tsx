@@ -13,7 +13,7 @@ import { ProjectFinanceSummary } from './components/ProjectFinanceSummary';
 import { Task, Role, TaskStatus, DEFAULT_ROLES, Project } from './types';
 import { getTasks, initializeData, shiftSchedule, deleteTask, rebaselineProject, getProject, updateProject, getAllProjects, createProject, duplicateProject, archiveProject, unarchiveProject, deleteProject, updateTask } from './lib/api';
 import { Language, useTranslation } from './lib/i18n';
-import { getSession, validateSession, signOut, clearSession, Session, isAdmin, canManageTasks, canDeleteTasks } from './lib/session';
+import { getSession, validateSession, signOut, clearSession, Session, isAdmin, canManageTasks, canDeleteTasks, isElevated } from './lib/session';
 import { roleToDisplayName } from './lib/utils';
 
 const AddTaskModal = lazy(() => import('./components/AddTaskModal').then(m => ({ default: m.AddTaskModal })));
@@ -618,9 +618,11 @@ function App() {
             />
           ) : (
             <>
-              <div className="mb-4">
-                <ProjectFinanceSummary tasks={filteredTasks} language={language} />
-              </div>
+              {isElevated(session) && (
+                <div className="mb-4">
+                  <ProjectFinanceSummary tasks={filteredTasks} language={language} />
+                </div>
+              )}
               <TaskList
                 tasks={filteredTasks}
                 currentRole={currentRole}
