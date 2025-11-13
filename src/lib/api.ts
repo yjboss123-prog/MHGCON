@@ -973,20 +973,36 @@ export async function canOpenTask(taskId: string, session: Session | null): Prom
   }
 
   if (userRole === 'contractor') {
-    const { data, error } = await supabase
-      .from('task_access')
-      .select('can_open_task')
-      .eq('user_token', userToken)
-      .eq('task_id', taskId)
-      .eq('can_open_task', true)
+    const { data: task, error: taskError } = await supabase
+      .from('tasks')
+      .select('assigned_user_token, owner_roles')
+      .eq('id', taskId)
       .maybeSingle();
 
-    if (error) {
-      console.error('Error checking task access:', error);
+    if (taskError) {
+      console.error('Error checking task:', taskError);
       return false;
     }
 
-    return !!data;
+    if (!task) return false;
+
+    if (task.assigned_user_token === userToken) {
+      return true;
+    }
+
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('contractor_role')
+      .eq('user_token', userToken)
+      .maybeSingle();
+
+    if (userError || !user) return false;
+
+    if (user.contractor_role && task.owner_roles?.includes(user.contractor_role)) {
+      return true;
+    }
+
+    return false;
   }
 
   return false;
