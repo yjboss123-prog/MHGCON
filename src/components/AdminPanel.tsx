@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { X, Users, Activity, Key, Plus, Trash2, User as UserIcon } from 'lucide-react';
+import { X, Users, Activity, Key, Plus, Trash2, User as UserIcon, Settings } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { AuditLog, User } from '../types';
 import { Language } from '../lib/i18n';
-import { getProject } from '../lib/api';
+import { getProject, getAppSetting, updateAppSetting } from '../lib/api';
 
 interface AdminPanelProps {
   isOpen: boolean;
@@ -33,7 +33,7 @@ const CONTRACTOR_ROLES_FR: Record<string, string> = {
 
 export function AdminPanel({ isOpen, onClose, language }: AdminPanelProps) {
   const isFr = language === 'fr';
-  const [activeTab, setActiveTab] = useState<'audit' | 'users' | 'codes'>('users');
+  const [activeTab, setActiveTab] = useState<'audit' | 'users' | 'codes' | 'settings'>('users');
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,6 +46,8 @@ export function AdminPanel({ isOpen, onClose, language }: AdminPanelProps) {
   const [addingUser, setAddingUser] = useState(false);
   const [error, setError] = useState('');
   const [availableRoles, setAvailableRoles] = useState<string[]>(CONTRACTOR_ROLES);
+  const [allowNewUsers, setAllowNewUsers] = useState(true);
+  const [savingSettings, setSavingSettings] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -81,6 +83,9 @@ export function AdminPanel({ isOpen, onClose, language }: AdminPanelProps) {
           .select('*')
           .order('created_at', { ascending: false });
         setUsers(data || []);
+      } else if (activeTab === 'settings') {
+        const allowNewUsersValue = await getAppSetting('allow_new_users');
+        setAllowNewUsers(allowNewUsersValue === true);
       }
     } catch (error) {
       console.error('Error loading data:', error);
@@ -165,6 +170,19 @@ export function AdminPanel({ isOpen, onClose, language }: AdminPanelProps) {
     }
   };
 
+  const handleToggleAllowNewUsers = async (enabled: boolean) => {
+    setSavingSettings(true);
+    try {
+      await updateAppSetting('allow_new_users', enabled);
+      setAllowNewUsers(enabled);
+    } catch (error) {
+      console.error('Error updating setting:', error);
+      alert(isFr ? 'Échec de la mise à jour du paramètre' : 'Failed to update setting');
+    } finally {
+      setSavingSettings(false);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -209,6 +227,17 @@ export function AdminPanel({ isOpen, onClose, language }: AdminPanelProps) {
           >
             <Activity className="w-4 h-4 inline mr-2" />
             {isFr ? 'Journaux d\'audit' : 'Audit Logs'}
+          </button>
+          <button
+            onClick={() => setActiveTab('settings')}
+            className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+              activeTab === 'settings'
+                ? 'text-slate-900 border-b-2 border-slate-900 bg-slate-50'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+            }`}
+          >
+            <Settings className="w-4 h-4 inline mr-2" />
+            {isFr ? 'Paramètres' : 'Settings'}
           </button>
           <button
             onClick={() => setActiveTab('codes')}
@@ -399,6 +428,65 @@ export function AdminPanel({ isOpen, onClose, language }: AdminPanelProps) {
                     )}
                   </div>
                 ))
+              )}
+            </div>
+          ) : activeTab === 'settings' ? (
+            <div className="space-y-6">
+              <div className="bg-white rounded-lg border border-slate-200 p-6">
+                <h3 className="text-lg font-semibold text-slate-900 mb-4">
+                  {isFr ? 'Paramètres de l\'application' : 'Application Settings'}
+                </h3>
+
+                <div className="space-y-4">
+                  <div className="flex items-start justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                    <div className="flex-1">
+                      <h4 className="font-medium text-slate-900 mb-1">
+                        {isFr ? 'Autoriser la création de nouveaux utilisateurs' : 'Allow creation of new users'}
+                      </h4>
+                      <p className="text-sm text-slate-600">
+                        {isFr
+                          ? 'Lorsque désactivé, aucun nouvel utilisateur ne peut être créé ou s\'inscrire.'
+                          : 'When disabled, no new users can be created or sign up.'}
+                      </p>
+                      <p className="text-xs text-slate-500 mt-2">
+                        {isFr
+                          ? 'Les utilisateurs existants peuvent toujours se connecter normalement.'
+                          : 'Existing users can still log in normally.'}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3 ml-4">
+                      <span className={`text-sm font-medium ${allowNewUsers ? 'text-green-600' : 'text-slate-500'}`}>
+                        {allowNewUsers
+                          ? (isFr ? 'Activé' : 'Enabled')
+                          : (isFr ? 'Désactivé' : 'Disabled')}
+                      </span>
+                      <button
+                        onClick={() => handleToggleAllowNewUsers(!allowNewUsers)}
+                        disabled={savingSettings}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                          allowNewUsers ? 'bg-green-600' : 'bg-slate-300'
+                        } ${savingSettings ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            allowNewUsers ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {!allowNewUsers && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                  <p className="text-sm text-amber-800">
+                    <strong>{isFr ? 'Attention :' : 'Warning:'}</strong>{' '}
+                    {isFr
+                      ? 'La création de nouveaux utilisateurs est actuellement désactivée. Seuls les comptes existants peuvent se connecter.'
+                      : 'New user creation is currently disabled. Only existing accounts can log in.'}
+                  </p>
+                </div>
               )}
             </div>
           ) : (

@@ -1039,3 +1039,27 @@ export async function revokeTaskAccess(taskId: string, userToken: string): Promi
 
   if (error) throw error;
 }
+
+export async function getAppSetting(key: string): Promise<any> {
+  const { data, error } = await supabase
+    .from('app_settings')
+    .select('value')
+    .eq('key', key)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data?.value;
+}
+
+export async function updateAppSetting(key: string, value: any, userToken?: string): Promise<void> {
+  const { error } = await supabase
+    .from('app_settings')
+    .update({
+      value: value,
+      updated_at: new Date().toISOString(),
+      updated_by: userToken || null
+    })
+    .eq('key', key);
+
+  if (error) throw error;
+}

@@ -46,6 +46,12 @@ Deno.serve(async (req: Request) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    const { data: allowNewUsersSetting } = await supabase
+      .from("app_settings")
+      .select("value")
+      .eq("key", "allow_new_users")
+      .maybeSingle();
+
     const nameNorm = normalizeName(displayName);
     const passwordHash = await hashPassword(password);
 
@@ -90,6 +96,15 @@ Deno.serve(async (req: Request) => {
       user = updatedUser;
       mode = "login";
     } else {
+      const allowNewUsers = allowNewUsersSetting?.value === true;
+
+      if (!allowNewUsers) {
+        return new Response(
+          JSON.stringify({ error: "New account creation is currently disabled. Please contact your administrator." }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       const { data: newUser, error: userError } = await supabase
         .from("users")
         .insert({
