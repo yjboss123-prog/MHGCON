@@ -9,6 +9,7 @@ import { AccessCodeEntry } from './components/AccessCodeEntry';
 import { MyDayView } from './components/MyDayView';
 import { MobileNav } from './components/MobileNav';
 import { MobileHeader } from './components/MobileHeader';
+import { ProjectFinanceSummary } from './components/ProjectFinanceSummary';
 import { Task, Role, TaskStatus, DEFAULT_ROLES, Project } from './types';
 import { getTasks, initializeData, shiftSchedule, deleteTask, rebaselineProject, getProject, updateProject, getAllProjects, createProject, duplicateProject, archiveProject, unarchiveProject, deleteProject, updateTask } from './lib/api';
 import { Language, useTranslation } from './lib/i18n';
@@ -616,18 +617,23 @@ function App() {
               language={language}
             />
           ) : (
-            <TaskList
-              tasks={filteredTasks}
-              currentRole={currentRole}
-              projectStart={projectDates.start}
-              projectEnd={projectDates.end}
-              onTaskView={handleTaskView}
-              onTaskUpdate={handleTaskUpdate}
-              onTaskShift={handleShiftTask}
-              onTaskDelete={handleDeleteTask}
-              language={language}
-              session={session}
-            />
+            <>
+              <div className="mb-4">
+                <ProjectFinanceSummary tasks={filteredTasks} language={language} />
+              </div>
+              <TaskList
+                tasks={filteredTasks}
+                currentRole={currentRole}
+                projectStart={projectDates.start}
+                projectEnd={projectDates.end}
+                onTaskView={handleTaskView}
+                onTaskUpdate={handleTaskUpdate}
+                onTaskShift={handleShiftTask}
+                onTaskDelete={handleDeleteTask}
+                language={language}
+                session={session}
+              />
+            </>
           )}
         </main>
       </div>

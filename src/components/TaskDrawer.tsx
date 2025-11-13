@@ -34,6 +34,7 @@ export const TaskDrawer = memo(function TaskDrawer({
   const [percentDone, setPercentDone] = useState(0);
   const [status, setStatus] = useState<TaskStatus>('On Track');
   const [comment, setComment] = useState('');
+  const [budget, setBudget] = useState<number>(0);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -56,6 +57,7 @@ export const TaskDrawer = memo(function TaskDrawer({
       loadTaskData();
       setPercentDone(task.percent_done);
       setStatus(task.status);
+      setBudget(task.budget || 0);
       setComment('');
       setError(null);
       setShowSuccess(false);
@@ -101,6 +103,7 @@ export const TaskDrawer = memo(function TaskDrawer({
       const updates: Partial<Task> = {
         percent_done: percentDone,
         status,
+        budget,
       };
 
       if (comment.trim()) {
@@ -387,6 +390,51 @@ export const TaskDrawer = memo(function TaskDrawer({
                   Previous reason: {task.delay_reason}
                 </div>
               )}
+            </div>
+
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-3">
+              <label className="text-sm font-semibold text-slate-900 block">
+                Finance
+              </label>
+
+              <div>
+                <label className="text-xs font-medium text-slate-600 block mb-1.5">
+                  Budget
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">$</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={budget}
+                    onChange={(e) => setBudget(parseFloat(e.target.value) || 0)}
+                    className="w-full pl-8 pr-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    style={{ fontSize: '16px' }}
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-medium text-slate-600 block mb-1.5">
+                    Earned
+                  </label>
+                  <div className="px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-900">
+                    ${((budget * percentDone) / 100).toFixed(2)}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-slate-600 block mb-1.5">
+                    Remaining
+                  </label>
+                  <div className="px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-900">
+                    ${(budget - (budget * percentDone) / 100).toFixed(2)}
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div>
