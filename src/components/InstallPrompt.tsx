@@ -31,7 +31,7 @@ export default function InstallPrompt() {
       return;
     }
     deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
+    await deferredPrompt.userChoice;
     setDeferredPrompt(null);
   };
 

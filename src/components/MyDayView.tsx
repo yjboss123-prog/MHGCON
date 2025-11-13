@@ -33,7 +33,7 @@ interface TaskCardProps {
 
 const TaskCard: FC<TaskCardProps> = memo(({
   id, name, roleLabels, roleBadgeColors, statusLabel, statusBadgeColor,
-  startDate, endDate, daysText, progressPct, assignee, viewLabel, updateLabel, onView
+  startDate, endDate, daysText, progressPct, assignee, viewLabel: _viewLabel, updateLabel, onView
 }) => {
   const handleCardDoubleTap = useDoubleTap({
     onDoubleTap: () => onView(id)

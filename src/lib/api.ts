@@ -266,14 +266,21 @@ export async function shiftSchedule(
   anchorTask: Task,
   amount: number,
   unit: 'Days' | 'Weeks',
-  skipDone: boolean
+  skipDone: boolean,
+  projectId?: string
 ): Promise<{ shiftedCount: number }> {
   const shiftDays = amount * (unit === 'Weeks' ? 7 : 1);
 
-  const { data: allTasks, error: fetchError } = await supabase
+  let query = supabase
     .from('tasks')
     .select('*')
     .order('start_date', { ascending: true });
+
+  if (projectId) {
+    query = query.eq('project_id', projectId);
+  }
+
+  const { data: allTasks, error: fetchError } = await query;
 
   if (fetchError) throw fetchError;
 
@@ -316,6 +323,7 @@ export async function shiftSchedule(
   const currentDate = new Date().toISOString().slice(0, 10);
   const comments = toShift.map((t) => ({
     task_id: t.id,
+    project_id: t.project_id,
     author_role: 'Project Manager',
     message: `Auto-shifted by ${amount} ${unit} due to delay of "${anchorTask.name}" on ${currentDate}.`,
   }));
@@ -405,6 +413,7 @@ export async function rebaselineProject(
 
   const comment = {
     task_id: allTasks[0].id,
+    project_id: projectId,
     author_role: 'Project Manager',
     message: `Rebaseline applied: shifted ${deltaDays} days from ${minStart} to ${newBaselineStart}.`,
   };

@@ -240,10 +240,8 @@ function App() {
     }
   };
 
-  const handleWeekClick = (task: Task, year: number, week: number) => {
-    setSelectedTask(task);
-    setSelectedWeek({ year, week });
-    setIsWeekModalOpen(true);
+  const _handleWeekClick = (_task: Task, _year: number, _week: number) => {
+    // Placeholder for future week click functionality
   };
 
   const handleQuickStatusUpdate = async (taskId: string, status: TaskStatus) => {
@@ -291,7 +289,7 @@ function App() {
     if (!selectedTask) return;
 
     try {
-      const result = await shiftSchedule(selectedTask, amount, unit, skipDone);
+      const result = await shiftSchedule(selectedTask, amount, unit, skipDone, activeProjectId);
       await loadTasks();
       setIsShiftModalOpen(false);
 
@@ -522,7 +520,7 @@ function App() {
 
   const userIsAdmin = isAdmin(session);
   const canManage = canManageTasks(session);
-  const canDelete = canDeleteTasks(session);
+  const _canDelete = canDeleteTasks(session);
 
   if (isCheckingSession) {
     return (

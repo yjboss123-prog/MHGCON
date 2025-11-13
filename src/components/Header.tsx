@@ -27,7 +27,7 @@ interface HeaderProps {
   onViewModeChange?: (mode: ViewMode) => void;
 }
 
-export const Header = memo(function Header({ currentRole, onRoleChange, onAddTask, onRebaseline, onProjectSettings, onInvite, onAdminPanel, language, onLanguageChange, projectName, projectDescription, allRoles, userSession, onSignOut, onSwitchCode, viewMode = 'list', onViewModeChange }: HeaderProps) {
+export const Header = memo(function Header({ currentRole, onRoleChange: _onRoleChange, onAddTask, onRebaseline, onProjectSettings, onInvite, onAdminPanel, language, onLanguageChange, projectName, projectDescription, allRoles: _allRoles, userSession, onSignOut, onSwitchCode, viewMode = 'list', onViewModeChange }: HeaderProps) {
   const t = useTranslation(language);
   const canManage = isManagerRole(currentRole);
   return (

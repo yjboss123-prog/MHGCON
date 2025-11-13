@@ -35,9 +35,10 @@ function getWeekNumber(date: Date): number {
   return Math.floor(daysSinceStart / 7);
 }
 
-function getMonthFromWeek(weekNumber: number): number {
-  return Math.floor(weekNumber / 4);
-}
+// Helper function for future month calculations
+// function _getMonthFromWeek(weekNumber: number): number {
+//   return Math.floor(weekNumber / 4);
+// }
 
 export function GanttView({ tasks, onTaskUpdate, userRole, userToken, language }: GanttViewProps) {
   const [draggedTask, setDraggedTask] = useState<string | null>(null);

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Lock, User, Shield, Briefcase, Key } from 'lucide-react';
+import { Lock, User, Briefcase, Key } from 'lucide-react';
 import { saveSession } from '../lib/session';
 import { getProject } from '../lib/api';
 import { Language } from '../lib/i18n';
