@@ -282,7 +282,7 @@ export const TaskDrawer = memo(function TaskDrawer({
           <X className="w-5 h-5 text-slate-700" />
         </button>
 
-        <div className="p-4 space-y-6 pb-[calc(96px+env(safe-area-inset-bottom))] sm:pb-32">
+        <div className="p-4 space-y-6 pb-[calc(120px+env(safe-area-inset-bottom))] sm:pb-48">
           {task.was_shifted && (
             <div className="bg-blue-600 text-white px-4 py-3 rounded-lg flex items-center gap-3">
               <AlertCircle className="w-5 h-5 flex-shrink-0" />
