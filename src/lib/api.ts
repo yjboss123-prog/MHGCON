@@ -330,11 +330,13 @@ export async function shiftSchedule(
 export async function rebaselineProject(
   newBaselineStart: string,
   resetStatuses: boolean,
-  clearDelayReasons: boolean
+  clearDelayReasons: boolean,
+  projectId: string = '00000000-0000-0000-0000-000000000001'
 ): Promise<{ shiftedCount: number; deltaDays: number }> {
   const { data: allTasks, error: fetchError } = await supabase
     .from('tasks')
     .select('*')
+    .eq('project_id', projectId)
     .order('start_date', { ascending: true });
 
   if (fetchError) throw fetchError;
@@ -385,7 +387,7 @@ export async function rebaselineProject(
   const { data: project } = await supabase
     .from('projects')
     .select('project_current_date')
-    .eq('id', '00000000-0000-0000-0000-000000000001')
+    .eq('id', projectId)
     .single();
 
   if (project?.project_current_date) {
@@ -398,7 +400,7 @@ export async function rebaselineProject(
         project_current_date: newCurrentDate.toISOString().slice(0, 10),
         updated_at: new Date().toISOString()
       })
-      .eq('id', '00000000-0000-0000-0000-000000000001');
+      .eq('id', projectId);
   }
 
   const comment = {

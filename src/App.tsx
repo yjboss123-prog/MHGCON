@@ -344,7 +344,7 @@ function App() {
     clearDelayReasons: boolean
   ) => {
     try {
-      const result = await rebaselineProject(newBaselineStart, resetStatuses, clearDelayReasons);
+      const result = await rebaselineProject(newBaselineStart, resetStatuses, clearDelayReasons, activeProjectId);
       await loadProject();
       await loadTasks();
 
