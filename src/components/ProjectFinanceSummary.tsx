@@ -1,6 +1,6 @@
 import { memo, useMemo } from 'react';
 import { Task } from '../types';
-import { DollarSign, Lock } from 'lucide-react';
+import { DollarSign } from 'lucide-react';
 import { formatCurrency } from '../lib/utils';
 import { Session } from '../lib/session';
 import { canViewProjectBudget } from '../lib/budgetVisibility';
@@ -38,25 +38,7 @@ export const ProjectFinanceSummary = memo(function ProjectFinanceSummary({
 
   const canViewBudget = canViewProjectBudget(session);
 
-  if (finances.budget === 0) return null;
-
-  if (!canViewBudget) {
-    return (
-      <div className="bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 rounded-xl p-4 shadow-sm">
-        <div className="flex items-center gap-2 mb-2">
-          <Lock className="w-5 h-5 text-slate-400" />
-          <h3 className="text-sm font-semibold text-slate-600">
-            {language === 'fr' ? 'Budget du Projet' : 'Project Budget'}
-          </h3>
-        </div>
-        <p className="text-sm text-slate-500">
-          {language === 'fr'
-            ? 'Le résumé financier du projet n\'est pas disponible pour ce rôle.'
-            : 'Project financial summary unavailable for this role.'}
-        </p>
-      </div>
-    );
-  }
+  if (!canViewBudget || finances.budget === 0) return null;
 
   return (
     <div className="bg-gradient-to-br from-blue-50 to-slate-50 border border-slate-200 rounded-xl p-4 shadow-sm">
