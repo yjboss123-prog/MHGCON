@@ -4,6 +4,7 @@ import { Session } from '../lib/session';
 import { X, Upload, Camera, Check, AlertCircle } from 'lucide-react';
 import { formatDateTime, compressImage, formatCurrency } from '../lib/utils';
 import { updateTask, createTaskAttachment, getTaskAttachments } from '../lib/api';
+import { isElevated } from '../lib/session';
 
 interface TaskDrawerProps {
   task: Task | null;
@@ -235,6 +236,7 @@ export const TaskDrawer = memo(function TaskDrawer({
 
   const isPastDue = task.end_date && new Date(task.end_date) < new Date() && percentDone < 100;
   const needsComment = (status === 'Delayed' || status === 'Blocked');
+  const canEditBudget = isElevated(session);
 
   return (
     <>
@@ -401,19 +403,25 @@ export const TaskDrawer = memo(function TaskDrawer({
                 <label className="text-xs font-medium text-slate-600 block mb-1.5">
                   Budget
                 </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">$</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={budget}
-                    onChange={(e) => setBudget(parseFloat(e.target.value) || 0)}
-                    className="w-full pl-8 pr-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                    style={{ fontSize: '16px' }}
-                    placeholder="0.00"
-                  />
-                </div>
+                {canEditBudget ? (
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">$</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={budget}
+                      onChange={(e) => setBudget(parseFloat(e.target.value) || 0)}
+                      className="w-full pl-8 pr-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                      style={{ fontSize: '16px' }}
+                      placeholder="0.00"
+                    />
+                  </div>
+                ) : (
+                  <div className="px-3 py-2.5 bg-slate-100 border border-slate-200 rounded-lg text-sm font-medium text-slate-900">
+                    ${formatCurrency(budget)}
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3">
