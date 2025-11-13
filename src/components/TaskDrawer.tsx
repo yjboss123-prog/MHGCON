@@ -245,13 +245,13 @@ export const TaskDrawer = memo(function TaskDrawer({
         onClick={onClose}
       />
       <div
-        className="fixed inset-y-0 right-0 w-full sm:w-[600px] bg-white shadow-xl z-50 overflow-y-auto smooth-scroll min-h-dvh"
+        className="fixed inset-y-0 right-0 w-full sm:w-[600px] bg-white shadow-xl z-50 flex flex-col"
         style={{
           transform: 'translateZ(0)',
           willChange: 'transform',
         }}
       >
-        <div className="sticky top-0 bg-white/95 backdrop-blur border-b border-slate-200 z-10 pt-safe">
+        <div className="flex-shrink-0 bg-white/95 backdrop-blur border-b border-slate-200 pt-safe">
           <div className="px-4 py-3 flex items-center justify-between">
             <div className="flex-1 min-w-0">
               <h2 className="text-base font-semibold text-slate-900 truncate">
@@ -277,12 +277,16 @@ export const TaskDrawer = memo(function TaskDrawer({
         <button
           onClick={onClose}
           aria-label="Close"
-          className="sm:hidden fixed left-1/2 -translate-x-1/2 bottom-[calc(80px+env(safe-area-inset-bottom))] z-[55] h-12 w-12 rounded-full bg-white shadow-lg flex items-center justify-center active:scale-95 transition-transform"
+          className="sm:hidden fixed left-1/2 -translate-x-1/2 bottom-[calc(100px+env(safe-area-inset-bottom))] z-[55] h-12 w-12 rounded-full bg-white shadow-lg flex items-center justify-center active:scale-95 transition-transform"
         >
           <X className="w-5 h-5 text-slate-700" />
         </button>
 
-        <div className="p-4 space-y-6 pb-[calc(140px+env(safe-area-inset-bottom))] sm:pb-48">
+        <div className="flex-1 overflow-y-auto p-4 space-y-6 pb-6"
+          style={{
+            WebkitOverflowScrolling: 'touch',
+          }}
+        >
           {task.was_shifted && (
             <div className="bg-blue-600 text-white px-4 py-3 rounded-lg flex items-center gap-3">
               <AlertCircle className="w-5 h-5 flex-shrink-0" />
@@ -508,7 +512,7 @@ export const TaskDrawer = memo(function TaskDrawer({
           </div>
         </div>
 
-        <div className="fixed inset-x-0 bottom-0 bg-white/95 backdrop-blur border-t border-slate-200 pb-safe z-[60]">
+        <div className="flex-shrink-0 bg-white border-t border-slate-200 pb-safe">
           <div className="px-4 py-3 flex gap-2">
             <button
               onClick={handleMarkBlocked}
