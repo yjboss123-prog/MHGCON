@@ -247,13 +247,13 @@ export const TaskDrawer = memo(function TaskDrawer({
         onClick={onClose}
       />
       <div
-        className="fixed inset-y-0 right-0 w-full sm:w-[600px] bg-white shadow-xl z-50 flex flex-col"
+        className="fixed inset-y-0 right-0 w-full sm:w-[600px] bg-white shadow-xl z-50 flex flex-col h-[100dvh] safe-top safe-bottom"
         style={{
           transform: 'translateZ(0)',
           willChange: 'transform',
         }}
       >
-        <div className="flex-shrink-0 bg-white/95 backdrop-blur border-b border-slate-200 pt-safe">
+        <div className="flex-shrink-0 bg-white/95 backdrop-blur border-b border-slate-200">
           <div className="px-4 py-3 flex items-center justify-between">
             <div className="flex-1 min-w-0">
               <h2 className="text-base font-semibold text-slate-900 truncate">
@@ -276,19 +276,12 @@ export const TaskDrawer = memo(function TaskDrawer({
           </div>
         </div>
 
-        <button
-          onClick={onClose}
-          aria-label="Close"
-          className="sm:hidden fixed left-1/2 -translate-x-1/2 bottom-[calc(100px+env(safe-area-inset-bottom))] z-[55] h-12 w-12 rounded-full bg-white shadow-lg flex items-center justify-center active:scale-95 transition-transform"
-        >
-          <X className="w-5 h-5 text-slate-700" />
-        </button>
-
-        <div className="flex-1 overflow-y-auto p-4 space-y-6 pb-6"
+        <main className="flex-1 overflow-y-auto px-4 pb-32"
           style={{
             WebkitOverflowScrolling: 'touch',
           }}
         >
+          <div className="space-y-6 py-4">
           {task.was_shifted && (
             <div className="bg-blue-600 text-white px-4 py-3 rounded-lg flex items-center gap-3">
               <AlertCircle className="w-5 h-5 flex-shrink-0" />
@@ -521,10 +514,19 @@ export const TaskDrawer = memo(function TaskDrawer({
               </div>
             </div>
           </div>
-        </div>
+          </div>
+        </main>
 
-        <div className="flex-shrink-0 bg-white border-t border-slate-200 pb-safe">
-          <div className="px-4 py-3 flex gap-2">
+        <footer className="relative border-t bg-white">
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="sm:hidden absolute -top-5 left-1/2 -translate-x-1/2 rounded-full w-10 h-10 shadow-md flex items-center justify-center bg-white active:scale-95 transition-transform"
+          >
+            <X className="w-5 h-5 text-slate-700" />
+          </button>
+
+          <div className="flex gap-2 px-4 py-3">
             <button
               onClick={handleMarkBlocked}
               disabled={isSaving || isSubmitting}
@@ -550,7 +552,7 @@ export const TaskDrawer = memo(function TaskDrawer({
               Mark Done
             </button>
           </div>
-        </div>
+        </footer>
       </div>
     </>
   );

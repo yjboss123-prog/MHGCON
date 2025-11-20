@@ -187,7 +187,7 @@ export const MyDayView = memo(function MyDayView({
   }, [language, tasks, handleViewTask]);
 
   return (
-    <div className="myday-view-wrapper">
+    <div className="myday-view-wrapper flex flex-col h-[100dvh] safe-top safe-bottom">
       {isMobile && allProjects.length > 0 && onProjectChange && (
         <>
           <div className="project-switcher-top relative z-[50] mb-4 px-1">

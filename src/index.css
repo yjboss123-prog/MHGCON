@@ -6,6 +6,8 @@
   :root {
     --sat: env(safe-area-inset-top);
     --sab: env(safe-area-inset-bottom);
+    --safe-top: env(safe-area-inset-top);
+    --safe-bottom: env(safe-area-inset-bottom);
   }
 
   * {
@@ -216,6 +218,14 @@
 
   .mb-safe {
     margin-bottom: var(--sab);
+  }
+
+  .safe-top {
+    padding-top: var(--safe-top);
+  }
+
+  .safe-bottom {
+    padding-bottom: var(--safe-bottom);
   }
 
   input[type="range"] {
