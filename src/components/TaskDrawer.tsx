@@ -247,14 +247,14 @@ export const TaskDrawer = memo(function TaskDrawer({
         onClick={onClose}
       />
       <div
-        className="fixed inset-y-0 right-0 w-full sm:w-[600px] bg-white shadow-xl z-50 flex flex-col h-[100dvh] safe-top safe-bottom"
+        className="fixed inset-y-0 right-0 w-full sm:w-[600px] bg-white shadow-xl z-50 flex flex-col h-[100dvh] pt-8 md:pt-4"
         style={{
           transform: 'translateZ(0)',
           willChange: 'transform',
         }}
       >
         <div className="flex-shrink-0 bg-white/95 backdrop-blur border-b border-slate-200">
-          <div className="px-4 py-3 flex items-center justify-between">
+          <div className="px-4 pb-3 flex items-center justify-between">
             <div className="flex-1 min-w-0">
               <h2 className="text-base font-semibold text-slate-900 truncate">
                 {task.name}
@@ -517,11 +517,11 @@ export const TaskDrawer = memo(function TaskDrawer({
           </div>
         </main>
 
-        <footer className="relative border-t bg-white">
+        <footer className="relative border-t bg-white pb-safe">
           <button
             onClick={onClose}
             aria-label="Close"
-            className="sm:hidden absolute -top-5 left-1/2 -translate-x-1/2 rounded-full w-10 h-10 shadow-md flex items-center justify-center bg-white active:scale-95 transition-transform"
+            className="sm:hidden absolute -top-5 left-1/2 -translate-x-1/2 rounded-full w-10 h-10 shadow-md flex items-center justify-center bg-white active:scale-95 transition-transform z-10"
           >
             <X className="w-5 h-5 text-slate-700" />
           </button>
