@@ -292,6 +292,12 @@
   body.task-drawer-open > div > div > div.fixed.bottom-0.left-0.right-0 {
     display: none !important;
   }
+
+  @media (display-mode: standalone) {
+    body {
+      padding-top: env(safe-area-inset-top);
+    }
+  }
 }
 
 @media (orientation: landscape) and (max-width: 1023px) {

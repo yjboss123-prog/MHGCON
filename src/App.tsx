@@ -599,10 +599,7 @@ function App() {
               session={session}
               currentProject={project || undefined}
               allProjects={projects}
-              onProjectChange={(projectId: string) => {
-                localStorage.setItem('activeProjectId', projectId);
-                window.location.reload();
-              }}
+              onProjectChange={setActiveProjectId}
               onSettings={() => setIsProjectSettingsOpen(true)}
               onLogout={handleSignOut}
             />
