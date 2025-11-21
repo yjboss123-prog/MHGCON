@@ -19,6 +19,7 @@ interface HeaderProps {
   projects?: Project[];
   activeProjectId?: string;
   onProjectChange?: (projectId: string) => void;
+  onCreateProject?: () => void;
 }
 
 export const HeaderNew = memo(function HeaderNew({
@@ -33,6 +34,7 @@ export const HeaderNew = memo(function HeaderNew({
   projects = [],
   activeProjectId,
   onProjectChange,
+  onCreateProject,
 }: HeaderProps) {
   const [showRoleMenu, setShowRoleMenu] = useState(false);
   const [showProjectMenu, setShowProjectMenu] = useState(false);
@@ -89,6 +91,20 @@ export const HeaderNew = memo(function HeaderNew({
                           {proj.name}
                         </button>
                       ))}
+                      {onCreateProject && (
+                        <>
+                          <div className="border-t border-slate-200 my-2" />
+                          <button
+                            onClick={() => {
+                              onCreateProject();
+                              setShowProjectMenu(false);
+                            }}
+                            className="w-full text-left px-4 py-2 hover:bg-blue-50 transition-colors text-blue-600 font-semibold"
+                          >
+                            + New Project
+                          </button>
+                        </>
+                      )}
                     </div>
                   )}
                 </div>

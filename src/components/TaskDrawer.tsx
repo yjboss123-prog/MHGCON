@@ -32,11 +32,13 @@ export const TaskDrawer = memo(function TaskDrawer({
   onClose,
   onTaskUpdated,
   session,
+  allRoles,
 }: TaskDrawerProps) {
   const [percentDone, setPercentDone] = useState(0);
   const [status, setStatus] = useState<TaskStatus>('On Track');
   const [comment, setComment] = useState('');
   const [budget, setBudget] = useState<number>(0);
+  const [ownerRoles, setOwnerRoles] = useState<string[]>([]);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -60,6 +62,7 @@ export const TaskDrawer = memo(function TaskDrawer({
       setPercentDone(task.percent_done);
       setStatus(task.status);
       setBudget(task.budget || 0);
+      setOwnerRoles(task.owner_roles || []);
       setComment('');
       setError(null);
       setShowSuccess(false);
@@ -106,6 +109,7 @@ export const TaskDrawer = memo(function TaskDrawer({
         percent_done: percentDone,
         status,
         budget,
+        owner_roles: ownerRoles,
       };
 
       if (comment.trim()) {
@@ -347,6 +351,37 @@ export const TaskDrawer = memo(function TaskDrawer({
                   style={{ width: `${percentDone}%` }}
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-semibold text-slate-900 block mb-3">
+                Assigned To
+              </label>
+              <div className="space-y-2 max-h-48 overflow-y-auto border border-slate-200 rounded-lg p-3 bg-slate-50">
+                {allRoles.map((role) => (
+                  <label key={role} className="flex items-center gap-2 cursor-pointer hover:bg-white active:bg-slate-100 p-3 rounded" style={{ minHeight: '44px' }}>
+                    <input
+                      type="checkbox"
+                      checked={ownerRoles.includes(role)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setOwnerRoles([...ownerRoles, role]);
+                        } else {
+                          setOwnerRoles(ownerRoles.filter((r) => r !== role));
+                        }
+                      }}
+                      className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-400"
+                    />
+                    <span className="text-sm text-slate-700">{role}</span>
+                    {ownerRoles.includes(role) && <Check className="w-4 h-4 text-blue-600 ml-auto" />}
+                  </label>
+                ))}
+              </div>
+              {ownerRoles.length > 0 && (
+                <p className="mt-2 text-xs text-slate-600">
+                  {ownerRoles.length} {ownerRoles.length === 1 ? 'person' : 'people'} assigned
+                </p>
+              )}
             </div>
 
             <div>

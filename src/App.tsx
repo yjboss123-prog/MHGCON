@@ -561,6 +561,10 @@ function App() {
           projects={projects}
           activeProjectId={activeProjectId}
           onProjectChange={setActiveProjectId}
+          onCreateProject={() => {
+            setProjectModalMode('create');
+            setIsProjectModalOpen(true);
+          }}
         />
       )}
 
@@ -633,7 +637,7 @@ function App() {
         </main>
       </div>
 
-      {!isLandscape && !(isMobile && mobileView === 'my-day') && (
+      {isMobile && !isLandscape && mobileView !== 'my-day' && (
         <ProjectTabs
           projects={projects}
           activeProjectId={activeProjectId}
