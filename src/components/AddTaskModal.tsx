@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { X, AlertCircle, Check } from 'lucide-react';
+import { X, AlertCircle } from 'lucide-react';
 import { createTask } from '../lib/api';
+import { AssigneeSelector } from './AssigneeSelector';
 
 interface AddTaskModalProps {
   isOpen: boolean;
@@ -119,34 +120,11 @@ export function AddTaskModal({ isOpen, onClose, onTaskAdded, allRoles }: AddTask
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Assigned To <span className="text-red-600">*</span>
-              </label>
-              <div className="space-y-2 max-h-48 overflow-y-auto border border-slate-300 rounded-lg p-3">
-                {allRoles.map((role) => (
-                  <label key={role} className="flex items-center gap-2 cursor-pointer hover:bg-slate-50 active:bg-slate-100 p-3 rounded" style={{ minHeight: '44px' }}>
-                    <input
-                      type="checkbox"
-                      checked={ownerRoles.includes(role)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setOwnerRoles([...ownerRoles, role]);
-                        } else {
-                          setOwnerRoles(ownerRoles.filter((r) => r !== role));
-                        }
-                      }}
-                      className="w-5 h-5 text-slate-600 rounded focus:ring-2 focus:ring-slate-400"
-                    />
-                    <span className="text-sm text-slate-700">{role}</span>
-                    {ownerRoles.includes(role) && <Check className="w-4 h-4 text-slate-600 ml-auto" />}
-                  </label>
-                ))}
-              </div>
-              {ownerRoles.length > 0 && (
-                <p className="mt-2 text-xs text-slate-600">
-                  {ownerRoles.length} {ownerRoles.length === 1 ? 'person' : 'people'} assigned
-                </p>
-              )}
+              <AssigneeSelector
+                allRoles={allRoles}
+                selectedRoles={ownerRoles}
+                onChange={setOwnerRoles}
+              />
             </div>
 
             <div>

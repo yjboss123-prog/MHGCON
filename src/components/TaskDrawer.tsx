@@ -6,6 +6,7 @@ import { formatDateTime, compressImage, formatCurrency } from '../lib/utils';
 import { updateTask, createTaskAttachment, getTaskAttachments } from '../lib/api';
 import { isElevated } from '../lib/session';
 import { canViewTaskBudget } from '../lib/budgetVisibility';
+import { AssigneeSelector } from './AssigneeSelector';
 
 interface TaskDrawerProps {
   task: Task | null;
@@ -353,36 +354,11 @@ export const TaskDrawer = memo(function TaskDrawer({
               </div>
             </div>
 
-            <div>
-              <label className="text-sm font-semibold text-slate-900 block mb-3">
-                Assigned To
-              </label>
-              <div className="space-y-2 max-h-48 overflow-y-auto border border-slate-200 rounded-lg p-3 bg-slate-50">
-                {allRoles.map((role) => (
-                  <label key={role} className="flex items-center gap-2 cursor-pointer hover:bg-white active:bg-slate-100 p-3 rounded" style={{ minHeight: '44px' }}>
-                    <input
-                      type="checkbox"
-                      checked={ownerRoles.includes(role)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setOwnerRoles([...ownerRoles, role]);
-                        } else {
-                          setOwnerRoles(ownerRoles.filter((r) => r !== role));
-                        }
-                      }}
-                      className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-400"
-                    />
-                    <span className="text-sm text-slate-700">{role}</span>
-                    {ownerRoles.includes(role) && <Check className="w-4 h-4 text-blue-600 ml-auto" />}
-                  </label>
-                ))}
-              </div>
-              {ownerRoles.length > 0 && (
-                <p className="mt-2 text-xs text-slate-600">
-                  {ownerRoles.length} {ownerRoles.length === 1 ? 'person' : 'people'} assigned
-                </p>
-              )}
-            </div>
+            <AssigneeSelector
+              allRoles={allRoles}
+              selectedRoles={ownerRoles}
+              onChange={setOwnerRoles}
+            />
 
             <div>
               <label className="text-sm font-semibold text-slate-900 block mb-3">
