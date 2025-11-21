@@ -205,36 +205,7 @@ function App() {
     }
   };
 
-  const filteredTasks = useMemo(() => {
-    if (session?.role === 'contractor' && mobileView === 'my-day') {
-      const userRole = session.display_name || 'Construction Contractor';
-      console.log('=== MyDayView Filtering Debug ===');
-      console.log('Session:', session);
-      console.log('User Role:', userRole);
-      console.log('Total tasks:', tasks.length);
-      console.log('All tasks:', tasks.map(t => ({
-        name: t.name,
-        owner_roles: t.owner_roles,
-        project_id: t.project_id
-      })));
-
-      const filtered = tasks.filter(task => {
-        const hasRole = task.owner_roles && task.owner_roles.some(role => {
-          const hasContractor = role.toLowerCase().includes('contractor');
-          const matchesUser = role === userRole;
-          console.log(`Task "${task.name}" role "${role}": hasContractor=${hasContractor}, matchesUser=${matchesUser}`);
-          return hasContractor || matchesUser;
-        });
-        console.log(`Task "${task.name}" included:`, hasRole);
-        return hasRole;
-      });
-
-      console.log('Filtered tasks:', filtered.length);
-      console.log('=== End Debug ===');
-      return filtered;
-    }
-    return tasks;
-  }, [tasks, session, mobileView]);
+  const filteredTasks = tasks;
 
 
   const handleTaskView = useCallback((task: Task) => {

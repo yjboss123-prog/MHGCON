@@ -52,13 +52,22 @@ export async function getTasks(projectId?: string, session?: Session | null): Pr
   let tasks = data || [];
 
   if (session && session.role === 'contractor') {
-    tasks = tasks.filter(task =>
-      task.assigned_user_token === session.user_token ||
-      task.owner_roles.includes('contractor')
-    );
+    const userRole = session.display_name || 'Construction Contractor';
+
+    tasks = tasks.filter(task => {
+      if (!task.owner_roles || task.owner_roles.length === 0) {
+        return false;
+      }
+
+      return task.owner_roles.some(role =>
+        role.toLowerCase().includes('contractor') ||
+        role === userRole
+      );
+    });
 
     tasks = tasks.map(task => {
-      if (task.assigned_user_token !== session.user_token) {
+      const isDirectlyAssigned = task.owner_roles && task.owner_roles.includes(userRole);
+      if (!isDirectlyAssigned) {
         return {
           ...task,
           budget: undefined
