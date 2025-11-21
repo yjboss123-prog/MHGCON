@@ -354,11 +354,33 @@ export const TaskDrawer = memo(function TaskDrawer({
               </div>
             </div>
 
-            <AssigneeSelector
-              allRoles={allRoles}
-              selectedRoles={ownerRoles}
-              onChange={setOwnerRoles}
-            />
+            {session?.role === 'contractor' ? (
+              <div>
+                <label className="text-sm font-semibold text-slate-900 block mb-3">
+                  Assigned To
+                </label>
+                {ownerRoles.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {ownerRoles.map((role) => (
+                      <div
+                        key={role}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 text-sm"
+                      >
+                        {role}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-slate-500">No one assigned</p>
+                )}
+              </div>
+            ) : (
+              <AssigneeSelector
+                allRoles={allRoles}
+                selectedRoles={ownerRoles}
+                onChange={setOwnerRoles}
+              />
+            )}
 
             <div>
               <label className="text-sm font-semibold text-slate-900 block mb-3">
