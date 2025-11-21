@@ -65,11 +65,24 @@ export const HeaderNew = memo(function HeaderNew({
       }
       if (projectMenuRef.current && !projectMenuRef.current.contains(event.target as Node)) {
         setShowProjectMenu(false);
+        setProjectActionMenuId(null);
+      }
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setShowRoleMenu(false);
+        setShowProjectMenu(false);
+        setProjectActionMenuId(null);
       }
     }
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
   }, []);
 
   const roleDisplayName = userSession?.contractor_role || userSession?.role || 'User';
@@ -81,7 +94,7 @@ export const HeaderNew = memo(function HeaderNew({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-3 sm:py-0 sm:h-16">
             <div className="flex items-center justify-between sm:justify-start gap-3 sm:gap-4">
-              {projects.length > 1 && onProjectChange ? (
+              {projects.length > 0 && onProjectChange ? (
                 <div className="relative" ref={projectMenuRef}>
                   <button
                     onClick={() => setShowProjectMenu(!showProjectMenu)}
