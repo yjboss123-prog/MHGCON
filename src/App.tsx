@@ -565,6 +565,18 @@ function App() {
             setProjectModalMode('create');
             setIsProjectModalOpen(true);
           }}
+          onRenameProject={(projectId) => {
+            setProjectToEdit(projectId);
+            setProjectModalMode('edit');
+            setIsProjectModalOpen(true);
+          }}
+          onDuplicateProject={handleDuplicateProject}
+          onArchiveProject={handleArchiveProject}
+          onUnarchiveProject={handleUnarchiveProject}
+          onDeleteProject={handleDeleteProject}
+          showArchived={showArchived}
+          onToggleShowArchived={() => setShowArchived(!showArchived)}
+          canManage={canManage}
         />
       )}
 

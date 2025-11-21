@@ -1,5 +1,5 @@
 import { memo, useState, useRef, useEffect } from 'react';
-import { Settings, List, BarChart3, ChevronDown, Lock } from 'lucide-react';
+import { Settings, List, BarChart3, ChevronDown, Lock, Archive, Trash2, ArchiveRestore, Edit2, Copy, MoreVertical } from 'lucide-react';
 import { Language } from '../lib/i18n';
 import InstallPrompt from './InstallPrompt';
 import { Session } from '../lib/session';
@@ -20,6 +20,14 @@ interface HeaderProps {
   activeProjectId?: string;
   onProjectChange?: (projectId: string) => void;
   onCreateProject?: () => void;
+  onRenameProject?: (projectId: string) => void;
+  onDuplicateProject?: (projectId: string) => void;
+  onArchiveProject?: (projectId: string) => void;
+  onUnarchiveProject?: (projectId: string) => void;
+  onDeleteProject?: (projectId: string) => void;
+  showArchived?: boolean;
+  onToggleShowArchived?: () => void;
+  canManage?: boolean;
 }
 
 export const HeaderNew = memo(function HeaderNew({
@@ -35,9 +43,18 @@ export const HeaderNew = memo(function HeaderNew({
   activeProjectId,
   onProjectChange,
   onCreateProject,
+  onRenameProject,
+  onDuplicateProject,
+  onArchiveProject,
+  onUnarchiveProject,
+  onDeleteProject,
+  showArchived = false,
+  onToggleShowArchived,
+  canManage = false,
 }: HeaderProps) {
   const [showRoleMenu, setShowRoleMenu] = useState(false);
   const [showProjectMenu, setShowProjectMenu] = useState(false);
+  const [projectActionMenuId, setProjectActionMenuId] = useState<string | null>(null);
   const roleMenuRef = useRef<HTMLDivElement>(null);
   const projectMenuRef = useRef<HTMLDivElement>(null);
 
@@ -76,34 +93,130 @@ export const HeaderNew = memo(function HeaderNew({
                   </button>
 
                   {showProjectMenu && (
-                    <div className="absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border border-slate-200 py-2 min-w-[200px] max-h-[300px] overflow-y-auto">
+                    <div className="absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border border-slate-200 py-2 min-w-[200px] max-h-[300px] overflow-y-auto z-50">
                       {projects.map((proj) => (
+                        <div key={proj.id} className="relative group">
+                          <div className="flex items-center">
+                            <button
+                              onClick={() => {
+                                onProjectChange(proj.id);
+                                setShowProjectMenu(false);
+                              }}
+                              className={`flex-1 text-left px-4 py-2 hover:bg-slate-50 transition-colors ${
+                                proj.id === activeProjectId ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-slate-700'
+                              } ${proj.archived ? 'opacity-60 italic' : ''}`}
+                            >
+                              <div className="flex items-center gap-2">
+                                {proj.archived && <Archive className="w-3.5 h-3.5" />}
+                                <span>{proj.name}</span>
+                              </div>
+                            </button>
+                            {canManage && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setProjectActionMenuId(projectActionMenuId === proj.id ? null : proj.id);
+                                }}
+                                className="px-2 py-2 hover:bg-slate-100 transition-colors"
+                              >
+                                <MoreVertical className="w-4 h-4 text-slate-400" />
+                              </button>
+                            )}
+                          </div>
+                          {projectActionMenuId === proj.id && canManage && (
+                            <div className="absolute left-full top-0 ml-2 bg-white rounded-lg shadow-xl border border-slate-200 py-1 min-w-[160px] z-[60]">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onRenameProject?.(proj.id);
+                                  setProjectActionMenuId(null);
+                                  setShowProjectMenu(false);
+                                }}
+                                className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                              >
+                                <Edit2 className="w-4 h-4" />
+                                Rename
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onDuplicateProject?.(proj.id);
+                                  setProjectActionMenuId(null);
+                                  setShowProjectMenu(false);
+                                }}
+                                className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                              >
+                                <Copy className="w-4 h-4" />
+                                Duplicate
+                              </button>
+                              {!proj.archived ? (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onArchiveProject?.(proj.id);
+                                    setProjectActionMenuId(null);
+                                    setShowProjectMenu(false);
+                                  }}
+                                  className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                                >
+                                  <Archive className="w-4 h-4" />
+                                  Archive
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onUnarchiveProject?.(proj.id);
+                                    setProjectActionMenuId(null);
+                                    setShowProjectMenu(false);
+                                  }}
+                                  className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                                >
+                                  <ArchiveRestore className="w-4 h-4" />
+                                  Unarchive
+                                </button>
+                              )}
+                              <div className="border-t border-slate-200 my-1" />
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onDeleteProject?.(proj.id);
+                                  setProjectActionMenuId(null);
+                                  setShowProjectMenu(false);
+                                }}
+                                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                Delete
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                      {(onCreateProject || onToggleShowArchived) && (
+                        <div className="border-t border-slate-200 my-2" />
+                      )}
+                      {onCreateProject && canManage && (
                         <button
-                          key={proj.id}
                           onClick={() => {
-                            onProjectChange(proj.id);
+                            onCreateProject();
                             setShowProjectMenu(false);
                           }}
-                          className={`w-full text-left px-4 py-2 hover:bg-slate-50 transition-colors ${
-                            proj.id === activeProjectId ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-slate-700'
-                          }`}
+                          className="w-full text-left px-4 py-2 hover:bg-blue-50 transition-colors text-blue-600 font-semibold"
                         >
-                          {proj.name}
+                          + New Project
                         </button>
-                      ))}
-                      {onCreateProject && (
-                        <>
-                          <div className="border-t border-slate-200 my-2" />
-                          <button
-                            onClick={() => {
-                              onCreateProject();
-                              setShowProjectMenu(false);
-                            }}
-                            className="w-full text-left px-4 py-2 hover:bg-blue-50 transition-colors text-blue-600 font-semibold"
-                          >
-                            + New Project
-                          </button>
-                        </>
+                      )}
+                      {onToggleShowArchived && canManage && (
+                        <button
+                          onClick={() => {
+                            onToggleShowArchived();
+                          }}
+                          className="w-full text-left px-4 py-2 hover:bg-slate-50 transition-colors text-slate-700 text-sm flex items-center gap-2"
+                        >
+                          <Archive className="w-4 h-4" />
+                          {showArchived ? 'Hide Archived' : 'Show Archived'}
+                        </button>
                       )}
                     </div>
                   )}
