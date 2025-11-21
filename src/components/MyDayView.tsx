@@ -192,13 +192,26 @@ export const MyDayView = memo(function MyDayView({
         <>
           <div className="project-switcher-top relative z-[50] mb-4 px-1">
             <button
-              onClick={() => setProjectSwitcherOpen(true)}
-              className="flex items-center justify-center gap-2 w-full h-10 px-4 rounded-full border border-slate-300 bg-slate-100 text-slate-800 text-sm font-medium shadow-sm active:scale-[.98] transition-transform"
-              style={{ pointerEvents: 'auto', touchAction: 'manipulation' }}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setProjectSwitcherOpen(true);
+              }}
+              onTouchEnd={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              className="flex items-center justify-center gap-2 w-full px-4 rounded-xl border border-slate-300 bg-white text-slate-800 text-sm font-semibold shadow-sm hover:bg-slate-50 active:scale-[.98] transition-all"
+              style={{
+                pointerEvents: 'auto',
+                touchAction: 'manipulation',
+                minHeight: '48px',
+                WebkitTapHighlightColor: 'transparent'
+              }}
               aria-haspopup="dialog"
               aria-expanded={projectSwitcherOpen}
             >
-              <span className="flex-1 text-center">{currentProject?.name}</span>
+              <span className="flex-1 text-center truncate">{currentProject?.name}</span>
               <ChevronDown className="w-4 h-4 text-slate-500 flex-shrink-0" />
             </button>
           </div>
@@ -226,21 +239,37 @@ export const MyDayView = memo(function MyDayView({
                       ✕
                     </button>
                   </div>
-                  <ul className="space-y-2">
+                  <ul className="space-y-3">
                     {allProjects.map((project) => (
                       <li key={project.id}>
                         <button
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
                             onProjectChange(project.id);
                             setProjectSwitcherOpen(false);
                           }}
-                          className={`w-full h-11 rounded-xl border px-3 text-left font-medium transition-colors ${
+                          onTouchEnd={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                          }}
+                          className={`w-full rounded-xl border px-4 text-left font-semibold transition-all ${
                             project.id === currentProject?.id
-                              ? 'border-blue-500 bg-blue-50 text-blue-700'
-                              : 'border-slate-200 bg-white hover:bg-slate-50 active:bg-slate-100'
+                              ? 'border-blue-500 bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 shadow-sm'
+                              : 'border-slate-200 bg-white hover:bg-slate-50 active:bg-slate-100 shadow-sm'
                           }`}
+                          style={{
+                            minHeight: '52px',
+                            touchAction: 'manipulation',
+                            WebkitTapHighlightColor: 'transparent'
+                          }}
                         >
-                          {project.name}
+                          <div className="flex items-center justify-between py-3">
+                            <span>{project.name}</span>
+                            {project.id === currentProject?.id && (
+                              <span className="text-blue-600 text-xs font-bold">✓</span>
+                            )}
+                          </div>
                         </button>
                       </li>
                     ))}
