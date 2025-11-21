@@ -527,53 +527,66 @@ export const TaskDrawer = memo(function TaskDrawer({
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isSubmitting}
-                className="w-full py-4 px-4 border-2 border-dashed border-slate-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all flex items-center justify-center gap-3 text-slate-600 hover:text-blue-600"
-                style={{ minHeight: '56px' }}
+                className="w-full py-5 px-4 border-2 border-dashed border-slate-300 rounded-xl hover:border-blue-500 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100/50 transition-all flex items-center justify-center gap-3 text-slate-600 hover:text-blue-600 group"
+                style={{ minHeight: '64px' }}
               >
                 {isSubmitting ? (
                   <>
                     <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                    <span className="font-medium">Uploading...</span>
+                    <span className="font-semibold">Uploading...</span>
                   </>
                 ) : (
                   <>
-                    <Camera className="w-5 h-5" />
-                    <span className="font-medium">Add Photo or File</span>
-                    <Upload className="w-4 h-4" />
+                    <div className="p-2 bg-slate-100 rounded-lg group-hover:bg-blue-100 transition-colors">
+                      <Camera className="w-5 h-5" />
+                    </div>
+                    <span className="font-semibold">Add Photo or File</span>
+                    <Upload className="w-4 h-4 opacity-60" />
                   </>
                 )}
               </button>
 
               {attachments.length > 0 && (
-                <div className="mt-4 grid grid-cols-3 gap-3">
-                  {attachments.map((att) => {
-                    const isOwner = session?.user_token === att.uploaded_by;
-                    const canDelete = isElevated(session) || isOwner;
+                <div className="mt-6 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold text-slate-700">Uploaded Files ({attachments.length})</span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    {attachments.map((att) => {
+                      const isOwner = session?.user_token === att.uploaded_by;
+                      const canDelete = isElevated(session) || isOwner;
 
-                    return (
-                      <div key={att.id} className="relative aspect-square rounded-lg overflow-hidden bg-slate-100 group">
-                        <img
-                          src={att.file_url}
-                          alt={att.caption || 'Attachment'}
-                          className="w-full h-full object-cover"
-                        />
-                        {att.caption && (
-                          <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs p-1 truncate">
-                            {att.caption}
+                      return (
+                        <div key={att.id} className="relative group">
+                          <div className="relative aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-200 shadow-sm hover:shadow-md transition-all">
+                            <img
+                              src={att.file_url}
+                              alt={att.caption || 'Attachment'}
+                              className="w-full h-full object-cover"
+                            />
+                            {att.caption && (
+                              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent text-white text-xs p-2 pt-4">
+                                <p className="truncate font-medium">{att.caption}</p>
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors pointer-events-none" />
                           </div>
-                        )}
-                        {canDelete && (
-                          <button
-                            onClick={() => handleDeleteAttachment(att.id, att.uploaded_by)}
-                            className="absolute top-1 right-1 p-1.5 bg-red-600 hover:bg-red-700 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-lg active:scale-95"
-                            title="Delete attachment"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                      </div>
-                    );
-                  })}
+                          {canDelete && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteAttachment(att.id, att.uploaded_by);
+                              }}
+                              className="absolute -top-2 -right-2 p-2 bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all active:scale-90 z-10 border-2 border-white"
+                              title="Delete attachment"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>
