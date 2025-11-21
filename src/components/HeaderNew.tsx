@@ -93,10 +93,10 @@ export const HeaderNew = memo(function HeaderNew({
                   </button>
 
                   {showProjectMenu && (
-                    <div className="absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border border-slate-200 py-2 min-w-[200px] max-h-[300px] overflow-y-auto z-50">
+                    <div className="absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border border-slate-200 py-2 min-w-[200px] max-h-[300px] overflow-y-auto z-[100]">
                       {projects.map((proj) => (
-                        <div key={proj.id} className="relative group">
-                          <div className="flex items-center">
+                        <div key={proj.id}>
+                          <div className="flex items-center group">
                             <button
                               onClick={() => {
                                 onProjectChange(proj.id);
@@ -124,7 +124,7 @@ export const HeaderNew = memo(function HeaderNew({
                             )}
                           </div>
                           {projectActionMenuId === proj.id && canManage && (
-                            <div className="absolute left-full top-0 ml-2 bg-white rounded-lg shadow-xl border border-slate-200 py-1 min-w-[160px] z-[60]">
+                            <div className="bg-slate-50 px-2 py-1 border-t border-b border-slate-200">
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -132,9 +132,9 @@ export const HeaderNew = memo(function HeaderNew({
                                   setProjectActionMenuId(null);
                                   setShowProjectMenu(false);
                                 }}
-                                className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                                className="w-full text-left px-3 py-1.5 text-sm text-slate-700 hover:bg-white rounded flex items-center gap-2"
                               >
-                                <Edit2 className="w-4 h-4" />
+                                <Edit2 className="w-3.5 h-3.5" />
                                 Rename
                               </button>
                               <button
@@ -144,9 +144,9 @@ export const HeaderNew = memo(function HeaderNew({
                                   setProjectActionMenuId(null);
                                   setShowProjectMenu(false);
                                 }}
-                                className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                                className="w-full text-left px-3 py-1.5 text-sm text-slate-700 hover:bg-white rounded flex items-center gap-2"
                               >
-                                <Copy className="w-4 h-4" />
+                                <Copy className="w-3.5 h-3.5" />
                                 Duplicate
                               </button>
                               {!proj.archived ? (
@@ -157,9 +157,9 @@ export const HeaderNew = memo(function HeaderNew({
                                     setProjectActionMenuId(null);
                                     setShowProjectMenu(false);
                                   }}
-                                  className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                                  className="w-full text-left px-3 py-1.5 text-sm text-slate-700 hover:bg-white rounded flex items-center gap-2"
                                 >
-                                  <Archive className="w-4 h-4" />
+                                  <Archive className="w-3.5 h-3.5" />
                                   Archive
                                 </button>
                               ) : (
@@ -170,13 +170,12 @@ export const HeaderNew = memo(function HeaderNew({
                                     setProjectActionMenuId(null);
                                     setShowProjectMenu(false);
                                   }}
-                                  className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                                  className="w-full text-left px-3 py-1.5 text-sm text-slate-700 hover:bg-white rounded flex items-center gap-2"
                                 >
-                                  <ArchiveRestore className="w-4 h-4" />
+                                  <ArchiveRestore className="w-3.5 h-3.5" />
                                   Unarchive
                                 </button>
                               )}
-                              <div className="border-t border-slate-200 my-1" />
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -184,9 +183,9 @@ export const HeaderNew = memo(function HeaderNew({
                                   setProjectActionMenuId(null);
                                   setShowProjectMenu(false);
                                 }}
-                                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                                className="w-full text-left px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded flex items-center gap-2"
                               >
-                                <Trash2 className="w-4 h-4" />
+                                <Trash2 className="w-3.5 h-3.5" />
                                 Delete
                               </button>
                             </div>
