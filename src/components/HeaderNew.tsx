@@ -90,7 +90,7 @@ export const HeaderNew = memo(function HeaderNew({
 
   return (
     <>
-      <header className="glass-effect border-b border-slate-200/50 fixed top-0 left-0 right-0 z-50 pt-safe">
+      <header className="glass-effect border-b border-slate-200/60 fixed top-0 left-0 right-0 z-50 pt-safe animate-fade-in">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-3 sm:py-0 sm:h-16">
             <div className="flex items-center justify-between sm:justify-start gap-3 sm:gap-4">
@@ -98,7 +98,7 @@ export const HeaderNew = memo(function HeaderNew({
                 <div className="relative" ref={projectMenuRef}>
                   <button
                     onClick={() => setShowProjectMenu(!showProjectMenu)}
-                    className="flex items-center gap-2 px-3 py-2 hover:bg-white/60 rounded-lg transition-all min-w-[120px]"
+                    className="flex items-center gap-2 px-4 py-2 hover:bg-white/70 rounded-xl transition-smooth shadow-sm hover:shadow min-w-[120px]"
                     style={{ minHeight: '44px' }}
                   >
                     <span className="font-semibold text-slate-900 truncate">{projectName}</span>
@@ -106,7 +106,7 @@ export const HeaderNew = memo(function HeaderNew({
                   </button>
 
                   {showProjectMenu && (
-                    <div className="absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border border-slate-200 py-2 min-w-[200px] max-h-[300px] overflow-y-auto z-[100]">
+                    <div className="absolute top-full left-0 mt-2 bg-white rounded-2xl shadow-xl border border-slate-200/80 py-2 min-w-[200px] max-h-[300px] overflow-y-auto z-[100] animate-scale-in">
                       {projects.map((proj) => (
                         <div key={proj.id}>
                           <div className="flex items-center group">
@@ -331,7 +331,7 @@ export const HeaderNew = memo(function HeaderNew({
 
               <button
                 onClick={onSettings}
-                className="p-2.5 hover:bg-slate-100 rounded-lg transition-colors"
+                className="p-2.5 hover:bg-slate-100 rounded-xl transition-smooth"
                 title={language === 'fr' ? 'Paramètres' : 'Settings'}
                 style={{ minHeight: '44px', minWidth: '44px' }}
               >

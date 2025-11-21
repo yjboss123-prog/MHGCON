@@ -75,11 +75,11 @@ export function AddTaskModal({ isOpen, onClose, onTaskAdded, allRoles, projectId
   return (
     <>
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity animate-fade-in"
         onClick={onClose}
       />
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-xl w-full max-w-md relative">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md relative animate-scale-in border border-slate-200/60">
           <div className="flex items-center justify-between p-6 border-b border-slate-200">
             <h2 className="text-lg font-semibold text-slate-900">Add New Task</h2>
             <button

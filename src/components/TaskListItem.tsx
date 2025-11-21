@@ -98,7 +98,7 @@ export const TaskListItem = memo(function TaskListItem({
 
   return (
     <article
-      className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+      className="card-modern p-5 cursor-pointer group"
       onClick={handleCardDoubleTap}
       onDoubleClick={handleUpdate}
     >
@@ -116,20 +116,20 @@ export const TaskListItem = memo(function TaskListItem({
       </div>
 
       <div className="mt-4">
-        <div className="h-2 w-full rounded-full bg-slate-200 overflow-hidden">
+        <div className="h-2.5 w-full rounded-full bg-slate-100 overflow-hidden shadow-inner">
           <div
-            className="h-2 bg-emerald-500 transition-all duration-500"
+            className="h-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 transition-all duration-500 rounded-full"
             style={{ width: `${task.percent_done}%` }}
           />
         </div>
-        <div className="mt-2 text-sm font-medium text-slate-900">{task.percent_done}%</div>
+        <div className="mt-2 text-sm font-semibold text-slate-900">{task.percent_done}%</div>
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-600">
         <span>{dateRange}</span>
         <span>• {daysText}</span>
         {task.assigned_display_name && (
-          <span className="ml-auto rounded-lg bg-slate-100 px-2 py-1 text-slate-700 text-sm inline-flex items-center gap-1.5">
+          <span className="ml-auto rounded-xl bg-gradient-to-r from-slate-100 to-slate-50 px-3 py-1.5 text-slate-700 text-sm inline-flex items-center gap-1.5 shadow-sm">
             <User className="w-3.5 h-3.5" />
             {task.assigned_display_name}
           </span>
@@ -144,7 +144,7 @@ export const TaskListItem = memo(function TaskListItem({
               handleUpdate();
             }}
             disabled={isCheckingAccess}
-            className="h-11 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-50"
+            className="h-11 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 transition-smooth text-sm font-semibold shadow-md hover:shadow-lg disabled:opacity-50 active:scale-95"
           >
             {language === 'fr' ? 'Mettre à jour' : 'Update'}
           </button>
@@ -154,7 +154,7 @@ export const TaskListItem = memo(function TaskListItem({
                 e.stopPropagation();
                 onShift(task);
               }}
-              className="h-11 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 transition-colors flex items-center justify-center"
+              className="h-11 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 hover:border-slate-400 transition-smooth flex items-center justify-center shadow-sm hover:shadow active:scale-95"
               title={language === 'fr' ? 'Décaler le planning' : 'Shift schedule'}
             >
               <Calendar className="w-5 h-5 text-slate-600" />
@@ -166,7 +166,7 @@ export const TaskListItem = memo(function TaskListItem({
                 e.stopPropagation();
                 onDelete(task);
               }}
-              className="h-11 rounded-xl border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 transition-colors flex items-center justify-center"
+              className="h-11 rounded-xl border border-red-300 bg-gradient-to-r from-red-50 to-red-100 text-red-600 hover:from-red-100 hover:to-red-200 transition-smooth flex items-center justify-center shadow-sm hover:shadow active:scale-95"
               title={language === 'fr' ? 'Supprimer' : 'Delete'}
             >
               <Trash2 className="w-5 h-5" />

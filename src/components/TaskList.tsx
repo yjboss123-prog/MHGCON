@@ -39,8 +39,8 @@ export const TaskList = memo(function TaskList({
 
   if (filteredTasks.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-        <p className="text-slate-500">No tasks found matching your filters.</p>
+      <div className="card-modern p-12 text-center">
+        <p className="text-slate-500 text-lg">No tasks found matching your filters.</p>
       </div>
     );
   }
