@@ -247,10 +247,11 @@ export const TaskDrawer = memo(function TaskDrawer({
         onClick={onClose}
       />
       <div
-        className="fixed inset-y-0 right-0 w-full sm:w-[600px] bg-white shadow-xl z-50 flex flex-col h-[100dvh] pt-8 md:pt-4"
+        className="fixed inset-y-0 right-0 w-full sm:w-[600px] bg-white shadow-xl z-50 flex flex-col h-[100dvh]"
         style={{
           transform: 'translateZ(0)',
           willChange: 'transform',
+          paddingTop: 'max(2rem, env(safe-area-inset-top))',
         }}
       >
         <div className="flex-shrink-0 bg-white/95 backdrop-blur border-b border-slate-200">

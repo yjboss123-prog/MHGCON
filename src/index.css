@@ -293,9 +293,17 @@
     display: none !important;
   }
 
-  @media (display-mode: standalone) {
-    body {
-      padding-top: env(safe-area-inset-top);
+  @media (max-width: 640px) {
+    #root > div {
+      padding-top: 2rem;
+    }
+  }
+
+  @supports (padding-top: env(safe-area-inset-top)) {
+    @media (display-mode: standalone) {
+      #root > div {
+        padding-top: max(2rem, env(safe-area-inset-top));
+      }
     }
   }
 }

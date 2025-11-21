@@ -538,7 +538,7 @@ function App() {
   }
 
   return (
-    <div className={`min-h-dvh bg-slate-50 flex flex-col h-[100dvh] pt-8 md:pt-4 ${isLandscape ? 'landscape-mode' : ''}`}>
+    <div className={`min-h-dvh bg-slate-50 flex flex-col h-[100dvh] ${isLandscape ? 'landscape-mode' : ''}`}>
       {isMobile && session?.role === 'contractor' && mobileView === 'my-day' && session && (
         <MobileHeader
           session={session}
