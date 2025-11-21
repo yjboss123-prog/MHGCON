@@ -190,29 +190,25 @@ export const MyDayView = memo(function MyDayView({
     <div className="myday-view-wrapper flex flex-col min-h-[100dvh]">
       {isMobile && allProjects.length > 0 && onProjectChange && (
         <>
-          <div className="project-switcher-top relative z-[50] mb-4 px-1">
+          <div className="project-switcher-top relative z-[50] mb-4 px-4">
             <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
+              onClick={() => {
+                console.log('Project switcher clicked');
                 setProjectSwitcherOpen(true);
               }}
-              onTouchEnd={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-              className="flex items-center justify-center gap-2 w-full px-4 rounded-xl border border-slate-300 bg-white text-slate-800 text-sm font-semibold shadow-sm hover:bg-slate-50 active:scale-[.98] transition-all"
+              className="flex items-center justify-center gap-2 w-full px-4 rounded-xl border-2 border-slate-300 bg-white text-slate-900 text-sm font-semibold shadow-sm hover:bg-slate-50 active:bg-slate-100 active:scale-[.98] transition-all"
               style={{
-                pointerEvents: 'auto',
+                minHeight: '52px',
                 touchAction: 'manipulation',
-                minHeight: '48px',
-                WebkitTapHighlightColor: 'transparent'
+                WebkitTapHighlightColor: 'transparent',
+                cursor: 'pointer'
               }}
+              type="button"
               aria-haspopup="dialog"
               aria-expanded={projectSwitcherOpen}
             >
-              <span className="flex-1 text-center truncate">{currentProject?.name}</span>
-              <ChevronDown className="w-4 h-4 text-slate-500 flex-shrink-0" />
+              <span className="flex-1 text-center truncate">{currentProject?.name || 'Select Project'}</span>
+              <ChevronDown className="w-5 h-5 text-slate-500 flex-shrink-0" />
             </button>
           </div>
 
@@ -243,31 +239,28 @@ export const MyDayView = memo(function MyDayView({
                     {allProjects.map((project) => (
                       <li key={project.id}>
                         <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
+                          onClick={() => {
+                            console.log('Switching to project:', project.name);
                             onProjectChange(project.id);
                             setProjectSwitcherOpen(false);
                           }}
-                          onTouchEnd={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                          }}
-                          className={`w-full rounded-xl border px-4 text-left font-semibold transition-all ${
+                          type="button"
+                          className={`w-full rounded-xl border-2 px-4 text-left font-semibold transition-all ${
                             project.id === currentProject?.id
                               ? 'border-blue-500 bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 shadow-sm'
-                              : 'border-slate-200 bg-white hover:bg-slate-50 active:bg-slate-100 shadow-sm'
+                              : 'border-slate-300 bg-white hover:bg-slate-50 active:bg-slate-100 shadow-sm'
                           }`}
                           style={{
-                            minHeight: '52px',
+                            minHeight: '56px',
                             touchAction: 'manipulation',
-                            WebkitTapHighlightColor: 'transparent'
+                            WebkitTapHighlightColor: 'transparent',
+                            cursor: 'pointer'
                           }}
                         >
                           <div className="flex items-center justify-between py-3">
-                            <span>{project.name}</span>
+                            <span className="text-base">{project.name}</span>
                             {project.id === currentProject?.id && (
-                              <span className="text-blue-600 text-xs font-bold">✓</span>
+                              <span className="text-blue-600 text-lg font-bold">✓</span>
                             )}
                           </div>
                         </button>
