@@ -1,9 +1,9 @@
 import { useState, useEffect, memo, useCallback, useRef } from 'react';
 import { Task, TaskStatus, TASK_STATUSES } from '../types';
 import { Session } from '../lib/session';
-import { X, Upload, Camera, Check, AlertCircle, Lock } from 'lucide-react';
+import { X, Upload, Camera, Check, AlertCircle, Lock, Trash2 } from 'lucide-react';
 import { formatDateTime, compressImage, formatCurrency } from '../lib/utils';
-import { updateTask, createTaskAttachment, getTaskAttachments } from '../lib/api';
+import { updateTask, createTaskAttachment, getTaskAttachments, deleteTaskAttachment } from '../lib/api';
 import { isElevated } from '../lib/session';
 import { canViewTaskBudget } from '../lib/budgetVisibility';
 import { AssigneeSelector } from './AssigneeSelector';
@@ -25,6 +25,7 @@ interface Attachment {
   file_url: string;
   caption: string | null;
   created_at: string;
+  uploaded_by: string | null;
 }
 
 export const TaskDrawer = memo(function TaskDrawer({
@@ -236,6 +237,29 @@ export const TaskDrawer = memo(function TaskDrawer({
       setPercentDone(100);
     }
     setError(null);
+  };
+
+  const handleDeleteAttachment = async (attachmentId: number, uploadedBy: string | null) => {
+    const isOwner = session?.user_token === uploadedBy;
+    const canDelete = isElevated(session) || isOwner;
+
+    if (!canDelete) {
+      setError('You do not have permission to delete this attachment.');
+      return;
+    }
+
+    if (!confirm('Are you sure you want to delete this attachment?')) {
+      return;
+    }
+
+    try {
+      await deleteTaskAttachment(attachmentId);
+      setAttachments(attachments.filter(att => att.id !== attachmentId));
+      setError(null);
+    } catch (err) {
+      console.error('Error deleting attachment:', err);
+      setError('Failed to delete attachment. Please try again.');
+    }
   };
 
   if (!isOpen || !task) return null;
@@ -522,20 +546,34 @@ export const TaskDrawer = memo(function TaskDrawer({
 
               {attachments.length > 0 && (
                 <div className="mt-4 grid grid-cols-3 gap-3">
-                  {attachments.map((att) => (
-                    <div key={att.id} className="relative aspect-square rounded-lg overflow-hidden bg-slate-100">
-                      <img
-                        src={att.file_url}
-                        alt={att.caption || 'Attachment'}
-                        className="w-full h-full object-cover"
-                      />
-                      {att.caption && (
-                        <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs p-1 truncate">
-                          {att.caption}
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                  {attachments.map((att) => {
+                    const isOwner = session?.user_token === att.uploaded_by;
+                    const canDelete = isElevated(session) || isOwner;
+
+                    return (
+                      <div key={att.id} className="relative aspect-square rounded-lg overflow-hidden bg-slate-100 group">
+                        <img
+                          src={att.file_url}
+                          alt={att.caption || 'Attachment'}
+                          className="w-full h-full object-cover"
+                        />
+                        {att.caption && (
+                          <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs p-1 truncate">
+                            {att.caption}
+                          </div>
+                        )}
+                        {canDelete && (
+                          <button
+                            onClick={() => handleDeleteAttachment(att.id, att.uploaded_by)}
+                            className="absolute top-1 right-1 p-1.5 bg-red-600 hover:bg-red-700 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-lg active:scale-95"
+                            title="Delete attachment"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
