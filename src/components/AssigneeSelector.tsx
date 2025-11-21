@@ -1,4 +1,4 @@
-import { useState, memo } from 'react';
+import { useState, memo, useEffect } from 'react';
 import { ChevronRight, X, Search, Check } from 'lucide-react';
 
 interface AssigneeSelectorProps {
@@ -52,25 +52,40 @@ export const AssigneeSelector = memo(function AssigneeSelector({
 }: AssigneeSelectorProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [tempSelected, setTempSelected] = useState<string[]>(selectedRoles);
+  const [tempSelected, setTempSelected] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!isModalOpen) {
+      setTempSelected(selectedRoles);
+    }
+  }, [selectedRoles, isModalOpen]);
 
   const handleOpenModal = () => {
-    setTempSelected(selectedRoles);
+    setTempSelected([...selectedRoles]);
     setSearchQuery('');
     setIsModalOpen(true);
   };
 
-  const handleSave = () => {
-    onChange(tempSelected);
+  const handleCancel = () => {
+    setTempSelected([...selectedRoles]);
     setIsModalOpen(false);
+    setSearchQuery('');
+  };
+
+  const handleSave = () => {
+    onChange([...tempSelected]);
+    setIsModalOpen(false);
+    setSearchQuery('');
   };
 
   const handleToggleRole = (role: string) => {
-    if (tempSelected.includes(role)) {
-      setTempSelected(tempSelected.filter((r) => r !== role));
-    } else {
-      setTempSelected([...tempSelected, role]);
-    }
+    setTempSelected(prev => {
+      if (prev.includes(role)) {
+        return prev.filter((r) => r !== role);
+      } else {
+        return [...prev, role];
+      }
+    });
   };
 
   const filteredRoles = allRoles.filter((role) =>
@@ -130,7 +145,7 @@ export const AssigneeSelector = memo(function AssigneeSelector({
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={() => setIsModalOpen(false)}
+            onClick={handleCancel}
           />
 
           <div className="relative bg-white w-full sm:max-w-lg sm:rounded-xl shadow-2xl flex flex-col max-h-[90vh] sm:max-h-[600px]"
@@ -145,7 +160,7 @@ export const AssigneeSelector = memo(function AssigneeSelector({
                   Select Assignees
                 </h3>
                 <button
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={handleCancel}
                   className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
                   style={{ minHeight: '44px', minWidth: '44px' }}
                 >
