@@ -205,7 +205,18 @@ function App() {
     }
   };
 
-  const filteredTasks = tasks;
+  const filteredTasks = useMemo(() => {
+    if (session?.role === 'contractor' && mobileView === 'my-day') {
+      const userRole = session.display_name || 'Construction Contractor';
+      return tasks.filter(task =>
+        task.owner_roles && task.owner_roles.some(role =>
+          role.toLowerCase().includes('contractor') ||
+          role === userRole
+        )
+      );
+    }
+    return tasks;
+  }, [tasks, session, mobileView]);
 
 
   const handleTaskView = useCallback((task: Task) => {
