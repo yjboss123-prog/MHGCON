@@ -633,6 +633,22 @@ export async function createProject(name: string, description: string) {
     .single();
 
   if (error) throw error;
+
+  if (data) {
+    const tasksToInsert = seedTasks.map(task => ({
+      ...task,
+      project_id: data.id,
+    }));
+
+    const { error: tasksError } = await supabase
+      .from('tasks')
+      .insert(tasksToInsert);
+
+    if (tasksError) {
+      console.error('Error seeding tasks:', tasksError);
+    }
+  }
+
   return data;
 }
 

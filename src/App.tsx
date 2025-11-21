@@ -688,6 +688,7 @@ function App() {
           onClose={() => setIsAddModalOpen(false)}
           onTaskAdded={loadTasks}
           allRoles={allRoles}
+          projectId={activeProjectId}
         />
 
         <WeekDetailsModal

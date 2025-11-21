@@ -8,9 +8,10 @@ interface AddTaskModalProps {
   onClose: () => void;
   onTaskAdded: () => void;
   allRoles: string[];
+  projectId: string;
 }
 
-export function AddTaskModal({ isOpen, onClose, onTaskAdded, allRoles }: AddTaskModalProps) {
+export function AddTaskModal({ isOpen, onClose, onTaskAdded, allRoles, projectId }: AddTaskModalProps) {
   const [name, setName] = useState('');
   const [ownerRoles, setOwnerRoles] = useState<string[]>(['Project Manager']);
   const [startDate, setStartDate] = useState('');
@@ -52,6 +53,7 @@ export function AddTaskModal({ isOpen, onClose, onTaskAdded, allRoles }: AddTask
         end_date: endDate,
         percent_done: 0,
         status: 'On Track',
+        project_id: projectId,
       });
 
       setName('');
