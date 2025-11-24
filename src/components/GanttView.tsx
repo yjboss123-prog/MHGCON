@@ -88,7 +88,9 @@ function DesktopInteractiveGantt({ tasks, onTaskUpdate, userRole, userToken, lan
   const isContractor = userRole === 'contractor';
 
   const handleDownloadCSV = () => {
-    const headers = ['Task', 'Start Date', 'End Date', 'Status', 'Assigned To', 'Progress'];
+    const headers = language === 'fr'
+      ? ['Tâche', 'Date de début', 'Date de fin', 'Statut', 'Assigné à', 'Progrès']
+      : ['Task', 'Start Date', 'End Date', 'Status', 'Assigned To', 'Progress'];
     const rows = tasks.map(task => [
       task.name,
       task.start_date,

@@ -20,6 +20,8 @@ export function MobileReadOnlyGantt({ tasks, language, userToken, isContractor }
     ? ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc']
     : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
+  const taskLabel = language === 'fr' ? 'Tâche' : 'Task';
+
   const calculateBarPosition = (startDate: string, endDate: string) => {
     const start = new Date(startDate);
     const end = new Date(endDate);
@@ -39,7 +41,7 @@ export function MobileReadOnlyGantt({ tasks, language, userToken, isContractor }
     return { left, width };
   };
 
-  const WEEK_WIDTH = 60;
+  const WEEK_WIDTH = 80;
   const TASK_COL_WIDTH = 150;
   const TOTAL_WEEKS = 48;
   const MONTH_WIDTH = (TOTAL_WEEKS / 12) * WEEK_WIDTH;
@@ -51,7 +53,7 @@ export function MobileReadOnlyGantt({ tasks, language, userToken, isContractor }
         <div style={{ width: `${TASK_COL_WIDTH + ganttWidth}px`, minWidth: `${TASK_COL_WIDTH + ganttWidth}px` }}>
           <div className="sticky top-0 bg-white z-20 border-b-2 border-slate-300 flex">
             <div className="sticky left-0 z-30 bg-white border-r border-slate-200 p-2 font-semibold text-sm text-slate-700" style={{ width: `${TASK_COL_WIDTH}px`, minWidth: `${TASK_COL_WIDTH}px` }}>
-              {language === 'fr' ? 'Tâche' : 'Task'}
+              {taskLabel}
             </div>
             <div className="flex">
               {Array.from({ length: 12 }).map((_, monthIdx) => (
