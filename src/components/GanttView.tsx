@@ -266,7 +266,7 @@ export function GanttView({ tasks, onTaskUpdate, userRole, userToken, language }
   );
 
   return (
-    <div className="bg-white rounded-lg shadow-sm">
+    <div className="bg-white rounded-lg shadow-sm overflow-visible">
       <div className="p-4 border-b border-slate-200 flex justify-between items-center">
         <h2 className="text-lg font-semibold text-slate-900">
           {language === 'fr' ? 'Vue Gantt 2026' : 'Gantt View 2026'}
@@ -282,8 +282,12 @@ export function GanttView({ tasks, onTaskUpdate, userRole, userToken, language }
 
       {/* Mobile: Read-only swipeable Gantt */}
       <div
-        className="block md:hidden w-full overflow-x-auto overflow-y-hidden touch-pan-x"
-        style={{ WebkitOverflowScrolling: 'touch' }}
+        className="block md:hidden overflow-x-auto overflow-y-hidden touch-pan-x -mx-4 px-4"
+        style={{
+          WebkitOverflowScrolling: 'touch',
+          width: 'calc(100% + 2rem)',
+          maxWidth: 'none'
+        }}
       >
         <div className="inline-block min-w-[1200px] pointer-events-none">
           {renderGanttContent()}
