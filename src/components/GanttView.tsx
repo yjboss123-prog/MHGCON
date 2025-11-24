@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Download } from 'lucide-react';
 import { Task } from '../types';
 import { updateTask } from '../lib/api';
-import { MobileReadOnlyGantt } from './MobileReadOnlyGantt';
+import { MobileGanttStrip } from './MobileGanttStrip';
 
 type GanttViewProps = {
   tasks: Task[];
@@ -41,36 +41,37 @@ function getWeekNumber(date: Date): number {
 // }
 
 export function GanttView({ tasks, onTaskUpdate, userRole, userToken, language }: GanttViewProps) {
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
   const isContractor = userRole === 'contractor';
 
-  if (isMobile) {
-    return (
-      <div className="bg-white shadow-sm">
-        <div className="p-4 border-b border-slate-200">
-          <h2 className="text-lg font-semibold text-slate-900">
-            {language === 'fr' ? 'Vue Gantt 2026' : 'Gantt View 2026'}
-          </h2>
+  return (
+    <>
+      <div className="block md:hidden w-full">
+        <div className="bg-white shadow-sm">
+          <div className="p-4 border-b border-slate-200">
+            <h2 className="text-lg font-semibold text-slate-900">
+              {language === 'fr' ? 'Vue Gantt 2026' : 'Gantt View 2026'}
+            </h2>
+          </div>
+          <MobileGanttStrip
+            tasks={tasks}
+            language={language}
+            userToken={userToken}
+            isContractor={isContractor}
+          />
         </div>
-        <MobileReadOnlyGantt
+      </div>
+
+      <div className="hidden md:block">
+        <DesktopInteractiveGantt
           tasks={tasks}
-          language={language}
+          onTaskUpdate={onTaskUpdate}
+          userRole={userRole}
           userToken={userToken}
-          isContractor={isContractor}
+          language={language}
         />
       </div>
-    );
-  }
-
-  return <DesktopInteractiveGantt tasks={tasks} onTaskUpdate={onTaskUpdate} userRole={userRole} userToken={userToken} language={language} />;
+    </>
+  );
 }
 
 function DesktopInteractiveGantt({ tasks, onTaskUpdate, userRole, userToken, language }: GanttViewProps) {
