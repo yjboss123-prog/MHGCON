@@ -42,7 +42,9 @@ export function MobileReadOnlyGantt({ tasks, language, userToken, isContractor }
   const WEEK_WIDTH = 29;
   const TASK_COL_WIDTH = 200;
   const TOTAL_WEEKS = 48;
-  const timelineWidth = TASK_COL_WIDTH + (TOTAL_WEEKS * WEEK_WIDTH);
+  const MONTH_WIDTH = (TOTAL_WEEKS / 12) * WEEK_WIDTH;
+  const ganttWidth = TOTAL_WEEKS * WEEK_WIDTH;
+  const timelineWidth = TASK_COL_WIDTH + ganttWidth;
 
   return (
     <div
@@ -55,7 +57,7 @@ export function MobileReadOnlyGantt({ tasks, language, userToken, isContractor }
       <div style={{ width: `${timelineWidth}px`, minWidth: `${timelineWidth}px` }}>
         <div className="sticky top-0 bg-white z-10 border-b-2 border-slate-300">
           <div className="flex">
-            <div className="border-r border-slate-200 p-2 font-semibold text-sm text-slate-700" style={{ width: '200px', minWidth: '200px' }}>
+            <div className="border-r border-slate-200 p-2 font-semibold text-sm text-slate-700" style={{ width: `${TASK_COL_WIDTH}px`, minWidth: `${TASK_COL_WIDTH}px` }}>
               {language === 'fr' ? 'Tâche' : 'Task'}
             </div>
             <div className="flex">
@@ -63,7 +65,7 @@ export function MobileReadOnlyGantt({ tasks, language, userToken, isContractor }
                 <div
                   key={monthIdx}
                   className="border-r border-slate-200 text-center p-2 font-semibold text-sm text-slate-700"
-                  style={{ width: '116px', minWidth: '116px' }}
+                  style={{ width: `${MONTH_WIDTH}px`, minWidth: `${MONTH_WIDTH}px` }}
                 >
                   {monthNames[monthIdx]}
                 </div>
@@ -71,13 +73,13 @@ export function MobileReadOnlyGantt({ tasks, language, userToken, isContractor }
             </div>
           </div>
           <div className="flex">
-            <div className="border-r border-slate-200" style={{ width: '200px', minWidth: '200px' }}></div>
+            <div className="border-r border-slate-200" style={{ width: `${TASK_COL_WIDTH}px`, minWidth: `${TASK_COL_WIDTH}px` }}></div>
             <div className="flex">
               {Array.from({ length: 48 }).map((_, weekIdx) => (
                 <div
                   key={weekIdx}
                   className="border-r border-slate-100 text-center py-1 text-xs text-slate-500"
-                  style={{ width: '29px', minWidth: '29px' }}
+                  style={{ width: `${WEEK_WIDTH}px`, minWidth: `${WEEK_WIDTH}px` }}
                 >
                   {(weekIdx % 4) + 1}
                 </div>
@@ -97,16 +99,16 @@ export function MobileReadOnlyGantt({ tasks, language, userToken, isContractor }
                 key={task.id}
                 className={`flex border-b border-slate-100 ${idx % 2 === 0 ? 'bg-slate-50' : 'bg-white'}`}
               >
-                <div className="border-r border-slate-200 p-2 text-sm text-slate-700 truncate" style={{ width: '200px', minWidth: '200px' }}>
+                <div className="border-r border-slate-200 p-2 text-sm text-slate-700 truncate" style={{ width: `${TASK_COL_WIDTH}px`, minWidth: `${TASK_COL_WIDTH}px` }}>
                   {task.name}
                 </div>
-                <div className="relative h-12" style={{ width: '1392px', minWidth: '1392px' }}>
+                <div className="relative h-12" style={{ width: `${ganttWidth}px`, minWidth: `${ganttWidth}px` }}>
                   <div className="absolute inset-0 flex">
                     {Array.from({ length: 48 }).map((_, weekIdx) => (
                       <div
                         key={weekIdx}
                         className="border-r border-slate-100"
-                        style={{ width: '29px', minWidth: '29px', height: '100%' }}
+                        style={{ width: `${WEEK_WIDTH}px`, minWidth: `${WEEK_WIDTH}px`, height: '100%' }}
                       />
                     ))}
                   </div>
@@ -115,8 +117,8 @@ export function MobileReadOnlyGantt({ tasks, language, userToken, isContractor }
                       showHighlight ? 'ring-2 ring-sky-400/60' : ''
                     }`}
                     style={{
-                      left: `${(left / 48) * 1392}px`,
-                      width: `${(width / 48) * 1392}px`,
+                      left: `${(left / 48) * ganttWidth}px`,
+                      width: `${(width / 48) * ganttWidth}px`,
                     }}
                   />
                 </div>
