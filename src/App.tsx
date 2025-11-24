@@ -620,6 +620,7 @@ function App() {
               onLogout={handleSignOut}
               isProjectSwitcherOpen={isProjectSwitcherModalOpen}
               onProjectSwitcherClose={() => setIsProjectSwitcherModalOpen(false)}
+              isDrawerOpen={isDrawerOpen}
             />
           ) : viewMode === 'gantt' ? (
             <GanttView

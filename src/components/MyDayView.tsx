@@ -110,6 +110,7 @@ interface MyDayViewProps {
   onLogout?: () => void;
   isProjectSwitcherOpen?: boolean;
   onProjectSwitcherClose?: () => void;
+  isDrawerOpen?: boolean;
 }
 
 const getTaskPriority = (task: Task): 'today' | 'soon' | 'upcoming' => {
@@ -139,7 +140,8 @@ export const MyDayView = memo(function MyDayView({
   onSettings,
   onLogout,
   isProjectSwitcherOpen = false,
-  onProjectSwitcherClose
+  onProjectSwitcherClose,
+  isDrawerOpen = false
 }: MyDayViewProps) {
   const [isMobile, setIsMobile] = useState(false);
 
@@ -274,7 +276,7 @@ export const MyDayView = memo(function MyDayView({
         )}
       </div>
 
-      {isMobile && onSettings && onLogout && (
+      {isMobile && onSettings && onLogout && !isDrawerOpen && (
         <div
           className="bottom-actions-bar fixed inset-x-0 bottom-0 z-[1200] bg-white/95 border-t border-slate-200 px-4 pt-2"
           style={{ paddingBottom: 'calc(10px + env(safe-area-inset-bottom))', pointerEvents: 'auto' }}
