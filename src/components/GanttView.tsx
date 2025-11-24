@@ -51,6 +51,9 @@ export function GanttView({ tasks, onTaskUpdate, userRole, userToken, language }
   const [isScrollDragging, setIsScrollDragging] = useState(false);
   const [scrollStartX, setScrollStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
+  const [lastTap, setLastTap] = useState(0);
+
+  const isTouchDevice = typeof window !== 'undefined' && 'ontouchstart' in window;
 
   const monthNames = language === 'fr' ? MONTHS_FR : MONTHS;
   const isContractor = userRole === 'contractor';
@@ -222,7 +225,7 @@ export function GanttView({ tasks, onTaskUpdate, userRole, userToken, language }
         style={{ userSelect: isScrollDragging ? 'none' : 'auto' }}
       >
         <div className="min-w-[1200px]">
-          <div className="sticky top-0 bg-white z-10 border-b-2 border-slate-300">
+          <div className="sticky top-0 bg-white z-10 border-b-2 border-slate-300 pointer-events-none">
             <div className="flex">
               <div className="w-48 flex-shrink-0 border-r border-slate-200 p-2 font-semibold text-sm text-slate-700">
                 {language === 'fr' ? 'Tâche' : 'Task'}
@@ -253,55 +256,60 @@ export function GanttView({ tasks, onTaskUpdate, userRole, userToken, language }
             </div>
           </div>
 
-          <div>
+          <div className="pointer-events-none">
             {tasks.map((task, idx) => {
               const { left, width } = calculateBarPosition(task.start_date, task.end_date);
               const isMyTask = isContractor && task.assigned_user_token === userToken;
               const showHighlight = isMyTask;
 
               const TaskBar = () => {
-                const handleDoubleTap = useDoubleTap({
-                  onDoubleTap: () => {
-                    if (!isDragging) {
-                      onTaskUpdate(task);
-                    }
+                const canEditTasks = !isContractor;
+
+                const handleTaskPress = () => {
+                  if (!isTouchDevice) {
+                    onTaskUpdate(task);
+                    return;
                   }
-                });
+
+                  const now = Date.now();
+                  if (now - lastTap < 300) {
+                    onTaskUpdate(task);
+                  }
+                  setLastTap(now);
+                };
 
                 return (
                   <div
-                    className={`absolute top-2 h-8 rounded ${STATUS_COLORS[task.status]} cursor-move group ${
-                      showHighlight ? 'ring-2 ring-sky-400/60' : ''
-                    }`}
+                    className={`absolute top-2 h-8 rounded ${STATUS_COLORS[task.status]} pointer-events-auto ${
+                      canEditTasks ? 'cursor-move' : 'cursor-pointer'
+                    } group ${showHighlight ? 'ring-2 ring-sky-400/60' : ''}`}
                     style={{
                       left: `${(left / 48) * 100}%`,
                       width: `${(width / 48) * 100}%`,
-                      touchAction: 'none',
                     }}
-                    onMouseDown={(e) => handleMouseDown(e, task.id, 'move')}
+                    onMouseDown={canEditTasks ? (e) => handleMouseDown(e, task.id, 'move') : undefined}
                     onPointerDown={(e) => e.stopPropagation()}
-                    onClick={handleDoubleTap}
-                    onDoubleClick={() => {
-                      if (!isDragging) {
-                        onTaskUpdate(task);
-                      }
-                    }}
+                    onClick={handleTaskPress}
                     title={`${task.name}\n${task.start_date} → ${task.end_date}\n${task.assigned_display_name || ''}\n${task.status}`}
                   >
-                    <div
-                      className="absolute left-0 top-0 w-2 h-full cursor-ew-resize hover:bg-black/20"
-                      onMouseDown={(e) => {
-                        e.stopPropagation();
-                        handleMouseDown(e, task.id, 'resize-start');
-                      }}
-                    />
-                    <div
-                      className="absolute right-0 top-0 w-2 h-full cursor-ew-resize hover:bg-black/20"
-                      onMouseDown={(e) => {
-                        e.stopPropagation();
-                        handleMouseDown(e, task.id, 'resize-end');
-                      }}
-                    />
+                    {canEditTasks && (
+                      <>
+                        <div
+                          className="absolute left-0 top-0 w-2 h-full cursor-ew-resize hover:bg-black/20"
+                          onMouseDown={(e) => {
+                            e.stopPropagation();
+                            handleMouseDown(e, task.id, 'resize-start');
+                          }}
+                        />
+                        <div
+                          className="absolute right-0 top-0 w-2 h-full cursor-ew-resize hover:bg-black/20"
+                          onMouseDown={(e) => {
+                            e.stopPropagation();
+                            handleMouseDown(e, task.id, 'resize-end');
+                          }}
+                        />
+                      </>
+                    )}
                   </div>
                 );
               };
