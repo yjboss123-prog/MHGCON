@@ -48,7 +48,7 @@ export function MobileReadOnlyGantt({ tasks, language, userToken, isContractor }
   return (
     <div className="relative w-full" style={{ maxHeight: 'calc(100vh - 200px)' }}>
       <div className="overflow-x-auto overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
-        <div style={{ minWidth: `${TASK_COL_WIDTH + ganttWidth}px` }}>
+        <div style={{ width: `${TASK_COL_WIDTH + ganttWidth}px`, minWidth: `${TASK_COL_WIDTH + ganttWidth}px` }}>
           <div className="sticky top-0 bg-white z-20 border-b-2 border-slate-300 flex">
             <div className="sticky left-0 z-30 bg-white border-r border-slate-200 p-2 font-semibold text-sm text-slate-700" style={{ width: `${TASK_COL_WIDTH}px`, minWidth: `${TASK_COL_WIDTH}px` }}>
               {language === 'fr' ? 'Tâche' : 'Task'}
