@@ -1,5 +1,5 @@
 import { memo, useState, useEffect } from 'react';
-import { LogOut, Settings } from 'lucide-react';
+import { LogOut, Settings, ChevronDown } from 'lucide-react';
 import { Session } from '../lib/session';
 
 interface MobileHeaderProps {
@@ -7,9 +7,18 @@ interface MobileHeaderProps {
   projectName: string;
   onSettings: () => void;
   onSignOut: () => void;
+  onProjectSwitcher?: () => void;
+  showProjectSwitcher?: boolean;
 }
 
-export const MobileHeader = memo(function MobileHeader({ session, projectName, onSettings, onSignOut }: MobileHeaderProps) {
+export const MobileHeader = memo(function MobileHeader({
+  session,
+  projectName,
+  onSettings,
+  onSignOut,
+  onProjectSwitcher,
+  showProjectSwitcher = false
+}: MobileHeaderProps) {
   const [dateInfo, setDateInfo] = useState(() => {
     const today = new Date();
     return {
@@ -36,9 +45,25 @@ export const MobileHeader = memo(function MobileHeader({ session, projectName, o
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1 min-w-0">
-          <div className="text-sm font-medium text-slate-300 mb-1">
-            {projectName}
-          </div>
+          {showProjectSwitcher && onProjectSwitcher ? (
+            <button
+              onClick={onProjectSwitcher}
+              className="flex items-center gap-2 text-left mb-1 group"
+              style={{
+                touchAction: 'manipulation',
+                WebkitTapHighlightColor: 'transparent',
+              }}
+            >
+              <span className="text-sm font-semibold text-slate-200 group-active:text-white transition-colors">
+                {projectName}
+              </span>
+              <ChevronDown className="w-4 h-4 text-slate-300 group-active:text-white transition-all group-active:translate-y-0.5" />
+            </button>
+          ) : (
+            <div className="text-sm font-medium text-slate-300 mb-1">
+              {projectName}
+            </div>
+          )}
           <h1 className="text-2xl font-bold mb-1">
             {dateInfo.dayName}
           </h1>

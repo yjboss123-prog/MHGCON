@@ -1,7 +1,6 @@
 import { memo, useState, useCallback, useEffect, useMemo, FC } from 'react';
-import { createPortal } from 'react-dom';
 import { Task, Project } from '../types';
-import { Calendar, User, Settings, LogOut, ChevronDown } from 'lucide-react';
+import { Calendar, User, Settings, LogOut } from 'lucide-react';
 import { Language, translateRole, translateStatus } from '../lib/i18n';
 import {
   formatDate,
@@ -10,8 +9,8 @@ import {
   getRoleBadgeColor,
 } from '../lib/utils';
 import { Session } from '../lib/session';
-import { useAnimatedToggle } from '../lib/useAnimatedToggle';
 import { useDoubleTap } from '../lib/useDoubleTap';
+import { ProjectSwitcherModal } from './ProjectSwitcherModal';
 
 interface TaskCardProps {
   id: string;
@@ -99,6 +98,7 @@ const TaskCard: FC<TaskCardProps> = memo(({
 
 interface MyDayViewProps {
   tasks: Task[];
+  allTasks?: Task[];
   onTaskClick: (task: Task) => void;
   onStatusUpdate: (taskId: string, status: 'On Track' | 'Delayed' | 'Blocked' | 'Done') => void;
   language: Language;
@@ -108,6 +108,8 @@ interface MyDayViewProps {
   onProjectChange?: (projectId: string) => void;
   onSettings?: () => void;
   onLogout?: () => void;
+  isProjectSwitcherOpen?: boolean;
+  onProjectSwitcherClose?: () => void;
 }
 
 const getTaskPriority = (task: Task): 'today' | 'soon' | 'upcoming' => {
@@ -127,16 +129,19 @@ const getTaskPriority = (task: Task): 'today' | 'soon' | 'upcoming' => {
 
 export const MyDayView = memo(function MyDayView({
   tasks,
+  allTasks = [],
   onTaskClick,
   language,
+  session,
   currentProject,
   allProjects = [],
   onProjectChange,
   onSettings,
-  onLogout
+  onLogout,
+  isProjectSwitcherOpen = false,
+  onProjectSwitcherClose
 }: MyDayViewProps) {
   const [isMobile, setIsMobile] = useState(false);
-  const { show, closing, setOpen: setProjectSwitcherOpen, projectSwitcherOpen } = useAnimatedToggle();
 
   useEffect(() => {
     const checkMobile = () => {
@@ -188,91 +193,16 @@ export const MyDayView = memo(function MyDayView({
 
   return (
     <div className="myday-view-wrapper flex flex-col min-h-[100dvh]">
-      {isMobile && allProjects.length > 0 && onProjectChange && (
-        <>
-          <div className="project-switcher-top relative z-[50] mb-4 px-4">
-            <button
-              onClick={() => {
-                console.log('Project switcher clicked');
-                setProjectSwitcherOpen(true);
-              }}
-              className="flex items-center justify-center gap-2 w-full px-4 rounded-xl border-2 border-slate-300 bg-white text-slate-900 text-sm font-semibold shadow-sm hover:bg-slate-50 active:bg-slate-100 active:scale-[.98] transition-all"
-              style={{
-                minHeight: '52px',
-                touchAction: 'manipulation',
-                WebkitTapHighlightColor: 'transparent',
-                cursor: 'pointer'
-              }}
-              type="button"
-              aria-haspopup="dialog"
-              aria-expanded={projectSwitcherOpen}
-            >
-              <span className="flex-1 text-center truncate">{currentProject?.name || 'Select Project'}</span>
-              <ChevronDown className="w-5 h-5 text-slate-500 flex-shrink-0" />
-            </button>
-          </div>
-
-          {show && createPortal(
-            <div className="fixed inset-0 z-[3000]" role="dialog" aria-modal="true">
-              <button
-                className="absolute inset-0 bg-black/20"
-                style={{ animation: `${closing ? 'fadeOut' : 'fadeIn'} .18s ease` }}
-                onClick={() => setProjectSwitcherOpen(false)}
-                aria-label="Close"
-              />
-              <div
-                className="absolute left-0 right-0 bottom-0 bg-white rounded-t-2xl p-4 pb-[calc(12px+env(safe-area-inset-bottom))] max-h-[70vh] overflow-auto shadow-2xl"
-                style={{ animation: `${closing ? 'sheetOut' : 'sheetIn'} .18s ease` }}
-              >
-                <div className="mx-auto max-w-screen-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-base font-semibold">Switch project</h3>
-                    <button
-                      onClick={() => setProjectSwitcherOpen(false)}
-                      className="h-9 w-9 grid place-items-center rounded-full bg-slate-100 hover:bg-slate-200 active:bg-slate-300"
-                      aria-label="Close"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                  <ul className="space-y-3">
-                    {allProjects.map((project) => (
-                      <li key={project.id}>
-                        <button
-                          onClick={() => {
-                            console.log('Switching to project:', project.name);
-                            onProjectChange(project.id);
-                            setProjectSwitcherOpen(false);
-                          }}
-                          type="button"
-                          className={`w-full rounded-xl border-2 px-4 text-left font-semibold transition-all ${
-                            project.id === currentProject?.id
-                              ? 'border-blue-500 bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 shadow-sm'
-                              : 'border-slate-300 bg-white hover:bg-slate-50 active:bg-slate-100 shadow-sm'
-                          }`}
-                          style={{
-                            minHeight: '56px',
-                            touchAction: 'manipulation',
-                            WebkitTapHighlightColor: 'transparent',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          <div className="flex items-center justify-between py-3">
-                            <span className="text-base">{project.name}</span>
-                            {project.id === currentProject?.id && (
-                              <span className="text-blue-600 text-lg font-bold">✓</span>
-                            )}
-                          </div>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>,
-            document.body
-          )}
-        </>
+      {onProjectChange && onProjectSwitcherClose && (
+        <ProjectSwitcherModal
+          isOpen={isProjectSwitcherOpen}
+          onClose={onProjectSwitcherClose}
+          currentProject={currentProject}
+          allProjects={allProjects}
+          tasks={allTasks}
+          onProjectChange={onProjectChange}
+          session={session}
+        />
       )}
 
       <div className={`main-list relative z-[15] ${isMobile ? "pb-[calc(96px+env(safe-area-inset-bottom))]" : "pb-20"}`}>

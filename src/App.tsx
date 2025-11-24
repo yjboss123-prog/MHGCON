@@ -66,6 +66,7 @@ function App() {
   const [projectToRename, setProjectToRename] = useState<string | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
+  const [isProjectSwitcherModalOpen, setIsProjectSwitcherModalOpen] = useState(false);
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
@@ -545,6 +546,8 @@ function App() {
           projectName={project?.name || 'MHG Tracker'}
           onSettings={() => setIsProjectSettingsOpen(true)}
           onSignOut={handleSignOut}
+          onProjectSwitcher={() => setIsProjectSwitcherModalOpen(true)}
+          showProjectSwitcher={projects.length > 1}
         />
       )}
 
@@ -609,6 +612,7 @@ function App() {
           ) : isMobile && session?.role === 'contractor' && mobileView === 'my-day' ? (
             <MyDayView
               tasks={filteredTasks}
+              allTasks={tasks}
               onTaskClick={handleTaskView}
               onStatusUpdate={handleQuickStatusUpdate}
               language={language}
@@ -618,6 +622,8 @@ function App() {
               onProjectChange={setActiveProjectId}
               onSettings={() => setIsProjectSettingsOpen(true)}
               onLogout={handleSignOut}
+              isProjectSwitcherOpen={isProjectSwitcherModalOpen}
+              onProjectSwitcherClose={() => setIsProjectSwitcherModalOpen(false)}
             />
           ) : viewMode === 'gantt' ? (
             <GanttView
