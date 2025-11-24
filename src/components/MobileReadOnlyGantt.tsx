@@ -51,7 +51,8 @@ export function MobileReadOnlyGantt({ tasks, language, userToken, isContractor }
       className="w-full overflow-x-auto overflow-y-visible"
       style={{
         WebkitOverflowScrolling: 'touch',
-        touchAction: 'pan-x',
+        touchAction: 'pan-x pan-y',
+        overscrollBehaviorX: 'contain',
       }}
     >
       <div style={{ width: `${timelineWidth}px`, minWidth: `${timelineWidth}px` }}>
