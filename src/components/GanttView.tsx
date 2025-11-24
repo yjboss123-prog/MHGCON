@@ -159,32 +159,25 @@ export function GanttView({ tasks, onTaskUpdate, userRole, userToken, language }
     setOriginalDates(null);
   };
 
-  const onScrollPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+  const onScrollMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!scrollRef.current) return;
     if (draggedTask) return;
+    if (e.button !== 0) return;
 
     setIsScrollDragging(true);
     setScrollStartX(e.clientX);
     setScrollLeft(scrollRef.current.scrollLeft);
-    scrollRef.current.setPointerCapture(e.pointerId);
   };
 
-  const onScrollPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+  const onScrollMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isScrollDragging || !scrollRef.current) return;
     e.preventDefault();
     const dx = e.clientX - scrollStartX;
     scrollRef.current.scrollLeft = scrollLeft - dx;
   };
 
-  const endScrollDrag = (e: React.PointerEvent<HTMLDivElement>) => {
+  const endScrollDrag = () => {
     setIsScrollDragging(false);
-    if (scrollRef.current) {
-      try {
-        scrollRef.current.releasePointerCapture(e.pointerId);
-      } catch {
-        // Ignore errors from releasePointerCapture
-      }
-    }
   };
 
   useEffect(() => {
@@ -218,11 +211,14 @@ export function GanttView({ tasks, onTaskUpdate, userRole, userToken, language }
         className={`overflow-x-auto overflow-y-hidden touch-pan-x ${
           isScrollDragging ? 'cursor-grabbing' : 'cursor-grab'
         }`}
-        onPointerDown={onScrollPointerDown}
-        onPointerMove={onScrollPointerMove}
-        onPointerUp={endScrollDrag}
-        onPointerLeave={endScrollDrag}
-        style={{ userSelect: isScrollDragging ? 'none' : 'auto' }}
+        onMouseDown={onScrollMouseDown}
+        onMouseMove={onScrollMouseMove}
+        onMouseUp={endScrollDrag}
+        onMouseLeave={endScrollDrag}
+        style={{
+          userSelect: isScrollDragging ? 'none' : 'auto',
+          WebkitOverflowScrolling: 'touch'
+        }}
       >
         <div className="min-w-[1200px]">
           <div className="sticky top-0 bg-white z-10 border-b-2 border-slate-300 pointer-events-none">
@@ -286,9 +282,9 @@ export function GanttView({ tasks, onTaskUpdate, userRole, userToken, language }
                     style={{
                       left: `${(left / 48) * 100}%`,
                       width: `${(width / 48) * 100}%`,
+                      touchAction: 'manipulation',
                     }}
                     onMouseDown={canEditTasks ? (e) => handleMouseDown(e, task.id, 'move') : undefined}
-                    onPointerDown={(e) => e.stopPropagation()}
                     onClick={handleTaskPress}
                     title={`${task.name}\n${task.start_date} → ${task.end_date}\n${task.assigned_display_name || ''}\n${task.status}`}
                   >
