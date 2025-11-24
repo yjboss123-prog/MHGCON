@@ -7,6 +7,7 @@ import { updateTask, createTaskAttachment, getTaskAttachments, deleteTaskAttachm
 import { isElevated } from '../lib/session';
 import { canViewTaskBudget } from '../lib/budgetVisibility';
 import { AssigneeSelector } from './AssigneeSelector';
+import { useTranslation, translateStatus, Language } from '../lib/i18n';
 
 interface TaskDrawerProps {
   task: Task | null;
@@ -18,6 +19,7 @@ interface TaskDrawerProps {
   isAdmin?: boolean;
   session: Session | null;
   allRoles: string[];
+  language: Language;
 }
 
 interface Attachment {
@@ -35,7 +37,9 @@ export const TaskDrawer = memo(function TaskDrawer({
   onTaskUpdated,
   session,
   allRoles,
+  language,
 }: TaskDrawerProps) {
+  const t = useTranslation(language);
   const [percentDone, setPercentDone] = useState(0);
   const [status, setStatus] = useState<TaskStatus>('On Track');
   const [comment, setComment] = useState('');
@@ -88,7 +92,7 @@ export const TaskDrawer = memo(function TaskDrawer({
   const validateForm = (): string | null => {
     if (status === 'Delayed' || status === 'Blocked') {
       if (!comment.trim() && !task?.delay_reason) {
-        return 'Please add a reason when marking a task as Delayed or Blocked.';
+        return t.addReasonWhenDelayedOrBlocked;
       }
     }
     return null;
@@ -130,7 +134,7 @@ export const TaskDrawer = memo(function TaskDrawer({
       onTaskUpdated();
     } catch (err) {
       console.error('Error saving task:', err);
-      setError('Failed to save. Please try again.');
+      setError(t.failedToSave);
     } finally {
       setIsSaving(false);
     }
@@ -154,7 +158,7 @@ export const TaskDrawer = memo(function TaskDrawer({
       onTaskUpdated();
     } catch (err) {
       console.error('Error marking done:', err);
-      setError('Failed to mark as done. Please try again.');
+      setError(t.failedToMarkDone);
     } finally {
       setIsSaving(false);
     }
@@ -164,7 +168,7 @@ export const TaskDrawer = memo(function TaskDrawer({
     if (!task) return;
 
     if (!comment.trim() && !task.delay_reason) {
-      setError('Please add a reason for blocking this task.');
+      setError(t.addReasonForBlocking);
       return;
     }
 
@@ -185,7 +189,7 @@ export const TaskDrawer = memo(function TaskDrawer({
       onTaskUpdated();
     } catch (err) {
       console.error('Error marking blocked:', err);
-      setError('Failed to mark as blocked. Please try again.');
+      setError(t.failedToMarkBlocked);
     } finally {
       setIsSaving(false);
     }
@@ -196,7 +200,7 @@ export const TaskDrawer = memo(function TaskDrawer({
     if (!file || !task) return;
 
     if (file.size > 10 * 1024 * 1024) {
-      setError('File must be less than 10MB');
+      setError(t.fileMustBeLessThan10MB);
       return;
     }
 
@@ -220,7 +224,7 @@ export const TaskDrawer = memo(function TaskDrawer({
       setTimeout(() => setShowSuccess(false), 2000);
     } catch (err) {
       console.error('Error uploading photo:', err);
-      setError('Failed to upload photo. Please try again.');
+      setError(t.failedToUpload);
     } finally {
       setIsSubmitting(false);
     }
@@ -244,11 +248,11 @@ export const TaskDrawer = memo(function TaskDrawer({
     const canDelete = isElevated(session) || isOwner;
 
     if (!canDelete) {
-      setError('You do not have permission to delete this attachment.');
+      setError(t.noPermissionToDelete);
       return;
     }
 
-    if (!confirm('Are you sure you want to delete this attachment?')) {
+    if (!confirm(t.areYouSureDeleteAttachment)) {
       return;
     }
 
@@ -258,7 +262,7 @@ export const TaskDrawer = memo(function TaskDrawer({
       setError(null);
     } catch (err) {
       console.error('Error deleting attachment:', err);
-      setError('Failed to delete attachment. Please try again.');
+      setError(t.failedToDeleteAttachment);
     }
   };
 
@@ -291,7 +295,7 @@ export const TaskDrawer = memo(function TaskDrawer({
               </h2>
               {task.assigned_display_name && (
                 <div className="text-xs text-slate-500 mt-0.5">
-                  Assigned to {task.assigned_display_name}
+                  {t.assignedTo} {task.assigned_display_name}
                 </div>
               )}
             </div>
@@ -316,7 +320,7 @@ export const TaskDrawer = memo(function TaskDrawer({
             <div className="bg-blue-600 text-white px-4 py-3 rounded-lg flex items-center gap-3">
               <AlertCircle className="w-5 h-5 flex-shrink-0" />
               <div className="text-sm">
-                This task was recently shifted. Please review the timeline.
+                {t.taskWasRecentlyShifted}
               </div>
             </div>
           )}
@@ -331,7 +335,7 @@ export const TaskDrawer = memo(function TaskDrawer({
           {showSuccess && (
             <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center gap-3">
               <Check className="w-5 h-5 flex-shrink-0" />
-              <div className="text-sm font-medium">Saved successfully!</div>
+              <div className="text-sm font-medium">{t.savedSuccessfully}</div>
             </div>
           )}
 
@@ -339,7 +343,7 @@ export const TaskDrawer = memo(function TaskDrawer({
             <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-lg flex items-start gap-3">
               <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
               <div className="text-sm">
-                Past due — consider setting status to Delayed if still in progress.
+                {t.pastDueMessage}
               </div>
             </div>
           )}
@@ -348,10 +352,10 @@ export const TaskDrawer = memo(function TaskDrawer({
             <div>
               <div className="flex items-center justify-between mb-3">
                 <label className="text-sm font-semibold text-slate-900">
-                  Progress: {percentDone}%
+                  {t.progress}: {percentDone}%
                 </label>
                 <span className="text-xs text-slate-500">
-                  {percentDone === 100 ? 'Complete' : `${100 - percentDone}% remaining`}
+                  {percentDone === 100 ? t.complete : `${100 - percentDone}% ${t.remaining}`}
                 </span>
               </div>
 
@@ -381,7 +385,7 @@ export const TaskDrawer = memo(function TaskDrawer({
             {session?.role === 'contractor' ? (
               <div>
                 <label className="text-sm font-semibold text-slate-900 block mb-3">
-                  Assigned To
+                  {t.assignedTo}
                 </label>
                 {ownerRoles.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
@@ -395,7 +399,7 @@ export const TaskDrawer = memo(function TaskDrawer({
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-slate-500">No one assigned</p>
+                  <p className="text-sm text-slate-500">{t.noOneAssigned}</p>
                 )}
               </div>
             ) : (
@@ -408,7 +412,7 @@ export const TaskDrawer = memo(function TaskDrawer({
 
             <div>
               <label className="text-sm font-semibold text-slate-900 block mb-3">
-                Status
+                {t.status}
               </label>
               <div className="grid grid-cols-2 gap-2">
                 {TASK_STATUSES.map((s) => (
@@ -422,7 +426,7 @@ export const TaskDrawer = memo(function TaskDrawer({
                     }`}
                     style={{ minHeight: '48px' }}
                   >
-                    {s}
+                    {translateStatus(s, language)}
                   </button>
                 ))}
               </div>
@@ -430,12 +434,12 @@ export const TaskDrawer = memo(function TaskDrawer({
 
             <div>
               <label className="text-sm font-semibold text-slate-900 block mb-2">
-                Comment {needsComment && <span className="text-red-600">*</span>}
+                {t.comment} {needsComment && <span className="text-red-600">*</span>}
               </label>
               <textarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
-                placeholder={needsComment ? "Required when task is Delayed or Blocked" : "Add a note or update (optional)"}
+                placeholder={needsComment ? t.requiredWhenDelayedOrBlocked : t.addNoteOptional}
                 className={`w-full px-4 py-3 border rounded-lg resize-none focus:outline-none focus:ring-2 ${
                   needsComment && !comment.trim() && !task.delay_reason
                     ? 'border-red-300 focus:ring-red-500'
@@ -446,21 +450,21 @@ export const TaskDrawer = memo(function TaskDrawer({
               />
               {task.delay_reason && (
                 <div className="mt-2 text-xs text-slate-600">
-                  Previous reason: {task.delay_reason}
+                  {t.previousReason}: {task.delay_reason}
                 </div>
               )}
             </div>
 
             <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-3">
               <label className="text-sm font-semibold text-slate-900 block">
-                Finance
+                {t.finance}
               </label>
 
               {canViewBudget ? (
                 <>
                   <div>
                     <label className="text-xs font-medium text-slate-600 block mb-1.5">
-                      Budget
+                      {t.budget}
                     </label>
                     {canEditBudget ? (
                       <div className="relative">
@@ -486,7 +490,7 @@ export const TaskDrawer = memo(function TaskDrawer({
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="text-xs font-medium text-slate-600 block mb-1.5">
-                        Earned
+                        {t.earned}
                       </label>
                       <div className="px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-900">
                         {formatCurrency((budget * percentDone) / 100)} DH
@@ -495,7 +499,7 @@ export const TaskDrawer = memo(function TaskDrawer({
 
                     <div>
                       <label className="text-xs font-medium text-slate-600 block mb-1.5">
-                        Remaining
+                        {t.remaining}
                       </label>
                       <div className="px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-900">
                         {formatCurrency(budget - (budget * percentDone) / 100)} DH
@@ -506,14 +510,14 @@ export const TaskDrawer = memo(function TaskDrawer({
               ) : (
                 <div className="flex items-center gap-2 px-3 py-2.5 bg-slate-100 border border-slate-200 rounded-lg text-sm text-slate-500">
                   <Lock className="w-4 h-4" />
-                  <span>Budget hidden</span>
+                  <span>{t.budgetHidden}</span>
                 </div>
               )}
             </div>
 
             <div>
               <label className="text-sm font-semibold text-slate-900 block mb-3">
-                Photos & Files
+                {t.photosAndFiles}
               </label>
 
               <input
@@ -533,14 +537,14 @@ export const TaskDrawer = memo(function TaskDrawer({
                 {isSubmitting ? (
                   <>
                     <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                    <span className="font-semibold">Uploading...</span>
+                    <span className="font-semibold">{t.uploading}</span>
                   </>
                 ) : (
                   <>
                     <div className="p-2 bg-slate-100 rounded-lg group-hover:bg-blue-100 transition-colors">
                       <Camera className="w-5 h-5" />
                     </div>
-                    <span className="font-semibold">Add Photo or File</span>
+                    <span className="font-semibold">{t.addPhotoOrFile}</span>
                     <Upload className="w-4 h-4 opacity-60" />
                   </>
                 )}
@@ -549,7 +553,7 @@ export const TaskDrawer = memo(function TaskDrawer({
               {attachments.length > 0 && (
                 <div className="mt-6 space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold text-slate-700">Uploaded Files ({attachments.length})</span>
+                    <span className="text-sm font-semibold text-slate-700">{t.uploadedFiles} ({attachments.length})</span>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                     {attachments.map((att) => {
@@ -578,7 +582,7 @@ export const TaskDrawer = memo(function TaskDrawer({
                                 handleDeleteAttachment(att.id, att.uploaded_by);
                               }}
                               className="absolute -top-2 -right-2 p-2 bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all active:scale-90 z-10 border-2 border-white"
-                              title="Delete attachment"
+                              title={t.deleteAttachment}
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -593,9 +597,9 @@ export const TaskDrawer = memo(function TaskDrawer({
 
             <div className="pt-4 border-t border-slate-200">
               <div className="text-xs text-slate-500 space-y-1">
-                <div>Start: {new Date(task.start_date).toLocaleDateString()}</div>
-                <div>End: {new Date(task.end_date).toLocaleDateString()}</div>
-                {task.updated_at && <div>Last updated: {formatDateTime(task.updated_at)}</div>}
+                <div>{t.start}: {new Date(task.start_date).toLocaleDateString()}</div>
+                <div>{t.end}: {new Date(task.end_date).toLocaleDateString()}</div>
+                {task.updated_at && <div>{t.lastUpdated}: {formatDateTime(task.updated_at)}</div>}
               </div>
             </div>
           </div>
@@ -618,7 +622,7 @@ export const TaskDrawer = memo(function TaskDrawer({
               className="flex-1 py-3 px-4 rounded-lg bg-slate-100 text-slate-700 font-medium hover:bg-slate-200 active:bg-slate-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ minHeight: '48px' }}
             >
-              Blocked
+              {translateStatus('Blocked', language)}
             </button>
             <button
               onClick={handleSave}
@@ -626,7 +630,7 @@ export const TaskDrawer = memo(function TaskDrawer({
               className="flex-1 py-3 px-4 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 active:bg-blue-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-500/30"
               style={{ minHeight: '48px' }}
             >
-              {isSaving ? 'Saving...' : 'Save'}
+              {isSaving ? t.saving : t.save}
             </button>
             <button
               onClick={handleMarkDone}
@@ -634,7 +638,7 @@ export const TaskDrawer = memo(function TaskDrawer({
               className="flex-1 py-3 px-4 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 active:bg-green-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-green-500/30"
               style={{ minHeight: '48px' }}
             >
-              Mark Done
+              {t.markDone}
             </button>
           </div>
         </footer>

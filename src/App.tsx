@@ -241,9 +241,6 @@ function App() {
     }
   };
 
-  const _handleWeekClick = (_task: Task, _year: number, _week: number) => {
-    // Placeholder for future week click functionality
-  };
 
   const handleQuickStatusUpdate = async (taskId: string, status: TaskStatus) => {
     const task = tasks.find(t => t.id === taskId);
@@ -521,7 +518,6 @@ function App() {
 
   const userIsAdmin = isAdmin(session);
   const canManage = canManageTasks(session);
-  const _canDelete = canDeleteTasks(session);
 
   if (isCheckingSession) {
     return (
@@ -698,6 +694,7 @@ function App() {
         isAdmin={userIsAdmin}
         session={session}
         allRoles={allRoles}
+        language={language}
       />
 
       <Suspense fallback={null}>

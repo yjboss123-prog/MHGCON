@@ -36,7 +36,6 @@ export const TaskListItem = memo(function TaskListItem({
   language,
   session,
 }: TaskListItemProps) {
-  const _t = useTranslation(language);
   const [isCheckingAccess, setIsCheckingAccess] = useState(false);
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
 
@@ -64,12 +63,6 @@ export const TaskListItem = memo(function TaskListItem({
     }
   }, [task.id, session, hasAccess]);
 
-  const _handleView = useCallback(async () => {
-    const allowed = await checkAccess();
-    if (allowed) {
-      onView(task);
-    }
-  }, [checkAccess, onView, task]);
 
   const handleUpdate = useCallback(async () => {
     const allowed = await checkAccess();
@@ -83,7 +76,6 @@ export const TaskListItem = memo(function TaskListItem({
   }, [checkAccess]);
 
   const dateRange = `${formatDate(task.start_date)} - ${formatDate(task.end_date)}`;
-  const _roleLabel = task.owner_roles.map(role => translateRole(role, language)).join(', ');
   const statusLabel = translateStatus(task.status, language);
 
   const daysText = language === 'fr'
