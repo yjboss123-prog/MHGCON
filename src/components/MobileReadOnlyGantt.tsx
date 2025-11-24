@@ -40,40 +40,33 @@ export function MobileReadOnlyGantt({ tasks, language, userToken, isContractor }
   };
 
   return (
-    <div
-      className="overflow-x-scroll overflow-y-hidden"
-      style={{
-        WebkitOverflowScrolling: 'touch',
-        touchAction: 'pan-x pinch-zoom',
-        width: '100%',
-      }}
-    >
-      <div style={{ width: '1600px' }}>
-        <div className="sticky left-0 top-0 bg-white z-10 border-b-2 border-slate-300">
-          <div className="flex" style={{ width: '1600px' }}>
-            <div className="w-48 flex-shrink-0 border-r border-slate-200 p-2 font-semibold text-sm text-slate-700">
+    <div className="w-full" style={{ overflowX: 'auto', overflowY: 'visible' }}>
+      <div style={{ width: '1600px', minWidth: '1600px' }}>
+        <div className="sticky top-0 bg-white z-10 border-b-2 border-slate-300">
+          <div className="flex">
+            <div className="border-r border-slate-200 p-2 font-semibold text-sm text-slate-700" style={{ width: '200px', minWidth: '200px' }}>
               {language === 'fr' ? 'Tâche' : 'Task'}
             </div>
-            <div className="flex" style={{ width: '1352px' }}>
+            <div className="flex">
               {Array.from({ length: 12 }).map((_, monthIdx) => (
                 <div
                   key={monthIdx}
                   className="border-r border-slate-200 text-center p-2 font-semibold text-sm text-slate-700"
-                  style={{ width: '112.67px' }}
+                  style={{ width: '116px', minWidth: '116px' }}
                 >
                   {monthNames[monthIdx]}
                 </div>
               ))}
             </div>
           </div>
-          <div className="flex" style={{ width: '1600px' }}>
-            <div className="w-48 flex-shrink-0 border-r border-slate-200"></div>
-            <div className="flex" style={{ width: '1352px' }}>
+          <div className="flex">
+            <div className="border-r border-slate-200" style={{ width: '200px', minWidth: '200px' }}></div>
+            <div className="flex">
               {Array.from({ length: 48 }).map((_, weekIdx) => (
                 <div
                   key={weekIdx}
                   className="border-r border-slate-100 text-center py-1 text-xs text-slate-500"
-                  style={{ width: '28.17px' }}
+                  style={{ width: '29px', minWidth: '29px' }}
                 >
                   {(weekIdx % 4) + 1}
                 </div>
@@ -92,18 +85,17 @@ export function MobileReadOnlyGantt({ tasks, language, userToken, isContractor }
               <div
                 key={task.id}
                 className={`flex border-b border-slate-100 ${idx % 2 === 0 ? 'bg-slate-50' : 'bg-white'}`}
-                style={{ width: '1600px' }}
               >
-                <div className="w-48 flex-shrink-0 border-r border-slate-200 p-2 text-sm text-slate-700 truncate">
+                <div className="border-r border-slate-200 p-2 text-sm text-slate-700 truncate" style={{ width: '200px', minWidth: '200px' }}>
                   {task.name}
                 </div>
-                <div className="relative h-12" style={{ width: '1352px' }}>
-                  <div className="absolute inset-0 flex" style={{ width: '1352px' }}>
+                <div className="relative h-12" style={{ width: '1392px', minWidth: '1392px' }}>
+                  <div className="absolute inset-0 flex">
                     {Array.from({ length: 48 }).map((_, weekIdx) => (
                       <div
                         key={weekIdx}
                         className="border-r border-slate-100"
-                        style={{ width: '28.17px' }}
+                        style={{ width: '29px', minWidth: '29px', height: '100%' }}
                       />
                     ))}
                   </div>
@@ -112,8 +104,8 @@ export function MobileReadOnlyGantt({ tasks, language, userToken, isContractor }
                       showHighlight ? 'ring-2 ring-sky-400/60' : ''
                     }`}
                     style={{
-                      left: `${(left / 48) * 1352}px`,
-                      width: `${(width / 48) * 1352}px`,
+                      left: `${(left / 48) * 1392}px`,
+                      width: `${(width / 48) * 1392}px`,
                     }}
                   />
                 </div>
