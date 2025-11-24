@@ -39,9 +39,20 @@ export function MobileReadOnlyGantt({ tasks, language, userToken, isContractor }
     return { left, width };
   };
 
+  const WEEK_WIDTH = 29;
+  const TASK_COL_WIDTH = 200;
+  const TOTAL_WEEKS = 48;
+  const timelineWidth = TASK_COL_WIDTH + (TOTAL_WEEKS * WEEK_WIDTH);
+
   return (
-    <div className="w-full" style={{ overflowX: 'auto', overflowY: 'visible' }}>
-      <div style={{ width: '1600px', minWidth: '1600px' }}>
+    <div
+      className="w-full overflow-x-auto overflow-y-visible"
+      style={{
+        WebkitOverflowScrolling: 'touch',
+        touchAction: 'pan-x',
+      }}
+    >
+      <div style={{ width: `${timelineWidth}px`, minWidth: `${timelineWidth}px` }}>
         <div className="sticky top-0 bg-white z-10 border-b-2 border-slate-300">
           <div className="flex">
             <div className="border-r border-slate-200 p-2 font-semibold text-sm text-slate-700" style={{ width: '200px', minWidth: '200px' }}>
