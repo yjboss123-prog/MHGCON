@@ -54,7 +54,7 @@ export function GanttView({ tasks, onTaskUpdate, userRole, userToken, language }
 
   if (isMobile) {
     return (
-      <div className="bg-white rounded-lg shadow-sm">
+      <div className="bg-white shadow-sm">
         <div className="p-4 border-b border-slate-200">
           <h2 className="text-lg font-semibold text-slate-900">
             {language === 'fr' ? 'Vue Gantt 2026' : 'Gantt View 2026'}
