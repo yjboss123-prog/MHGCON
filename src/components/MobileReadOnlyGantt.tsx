@@ -44,7 +44,7 @@ export function MobileReadOnlyGantt({ tasks, language, userToken, isContractor }
       className="w-full overflow-x-auto overflow-y-hidden"
       style={{
         WebkitOverflowScrolling: 'touch',
-        touchAction: 'pan-x',
+        touchAction: 'auto',
       }}
     >
       <div className="inline-block min-w-[1200px]">
