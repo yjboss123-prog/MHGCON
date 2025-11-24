@@ -91,16 +91,17 @@ export function MobileReadOnlyGantt({ tasks, language, userToken, isContractor }
                 <div
                   key={task.id}
                   className={`flex border-b border-slate-100 ${idx % 2 === 0 ? 'bg-slate-50' : 'bg-white'}`}
+                  style={{ minWidth: `${TASK_COL_WIDTH + ganttWidth}px` }}
                 >
                   <div className="sticky left-0 z-10 bg-inherit border-r border-slate-200 p-2 text-sm text-slate-700 truncate" style={{ width: `${TASK_COL_WIDTH}px`, minWidth: `${TASK_COL_WIDTH}px` }}>
                     {task.name}
                   </div>
-                  <div className="relative h-12" style={{ width: `${ganttWidth}px`, minWidth: `${ganttWidth}px` }}>
+                  <div className="relative h-12 flex-shrink-0" style={{ width: `${ganttWidth}px`, minWidth: `${ganttWidth}px` }}>
                     <div className="absolute inset-0 flex">
                       {Array.from({ length: 48 }).map((_, weekIdx) => (
                         <div
                           key={weekIdx}
-                          className="border-r border-slate-100"
+                          className="border-r border-slate-100 flex-shrink-0"
                           style={{ width: `${WEEK_WIDTH}px`, minWidth: `${WEEK_WIDTH}px`, height: '100%' }}
                         />
                       ))}
