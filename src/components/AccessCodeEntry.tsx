@@ -37,7 +37,7 @@ export function AccessCodeEntry({ onSuccess, language }: AccessCodeEntryProps) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [availableRoles, setAvailableRoles] = useState<string[]>(CONTRACTOR_ROLES);
-  const [projectId, setProjectId] = useState('00000000-0000-0000-0000-000000000001');
+  const [projectId, setProjectId] = useState<string | null>(null);
 
   useEffect(() => {
     const loadRoles = async () => {
@@ -48,16 +48,24 @@ export function AccessCodeEntry({ onSuccess, language }: AccessCodeEntryProps) {
           if (project.custom_contractors) {
             setAvailableRoles([...CONTRACTOR_ROLES, ...project.custom_contractors]);
           }
+        } else {
+          setError(isFr ? 'Aucun projet trouvé. Veuillez contacter l\'administrateur.' : 'No project found. Please contact administrator.');
         }
       } catch (err) {
         console.error('Error loading project:', err);
+        setError(isFr ? 'Erreur lors du chargement du projet' : 'Error loading project');
       }
     };
     loadRoles();
-  }, []);
+  }, [isFr]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!projectId) {
+      setError(isFr ? 'Aucun projet disponible. Veuillez réessayer.' : 'No project available. Please try again.');
+      return;
+    }
 
     if (!displayName.trim()) {
       setError(isFr ? 'Veuillez entrer votre nom d\'affichage' : 'Please enter your display name');

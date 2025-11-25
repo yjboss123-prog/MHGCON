@@ -434,12 +434,24 @@ export async function rebaselineProject(
   return { shiftedCount: allTasks.length, deltaDays };
 }
 
-export async function getProject(projectId: string = '00000000-0000-0000-0000-000000000001') {
+export async function getProject(projectId?: string) {
+  if (projectId) {
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('id', projectId)
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
   const { data, error } = await supabase
     .from('projects')
     .select('*')
-    .eq('id', projectId)
-    .single();
+    .order('created_at', { ascending: true })
+    .limit(1)
+    .maybeSingle();
 
   if (error) throw error;
   return data;
