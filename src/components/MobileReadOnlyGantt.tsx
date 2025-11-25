@@ -1,10 +1,11 @@
-import { Task } from '../types';
+import { Task, Project } from '../types';
 
 interface MobileReadOnlyGanttProps {
   tasks: Task[];
   language: 'en' | 'fr';
   userToken?: string;
   isContractor?: boolean;
+  project?: Project;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -15,22 +16,30 @@ const STATUS_COLORS: Record<string, string> = {
   'Done': 'bg-blue-400',
 };
 
-export function MobileReadOnlyGantt({ tasks, language, userToken, isContractor }: MobileReadOnlyGanttProps) {
-  const monthNames = language === 'fr'
+export function MobileReadOnlyGantt({ tasks, language, userToken, isContractor, project }: MobileReadOnlyGanttProps) {
+  const allMonthNames = language === 'fr'
     ? ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc']
     : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
   const taskLabel = language === 'fr' ? 'Tâche' : 'Task';
 
+  const projectStartDate = project?.project_start_date ? new Date(project.project_start_date) : new Date(2026, 0, 1);
+  const startMonth = projectStartDate.getMonth();
+
+  const monthNames = Array.from({ length: 12 }, (_, i) => {
+    const monthIndex = (startMonth + i) % 12;
+    return allMonthNames[monthIndex];
+  });
+
   const calculateBarPosition = (startDate: string, endDate: string) => {
     const start = new Date(startDate);
     const end = new Date(endDate);
-    const baselineStart = new Date('2026-01-06');
-    const baselineEnd = new Date('2026-12-31');
 
     const totalWeeks = 48;
-    const projectStartTime = baselineStart.getTime();
-    const projectDuration = baselineEnd.getTime() - projectStartTime;
+    const projectStartTime = projectStartDate.getTime();
+    const oneYearLater = new Date(projectStartDate);
+    oneYearLater.setFullYear(oneYearLater.getFullYear() + 1);
+    const projectDuration = oneYearLater.getTime() - projectStartTime;
 
     const taskStartWeek = Math.floor(((start.getTime() - projectStartTime) / projectDuration) * totalWeeks);
     const taskEndWeek = Math.ceil(((end.getTime() - projectStartTime) / projectDuration) * totalWeeks);

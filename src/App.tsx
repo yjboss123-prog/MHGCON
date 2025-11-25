@@ -629,6 +629,7 @@ function App() {
               userRole={session?.role}
               userToken={session?.user_token}
               language={language}
+              project={project || undefined}
             />
           ) : (
             <>

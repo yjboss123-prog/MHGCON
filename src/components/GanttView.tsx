@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Download } from 'lucide-react';
-import { Task } from '../types';
+import { Task, Project } from '../types';
 import { updateTask } from '../lib/api';
 import { MobileReadOnlyGantt } from './MobileReadOnlyGantt';
 
@@ -10,6 +10,7 @@ type GanttViewProps = {
   userRole?: string;
   userToken?: string;
   language: 'en' | 'fr';
+  project?: Project;
 };
 
 const MONTHS = [
@@ -29,9 +30,8 @@ const STATUS_COLORS = {
   'Done': 'bg-slate-400'
 };
 
-function getWeekNumber(date: Date): number {
-  const startOfYear = new Date(2026, 0, 1);
-  const daysSinceStart = Math.floor((date.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24));
+function getWeekNumber(date: Date, projectStartDate: Date): number {
+  const daysSinceStart = Math.floor((date.getTime() - projectStartDate.getTime()) / (1000 * 60 * 60 * 24));
   return Math.floor(daysSinceStart / 7);
 }
 
@@ -40,7 +40,7 @@ function getWeekNumber(date: Date): number {
 //   return Math.floor(weekNumber / 4);
 // }
 
-export function GanttView({ tasks, onTaskUpdate, userRole, userToken, language }: GanttViewProps) {
+export function GanttView({ tasks, onTaskUpdate, userRole, userToken, language, project }: GanttViewProps) {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -57,7 +57,7 @@ export function GanttView({ tasks, onTaskUpdate, userRole, userToken, language }
       <div className="bg-white shadow-sm overflow-visible">
         <div className="p-4 border-b border-slate-200">
           <h2 className="text-lg font-semibold text-slate-900">
-            {language === 'fr' ? 'Vue Gantt 2026' : 'Gantt View 2026'}
+            {language === 'fr' ? 'Vue Gantt' : 'Gantt View'}
           </h2>
         </div>
         <MobileReadOnlyGantt
@@ -65,15 +65,16 @@ export function GanttView({ tasks, onTaskUpdate, userRole, userToken, language }
           language={language}
           userToken={userToken}
           isContractor={isContractor}
+          project={project}
         />
       </div>
     );
   }
 
-  return <DesktopInteractiveGantt tasks={tasks} onTaskUpdate={onTaskUpdate} userRole={userRole} userToken={userToken} language={language} />;
+  return <DesktopInteractiveGantt tasks={tasks} onTaskUpdate={onTaskUpdate} userRole={userRole} userToken={userToken} language={language} project={project} />;
 }
 
-function DesktopInteractiveGantt({ tasks, onTaskUpdate, userRole, userToken, language }: GanttViewProps) {
+function DesktopInteractiveGantt({ tasks, onTaskUpdate, userRole, userToken, language, project }: GanttViewProps) {
   const [draggedTask, setDraggedTask] = useState<string | null>(null);
   const [dragType, setDragType] = useState<'move' | 'resize-start' | 'resize-end' | null>(null);
   const [dragStartX, setDragStartX] = useState(0);
@@ -84,8 +85,17 @@ function DesktopInteractiveGantt({ tasks, onTaskUpdate, userRole, userToken, lan
   const [scrollStartX, setScrollStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
 
-  const monthNames = language === 'fr' ? MONTHS_FR : MONTHS;
+  const allMonthNames = language === 'fr' ? MONTHS_FR : MONTHS;
   const isContractor = userRole === 'contractor';
+
+  const projectStartDate = project?.project_start_date ? new Date(project.project_start_date) : new Date(2026, 0, 1);
+  const startMonth = projectStartDate.getMonth();
+  const startYear = projectStartDate.getFullYear();
+
+  const monthNames = Array.from({ length: 12 }, (_, i) => {
+    const monthIndex = (startMonth + i) % 12;
+    return allMonthNames[monthIndex];
+  });
 
   const handleDownloadCSV = () => {
     const headers = language === 'fr'
@@ -114,8 +124,8 @@ function DesktopInteractiveGantt({ tasks, onTaskUpdate, userRole, userToken, lan
     const start = new Date(startDate);
     const end = new Date(endDate);
 
-    const startWeek = getWeekNumber(start);
-    const endWeek = getWeekNumber(end);
+    const startWeek = getWeekNumber(start, projectStartDate);
+    const endWeek = getWeekNumber(end, projectStartDate);
 
     const left = Math.max(0, Math.min(47, startWeek));
     const width = Math.max(1, Math.min(48 - left, endWeek - startWeek + 1));
@@ -166,8 +176,6 @@ function DesktopInteractiveGantt({ tasks, onTaskUpdate, userRole, userToken, lan
       endDate.setDate(endDate.getDate() + weeksDelta * 7);
       if (endDate <= startDate) return;
     }
-
-    if (startDate.getFullYear() !== 2026 || endDate.getFullYear() !== 2026) return;
 
     const updatedTask = {
       ...task,
@@ -226,7 +234,7 @@ function DesktopInteractiveGantt({ tasks, onTaskUpdate, userRole, userToken, lan
     <div className="bg-white rounded-lg shadow-sm">
       <div className="p-4 border-b border-slate-200 flex justify-between items-center">
         <h2 className="text-lg font-semibold text-slate-900">
-          {language === 'fr' ? 'Vue Gantt 2026' : 'Gantt View 2026'}
+          {language === 'fr' ? `Vue Gantt ${startYear}` : `Gantt View ${startYear}`}
         </h2>
         <button
           onClick={handleDownloadCSV}
